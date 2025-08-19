@@ -1,0 +1,159 @@
+import React, { useState } from 'react';
+import { Box, Paper, Typography, TextField, IconButton } from '@mui/material';
+import SendIcon from '@mui/icons-material/Send';
+
+const PracticeEnhancerChat = () => {
+  const [messages, setMessages] = useState([
+    {
+      id: 1,
+      text: "Hello! I'm your Practice Enhancement AI assistant. I have access to all your practice data and can help you with insights, recommendations, and strategies to grow your practice. What would you like to know?",
+      sender: 'ai',
+      time: new Date().toISOString()
+    }
+  ]);
+  const [input, setInput] = useState('');
+
+  const handleSend = () => {
+    if (input.trim()) {
+      const newMessage = {
+        id: messages.length + 1,
+        text: input,
+        sender: 'user',
+        time: new Date().toISOString()
+      };
+      setMessages([...messages, newMessage]);
+      
+      // Simulate AI response
+      setTimeout(() => {
+        const aiResponse = {
+          id: messages.length + 2,
+          text: getAIResponse(input),
+          sender: 'ai',
+          time: new Date().toISOString()
+        };
+        setMessages(prev => [...prev, aiResponse]);
+      }, 1000);
+      
+      setInput('');
+    }
+  };
+
+  const getAIResponse = (input) => {
+    const lowerInput = input.toLowerCase();
+    if (lowerInput.includes('revenue') || lowerInput.includes('money')) {
+      return "Based on your practice data, your revenue is up 12% this quarter. Your highest revenue procedures are crowns ($1,200 avg) and root canals ($950 avg). Consider promoting these services more. Would you like specific strategies to increase revenue?";
+    } else if (lowerInput.includes('patient') || lowerInput.includes('retention')) {
+      return "Your patient retention rate is 78%, which is above industry average. However, I notice 22% of patients haven't returned in 6+ months. I recommend implementing an automated recall system and personalized follow-ups. Shall I create a retention campaign for you?";
+    } else if (lowerInput.includes('appointment') || lowerInput.includes('schedule')) {
+      return "Your appointment utilization is at 85% capacity. Peak hours are Tuesday-Thursday 10am-2pm. You have openings on Mondays and Fridays that could be filled. Consider offering promotions for these slower periods. Want me to analyze your scheduling patterns further?";
+    } else if (lowerInput.includes('insurance')) {
+      return "Delta Dental represents 35% of your claims with a 92% approval rate. Aetna and Cigna have lower approval rates at 78%. I suggest reviewing your coding practices for these providers. Would you like a detailed insurance performance report?";
+    } else if (lowerInput.includes('marketing') || lowerInput.includes('new patients')) {
+      return "You're averaging 28 new patients per month. Most referrals come from existing patients (45%) and Google (30%). Your online reviews average 4.7 stars. I recommend focusing on Google Ads and patient referral incentives. Want help creating a marketing campaign?";
+    } else {
+      return "I can help you with revenue optimization, patient retention, appointment scheduling, insurance analysis, marketing strategies, and much more. What specific aspect of your practice would you like to improve?";
+    }
+  };
+
+  return (
+    <Box sx={{ 
+      height: 'calc(100vh - 250px)',
+      display: 'flex',
+      flexDirection: 'column',
+      background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
+      borderRadius: 2,
+      border: '1px solid rgba(62, 228, 200, 0.2)',
+      overflow: 'hidden'
+    }}>
+      {/* Chat Messages */}
+      <Box sx={{ 
+        flex: 1,
+        overflowY: 'auto',
+        p: 3,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2
+      }}>
+        {messages.map((message) => (
+          <Box
+            key={message.id}
+            sx={{
+              display: 'flex',
+              justifyContent: message.sender === 'user' ? 'flex-end' : 'flex-start'
+            }}
+          >
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2,
+                maxWidth: '70%',
+                backgroundColor: message.sender === 'user' ? '#0B1929' : '#ffffff',
+                color: message.sender === 'user' ? '#ffffff' : '#0B1929',
+                border: message.sender === 'user' ? 'none' : '1px solid rgba(62, 228, 200, 0.3)',
+                borderRadius: message.sender === 'user' ? '20px 20px 4px 20px' : '20px 20px 20px 4px'
+              }}
+            >
+              <Typography variant="body2">{message.text}</Typography>
+              <Typography variant="caption" sx={{ 
+                display: 'block', 
+                mt: 1, 
+                opacity: 0.7 
+              }}>
+                {new Date(message.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </Typography>
+            </Paper>
+          </Box>
+        ))}
+      </Box>
+
+      {/* Input Area */}
+      <Box sx={{ 
+        p: 2, 
+        borderTop: '1px solid rgba(62, 228, 200, 0.2)',
+        backgroundColor: '#ffffff'
+      }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <TextField
+            fullWidth
+            variant="outlined"
+            placeholder="Ask about your practice performance, strategies, or insights..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '20px',
+                '& fieldset': {
+                  borderColor: 'rgba(62, 228, 200, 0.3)',
+                },
+                '&:hover fieldset': {
+                  borderColor: '#3EE4C8',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#3EE4C8',
+                }
+              }
+            }}
+          />
+          <IconButton 
+            onClick={handleSend}
+            sx={{ 
+              backgroundColor: '#3EE4C8',
+              color: 'white',
+              '&:hover': { 
+                backgroundColor: '#35ccb3' 
+              }
+            }}
+          >
+            <SendIcon />
+          </IconButton>
+        </Box>
+        <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.secondary', textAlign: 'center' }}>
+          Powered by OmniDent AI • Your practice insights at your fingertips
+        </Typography>
+      </Box>
+    </Box>
+  );
+};
+
+export default PracticeEnhancerChat;
