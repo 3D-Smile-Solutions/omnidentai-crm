@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { Box, Paper, Typography, TextField, IconButton, useMediaQuery } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 
-const PracticeEnhancerChat = () => {
-  const isMobile = useMediaQuery('(max-width:1000px)');
+const PracticeEnhancerChat = ({ isMobile: isMobileProp }) => {
+  const isMobileQuery = useMediaQuery('(max-width:1000px)');
+  const isMobile = isMobileProp !== undefined ? isMobileProp : isMobileQuery;
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -59,12 +60,15 @@ const PracticeEnhancerChat = () => {
   return (
     <Box sx={{ 
       height: isMobile ? 'calc(100vh - 200px)' : 'calc(100vh - 250px)',
+      width: isMobile ? '100%' : '100%',
+      maxWidth: isMobile ? '100%' : '100%',
       display: 'flex',
       flexDirection: 'column',
       background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
-      borderRadius: 2,
+      borderRadius: isMobile ? 1 : 2,
       border: '1px solid rgba(62, 228, 200, 0.2)',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      mx: 'auto'
     }}>
       {/* Chat Messages */}
       <Box sx={{ 

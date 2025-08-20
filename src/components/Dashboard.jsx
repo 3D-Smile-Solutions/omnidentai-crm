@@ -848,72 +848,29 @@ const Dashboard = ({ onLogout }) => {
                 borderBottom: '1px solid rgba(62, 228, 200, 0.15)',
                 background: 'white'
               }}>
-                <Box
-                  component="button"
+                <Button
+                  variant="contained"
+                  startIcon={<ArrowBackIcon />}
                   onClick={() => setSelectedPatient(null)}
                   sx={{
-                    backgroundColor: 'white',
-                    width: '180px',
-                    borderRadius: '16px',
-                    height: '56px',
-                    position: 'relative',
+                    backgroundColor: '#3EE4C8',
                     color: '#0B1929',
-                    fontSize: '1rem',
                     fontWeight: 600,
-                    fontFamily: '"Plus Jakarta Sans", sans-serif',
-                    border: '1px solid rgba(62, 228, 200, 0.3)',
-                    cursor: 'pointer',
-                    overflow: 'hidden',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: 0,
-                    '@media (hover: hover)': {
-                      '&:hover .go-back-bg': {
-                        width: '172px'
-                      },
-                      '&:hover': {
-                        borderColor: '#3EE4C8'
-                      }
-                    }
+                    textTransform: 'none',
+                    borderRadius: 2,
+                    px: 3,
+                    py: 1,
+                    boxShadow: 'none',
+                    '&:hover': {
+                      backgroundColor: '#35ccb3',
+                      boxShadow: '0 2px 8px rgba(62, 228, 200, 0.3)',
+                      transform: 'translateY(-1px)',
+                    },
+                    transition: 'all 0.2s ease'
                   }}
                 >
-                  <Box
-                    className="go-back-bg"
-                    sx={{
-                      backgroundColor: '#3EE4C8',
-                      borderRadius: '12px',
-                      height: '48px',
-                      width: '45px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'flex-start',
-                      position: 'absolute',
-                      left: '4px',
-                      top: '4px',
-                      transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                      paddingLeft: '10px',
-                      zIndex: 0,
-                      willChange: 'width',
-                      transform: 'translateZ(0)'
-                    }}
-                  >
-                    <ArrowBackIcon sx={{ color: '#0B1929', fontSize: '24px', flexShrink: 0 }} />
-                  </Box>
-                  <Typography 
-                    component="span"
-                    sx={{ 
-                      marginLeft: '35px',
-                      fontWeight: 600,
-                      fontSize: '1rem',
-                      position: 'relative',
-                      zIndex: 1,
-                      color: '#0B1929'
-                    }}
-                  >
-                    Go Back
-                  </Typography>
-                </Box>
+                  Back to Patients
+                </Button>
               </Box>
             )}
             
@@ -1107,15 +1064,24 @@ const Dashboard = ({ onLogout }) => {
         );
       case 4:
         return (
-          <>
-            <Typography variant="h4" gutterBottom sx={{ fontWeight: 600 }}>
+          <Box sx={{ 
+            mx: isMobile ? -2 : 0,
+            px: isMobile ? 1 : 0 
+          }}>
+            <Typography variant="h4" gutterBottom sx={{ 
+              fontWeight: 600,
+              px: isMobile ? 2 : 0
+            }}>
               Practice Enhancer
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ 
+              mb: 2,
+              px: isMobile ? 2 : 0
+            }}>
               Chat with your AI assistant that knows everything about your practice
             </Typography>
-            <PracticeEnhancerChat />
-          </>
+            <PracticeEnhancerChat isMobile={isMobile} />
+          </Box>
         );
       case 5:
         return (
