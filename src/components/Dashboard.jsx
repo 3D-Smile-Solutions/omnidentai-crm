@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Drawer,
@@ -28,7 +28,8 @@ import {
   People as PeopleIcon,
   Description as FormsIcon,
   Assessment as ReportsIcon,
-  TrendingUp as EnhancerIcon
+  TrendingUp as EnhancerIcon,
+  ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import SessionHistory from './SessionHistory';
@@ -66,6 +67,16 @@ const Dashboard = ({ onLogout }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedPatient, setSelectedPatient] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 1000);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   const [patients, setPatients] = useState([
     {
       id: 1,
@@ -196,7 +207,10 @@ const Dashboard = ({ onLogout }) => {
           <ListItem 
             button 
             key={item.text}
-            onClick={() => setSelectedIndex(item.index)}
+            onClick={() => {
+              setSelectedIndex(item.index);
+              setMobileOpen(false);
+            }}
             selected={selectedIndex === item.index}
             sx={{
               borderRadius: 2,
@@ -205,7 +219,7 @@ const Dashboard = ({ onLogout }) => {
               color: selectedIndex === item.index ? '#0B1929' : 'rgba(11, 25, 41, 0.7)',
               backgroundColor: selectedIndex === item.index ? 'rgba(62, 228, 200, 0.2)' : 'transparent',
               cursor: 'pointer',
-              transition: 'all 0.3s ease',
+              transition: 'background-color 0.15s ease',
               '& .MuiListItemIcon-root': {
                 color: selectedIndex === item.index ? '#3EE4C8' : 'rgba(11, 25, 41, 0.6)'
               },
@@ -323,7 +337,7 @@ const Dashboard = ({ onLogout }) => {
                 p: 3,
                 background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
                 border: '1px solid rgba(62, 228, 200, 0.2)',
-                transition: 'all 0.3s ease',
+                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
                 '&:hover': {
                   boxShadow: '0 4px 20px rgba(62, 228, 200, 0.15)',
                   transform: 'translateY(-2px)'
@@ -341,7 +355,7 @@ const Dashboard = ({ onLogout }) => {
                 p: 3,
                 background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
                 border: '1px solid rgba(62, 228, 200, 0.2)',
-                transition: 'all 0.3s ease',
+                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
                 '&:hover': {
                   boxShadow: '0 4px 20px rgba(62, 228, 200, 0.15)',
                   transform: 'translateY(-2px)'
@@ -359,7 +373,7 @@ const Dashboard = ({ onLogout }) => {
                 p: 3,
                 background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
                 border: '1px solid rgba(62, 228, 200, 0.2)',
-                transition: 'all 0.3s ease',
+                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
                 '&:hover': {
                   boxShadow: '0 4px 20px rgba(62, 228, 200, 0.15)',
                   transform: 'translateY(-2px)'
@@ -377,7 +391,7 @@ const Dashboard = ({ onLogout }) => {
                 p: 3,
                 background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
                 border: '1px solid rgba(62, 228, 200, 0.2)',
-                transition: 'all 0.3s ease',
+                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
                 '&:hover': {
                   boxShadow: '0 4px 20px rgba(62, 228, 200, 0.15)',
                   transform: 'translateY(-2px)'
@@ -410,7 +424,7 @@ const Dashboard = ({ onLogout }) => {
                   Monthly Revenue Trends
                 </Typography>
                 <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={revenueData}>
+                  <AreaChart data={revenueData} margin={{ bottom: isMobile ? 5 : 5, left: isMobile ? -20 : 5 }}>
                     <defs>
                       <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#3EE4C8" stopOpacity={0.8}/>
@@ -418,8 +432,17 @@ const Dashboard = ({ onLogout }) => {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(62, 228, 200, 0.1)" />
-                    <XAxis dataKey="month" stroke="#0B1929" />
-                    <YAxis stroke="#0B1929" />
+                    <XAxis 
+                      dataKey="month" 
+                      stroke="#0B1929"
+                      interval={isMobile ? 1 : 0}
+                      tick={{ fontSize: isMobile ? 10 : 12 }}
+                    />
+                    <YAxis 
+                      stroke="#0B1929"
+                      tick={{ fontSize: isMobile ? 10 : 12 }}
+                      tickFormatter={isMobile ? (value) => `${value/1000}k` : undefined}
+                    />
                     <Tooltip 
                       contentStyle={{ 
                         backgroundColor: 'rgba(255, 255, 255, 0.95)', 
@@ -462,10 +485,18 @@ const Dashboard = ({ onLogout }) => {
                     Weekly Bookings
                   </Typography>
                   <ResponsiveContainer width="100%" height={250}>
-                    <BarChart data={bookingsData}>
+                    <BarChart data={bookingsData} margin={{ bottom: isMobile ? 5 : 5, left: isMobile ? -20 : 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(62, 228, 200, 0.1)" />
-                      <XAxis dataKey="day" stroke="#0B1929" />
-                      <YAxis stroke="#0B1929" />
+                      <XAxis 
+                        dataKey="day" 
+                        stroke="#0B1929"
+                        interval={0}
+                        tick={{ fontSize: isMobile ? 10 : 12 }}
+                      />
+                      <YAxis 
+                        stroke="#0B1929"
+                        tick={{ fontSize: isMobile ? 10 : 12 }}
+                      />
                       <Tooltip 
                         contentStyle={{ 
                           backgroundColor: 'rgba(255, 255, 255, 0.95)', 
@@ -490,10 +521,22 @@ const Dashboard = ({ onLogout }) => {
                     Appointment Types
                   </Typography>
                   <ResponsiveContainer width="100%" height={250}>
-                    <BarChart data={appointmentTypes}>
+                    <BarChart data={appointmentTypes} margin={{ bottom: isMobile ? 40 : 5, left: isMobile ? -20 : 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(62, 228, 200, 0.1)" />
-                      <XAxis dataKey="type" stroke="#0B1929" />
-                      <YAxis stroke="#0B1929" />
+                      <XAxis 
+                        dataKey="type" 
+                        stroke="#0B1929"
+                        angle={isMobile ? -45 : 0}
+                        textAnchor={isMobile ? "end" : "middle"}
+                        interval={0}
+                        tick={{ fontSize: isMobile ? 9 : 12 }}
+                        height={isMobile ? 60 : 30}
+                      />
+                      <YAxis 
+                        stroke="#0B1929"
+                        tick={{ fontSize: isMobile ? 10 : 12 }}
+                        tickFormatter={isMobile ? (value) => value >= 1000 ? `${value/1000}k` : value : undefined}
+                      />
                       <Tooltip 
                         contentStyle={{ 
                           backgroundColor: 'rgba(255, 255, 255, 0.95)', 
@@ -520,10 +563,18 @@ const Dashboard = ({ onLogout }) => {
                   Conversations by Channel
                 </Typography>
                 <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={conversationsData}>
+                  <BarChart data={conversationsData} margin={{ bottom: isMobile ? 5 : 5, left: isMobile ? -20 : 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(62, 228, 200, 0.1)" />
-                    <XAxis dataKey="channel" stroke="#0B1929" />
-                    <YAxis stroke="#0B1929" />
+                    <XAxis 
+                      dataKey="channel" 
+                      stroke="#0B1929"
+                      interval={0}
+                      tick={{ fontSize: isMobile ? 10 : 12 }}
+                    />
+                    <YAxis 
+                      stroke="#0B1929"
+                      tick={{ fontSize: isMobile ? 10 : 12 }}
+                    />
                     <Tooltip 
                       contentStyle={{ 
                         backgroundColor: 'rgba(255, 255, 255, 0.95)', 
@@ -548,7 +599,7 @@ const Dashboard = ({ onLogout }) => {
                     Most Popular Procedures
                   </Typography>
                   <ResponsiveContainer width="100%" height={250}>
-                    <BarChart data={popularProcedures} margin={{ bottom: 60 }}>
+                    <BarChart data={popularProcedures} margin={{ bottom: isMobile ? 80 : 60, left: isMobile ? -20 : 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(62, 228, 200, 0.1)" />
                       <XAxis 
                         dataKey="name" 
@@ -557,8 +608,12 @@ const Dashboard = ({ onLogout }) => {
                         textAnchor="end" 
                         height={80}
                         interval={0}
+                        tick={{ fontSize: isMobile ? 8 : 12 }}
                       />
-                      <YAxis stroke="#0B1929" />
+                      <YAxis 
+                        stroke="#0B1929"
+                        tick={{ fontSize: isMobile ? 10 : 12 }}
+                      />
                       <Tooltip 
                         contentStyle={{ 
                           backgroundColor: 'rgba(255, 255, 255, 0.95)', 
@@ -581,17 +636,21 @@ const Dashboard = ({ onLogout }) => {
                     Insurance Verifications
                   </Typography>
                   <ResponsiveContainer width="100%" height={250}>
-                    <BarChart data={insuranceProviders} margin={{ bottom: 20 }}>
+                    <BarChart data={insuranceProviders} margin={{ bottom: isMobile ? 70 : 20, left: isMobile ? -20 : 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(62, 228, 200, 0.1)" />
                       <XAxis 
                         dataKey="provider" 
                         stroke="#0B1929"
                         interval={0}
-                        angle={-15}
+                        angle={isMobile ? -45 : -15}
                         textAnchor="end"
-                        height={60}
+                        height={isMobile ? 80 : 60}
+                        tick={{ fontSize: isMobile ? 8 : 12 }}
                       />
-                      <YAxis stroke="#0B1929" />
+                      <YAxis 
+                        stroke="#0B1929"
+                        tick={{ fontSize: isMobile ? 10 : 12 }}
+                      />
                       <Tooltip 
                         contentStyle={{ 
                           backgroundColor: 'rgba(255, 255, 255, 0.95)', 
@@ -617,10 +676,21 @@ const Dashboard = ({ onLogout }) => {
                     Appointment Types by Gender
                   </Typography>
                   <ResponsiveContainer width="100%" height={250}>
-                    <BarChart data={appointmentsByGender}>
+                    <BarChart data={appointmentsByGender} margin={{ bottom: isMobile ? 40 : 5, left: isMobile ? -20 : 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(62, 228, 200, 0.1)" />
-                      <XAxis dataKey="type" stroke="#0B1929" />
-                      <YAxis stroke="#0B1929" />
+                      <XAxis 
+                        dataKey="type" 
+                        stroke="#0B1929"
+                        angle={isMobile ? -45 : 0}
+                        textAnchor={isMobile ? "end" : "middle"}
+                        interval={0}
+                        tick={{ fontSize: isMobile ? 9 : 12 }}
+                        height={isMobile ? 60 : 30}
+                      />
+                      <YAxis 
+                        stroke="#0B1929"
+                        tick={{ fontSize: isMobile ? 10 : 12 }}
+                      />
                       <Tooltip 
                         contentStyle={{ 
                           backgroundColor: 'rgba(255, 255, 255, 0.95)', 
@@ -651,8 +721,8 @@ const Dashboard = ({ onLogout }) => {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ name, value }) => `${name}: ${value}%`}
-                        outerRadius={80}
+                        label={({ name, value }) => isMobile ? `${value}%` : `${name}: ${value}%`}
+                        outerRadius={isMobile ? 60 : 80}
                         fill="#8884d8"
                         dataKey="value"
                       >
@@ -689,8 +759,8 @@ const Dashboard = ({ onLogout }) => {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, value }) => `${name}: $${value.toLocaleString()}`}
-                      outerRadius={100}
+                      label={({ name, value }) => isMobile ? `$${(value/1000).toFixed(1)}k` : `${name}: $${value.toLocaleString()}`}
+                      outerRadius={isMobile ? 80 : 100}
                       fill="#8884d8"
                       dataKey="value"
                     >
@@ -721,7 +791,7 @@ const Dashboard = ({ onLogout }) => {
                 <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: '#0B1929' }}>
                   OmniDent AI Patient Satisfaction Metrics
                 </Typography>
-                <ResponsiveContainer width="100%" height={400}>
+                <ResponsiveContainer width="100%" height={isMobile ? 300 : 400}>
                   <RadarChart data={patientSatisfaction}>
                     <PolarGrid 
                       stroke="rgba(62, 228, 200, 0.3)" 
@@ -730,7 +800,7 @@ const Dashboard = ({ onLogout }) => {
                     <PolarAngleAxis 
                       dataKey="metric" 
                       stroke="#0B1929"
-                      tick={{ fontSize: 12 }}
+                      tick={{ fontSize: isMobile ? 9 : 12 }}
                     />
                     <PolarRadiusAxis 
                       angle={90} 
@@ -765,19 +835,120 @@ const Dashboard = ({ onLogout }) => {
           <Box sx={{ 
             height: 'calc(100vh - 140px)',
             display: 'flex',
+            flexDirection: 'column',
             ml: -3,
             mr: -3,
-            mt: -2
+            mt: -2,
+            position: 'relative'
           }}>
-            <PatientList 
-              patients={patients}
-              selectedPatient={selectedPatient}
-              onSelectPatient={setSelectedPatient}
-            />
-            <ChatInterface 
-              patient={selectedPatient}
-              onSendMessage={handleSendMessage}
-            />
+            {/* Mobile back button when patient is selected */}
+            {isMobile && selectedPatient && (
+              <Box sx={{ 
+                p: 2, 
+                borderBottom: '1px solid rgba(62, 228, 200, 0.15)',
+                background: 'white'
+              }}>
+                <Box
+                  component="button"
+                  onClick={() => setSelectedPatient(null)}
+                  sx={{
+                    backgroundColor: 'white',
+                    width: '180px',
+                    borderRadius: '16px',
+                    height: '56px',
+                    position: 'relative',
+                    color: '#0B1929',
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    fontFamily: '"Plus Jakarta Sans", sans-serif',
+                    border: '1px solid rgba(62, 228, 200, 0.3)',
+                    cursor: 'pointer',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 0,
+                    '@media (hover: hover)': {
+                      '&:hover .go-back-bg': {
+                        width: '172px'
+                      },
+                      '&:hover': {
+                        borderColor: '#3EE4C8'
+                      }
+                    }
+                  }}
+                >
+                  <Box
+                    className="go-back-bg"
+                    sx={{
+                      backgroundColor: '#3EE4C8',
+                      borderRadius: '12px',
+                      height: '48px',
+                      width: '45px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'flex-start',
+                      position: 'absolute',
+                      left: '4px',
+                      top: '4px',
+                      transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                      paddingLeft: '10px',
+                      zIndex: 0,
+                      willChange: 'width',
+                      transform: 'translateZ(0)'
+                    }}
+                  >
+                    <ArrowBackIcon sx={{ color: '#0B1929', fontSize: '24px', flexShrink: 0 }} />
+                  </Box>
+                  <Typography 
+                    component="span"
+                    sx={{ 
+                      marginLeft: '35px',
+                      fontWeight: 600,
+                      fontSize: '1rem',
+                      position: 'relative',
+                      zIndex: 1,
+                      color: '#0B1929'
+                    }}
+                  >
+                    Go Back
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+            
+            {/* Main content area */}
+            <Box sx={{ 
+              display: 'flex',
+              flex: 1,
+              overflow: 'hidden'
+            }}>
+              {/* Patient List - hide on mobile when patient is selected */}
+              <Box sx={{ 
+                display: isMobile && selectedPatient ? 'none' : 'block',
+                width: isMobile ? '100%' : 'auto'
+              }}>
+                <PatientList 
+                  patients={patients}
+                  selectedPatient={selectedPatient}
+                  onSelectPatient={setSelectedPatient}
+                  isMobile={isMobile}
+                />
+              </Box>
+              
+              {/* Chat Interface - full width on mobile, show only when patient selected */}
+              <Box sx={{ 
+                display: isMobile && !selectedPatient ? 'none' : 'block',
+                width: isMobile ? '100%' : 'auto',
+                flex: isMobile ? 'none' : 1
+              }}>
+                <ChatInterface 
+                  patient={selectedPatient}
+                  onSendMessage={handleSendMessage}
+                  isMobile={isMobile}
+                />
+              </Box>
+            </Box>
           </Box>
         );
       case 2:
@@ -795,7 +966,7 @@ const Dashboard = ({ onLogout }) => {
                 cursor: 'pointer',
                 background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
                 border: '1px solid rgba(62, 228, 200, 0.2)',
-                transition: 'all 0.3s ease',
+                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
                 '&:hover': { 
                   boxShadow: '0 6px 24px rgba(62, 228, 200, 0.2)',
                   transform: 'translateY(-4px)',
@@ -811,7 +982,7 @@ const Dashboard = ({ onLogout }) => {
                 cursor: 'pointer',
                 background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
                 border: '1px solid rgba(62, 228, 200, 0.2)',
-                transition: 'all 0.3s ease',
+                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
                 '&:hover': { 
                   boxShadow: '0 6px 24px rgba(62, 228, 200, 0.2)',
                   transform: 'translateY(-4px)',
@@ -827,7 +998,7 @@ const Dashboard = ({ onLogout }) => {
                 cursor: 'pointer',
                 background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
                 border: '1px solid rgba(62, 228, 200, 0.2)',
-                transition: 'all 0.3s ease',
+                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
                 '&:hover': { 
                   boxShadow: '0 6px 24px rgba(62, 228, 200, 0.2)',
                   transform: 'translateY(-4px)',
@@ -843,7 +1014,7 @@ const Dashboard = ({ onLogout }) => {
                 cursor: 'pointer',
                 background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
                 border: '1px solid rgba(62, 228, 200, 0.2)',
-                transition: 'all 0.3s ease',
+                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
                 '&:hover': { 
                   boxShadow: '0 6px 24px rgba(62, 228, 200, 0.2)',
                   transform: 'translateY(-4px)',
@@ -871,7 +1042,7 @@ const Dashboard = ({ onLogout }) => {
                 p: 3,
                 background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
                 border: '1px solid rgba(62, 228, 200, 0.2)',
-                transition: 'all 0.3s ease',
+                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
                 '&:hover': {
                   boxShadow: '0 4px 20px rgba(62, 228, 200, 0.15)',
                   transform: 'translateY(-2px)'
@@ -887,7 +1058,7 @@ const Dashboard = ({ onLogout }) => {
                 p: 3,
                 background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
                 border: '1px solid rgba(62, 228, 200, 0.2)',
-                transition: 'all 0.3s ease',
+                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
                 '&:hover': {
                   boxShadow: '0 4px 20px rgba(62, 228, 200, 0.15)',
                   transform: 'translateY(-2px)'
@@ -903,7 +1074,7 @@ const Dashboard = ({ onLogout }) => {
                 p: 3,
                 background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
                 border: '1px solid rgba(62, 228, 200, 0.2)',
-                transition: 'all 0.3s ease',
+                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
                 '&:hover': {
                   boxShadow: '0 4px 20px rgba(62, 228, 200, 0.15)',
                   transform: 'translateY(-2px)'
@@ -919,7 +1090,7 @@ const Dashboard = ({ onLogout }) => {
                 p: 3,
                 background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
                 border: '1px solid rgba(62, 228, 200, 0.2)',
-                transition: 'all 0.3s ease',
+                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
                 '&:hover': {
                   boxShadow: '0 4px 20px rgba(62, 228, 200, 0.15)',
                   transform: 'translateY(-2px)'
@@ -984,7 +1155,7 @@ const Dashboard = ({ onLogout }) => {
                 p: 3,
                 background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
                 border: '1px solid rgba(62, 228, 200, 0.2)',
-                transition: 'all 0.3s ease',
+                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
                 '&:hover': {
                   boxShadow: '0 4px 20px rgba(62, 228, 200, 0.15)',
                   transform: 'translateY(-2px)'

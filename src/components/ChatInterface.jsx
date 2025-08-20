@@ -18,7 +18,7 @@ import {
 } from '@mui/icons-material';
 import CustomCheckbox from './CustomCheckbox';
 
-const ChatInterface = ({ patient, onSendMessage }) => {
+const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
   const [message, setMessage] = useState('');
   const [localSelectedChannels, setLocalSelectedChannels] = useState({
     SMS: true,
@@ -168,13 +168,17 @@ const ChatInterface = ({ patient, onSendMessage }) => {
             </Typography>
           </Box>
         </Box>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <IconButton sx={{ color: 'rgba(11, 25, 41, 0.6)' }}>
-            <PhoneIcon />
-          </IconButton>
-          <IconButton sx={{ color: 'rgba(11, 25, 41, 0.6)' }}>
-            <VideoCallIcon />
-          </IconButton>
+        <Box sx={{ display: 'flex', gap: isMobile ? 0 : 1 }}>
+          {!isMobile && (
+            <>
+              <IconButton sx={{ color: 'rgba(11, 25, 41, 0.6)' }}>
+                <PhoneIcon />
+              </IconButton>
+              <IconButton sx={{ color: 'rgba(11, 25, 41, 0.6)' }}>
+                <VideoCallIcon />
+              </IconButton>
+            </>
+          )}
           <IconButton sx={{ color: 'rgba(11, 25, 41, 0.6)' }}>
             <MoreVertIcon />
           </IconButton>
@@ -324,11 +328,16 @@ const ChatInterface = ({ patient, onSendMessage }) => {
       >
         <Box sx={{ 
           display: 'flex', 
-          gap: 1.5, 
-          mb: 1.5,
-          alignItems: 'center'
+          gap: isMobile ? 1 : 1.5, 
+          mb: isMobile ? 1 : 1.5,
+          alignItems: 'center',
+          flexWrap: isMobile ? 'wrap' : 'nowrap'
         }}>
-          <Typography variant="caption" sx={{ color: 'rgba(11, 25, 41, 0.6)', fontWeight: 600 }}>
+          <Typography variant="caption" sx={{ 
+            color: 'rgba(11, 25, 41, 0.6)', 
+            fontWeight: 600,
+            fontSize: isMobile ? '0.7rem' : '0.75rem'
+          }}>
             Filter by:
           </Typography>
           <CustomCheckbox 

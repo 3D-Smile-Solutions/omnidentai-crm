@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import { Search as SearchIcon } from '@mui/icons-material';
 
-const PatientList = ({ patients, selectedPatient, onSelectPatient }) => {
+const PatientList = ({ patients, selectedPatient, onSelectPatient, isMobile }) => {
   const getInitials = (firstName, lastName) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
@@ -42,9 +42,9 @@ const PatientList = ({ patients, selectedPatient, onSelectPatient }) => {
 
   return (
     <Box sx={{ 
-      width: 320, 
+      width: isMobile ? '100%' : 320, 
       height: '100%',
-      borderRight: '1px solid rgba(62, 228, 200, 0.15)',
+      borderRight: isMobile ? 'none' : '1px solid rgba(62, 228, 200, 0.15)',
       display: 'flex',
       flexDirection: 'column',
       background: 'linear-gradient(180deg, #ffffff 0%, #fafffe 100%)'

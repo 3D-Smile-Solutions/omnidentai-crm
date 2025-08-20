@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Box, Paper, Typography, TextField, IconButton } from '@mui/material';
+import { Box, Paper, Typography, TextField, IconButton, useMediaQuery } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 
 const PracticeEnhancerChat = () => {
+  const isMobile = useMediaQuery('(max-width:1000px)');
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -57,7 +58,7 @@ const PracticeEnhancerChat = () => {
 
   return (
     <Box sx={{ 
-      height: 'calc(100vh - 250px)',
+      height: isMobile ? 'calc(100vh - 200px)' : 'calc(100vh - 250px)',
       display: 'flex',
       flexDirection: 'column',
       background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
@@ -69,10 +70,10 @@ const PracticeEnhancerChat = () => {
       <Box sx={{ 
         flex: 1,
         overflowY: 'auto',
-        p: 3,
+        p: isMobile ? 2 : 3,
         display: 'flex',
         flexDirection: 'column',
-        gap: 2
+        gap: isMobile ? 1.5 : 2
       }}>
         {messages.map((message) => (
           <Box
@@ -85,19 +86,22 @@ const PracticeEnhancerChat = () => {
             <Paper
               elevation={0}
               sx={{
-                p: 2,
-                maxWidth: '70%',
+                p: isMobile ? 1.5 : 2,
+                maxWidth: isMobile ? '85%' : '70%',
                 backgroundColor: message.sender === 'user' ? '#0B1929' : '#ffffff',
                 color: message.sender === 'user' ? '#ffffff' : '#0B1929',
                 border: message.sender === 'user' ? 'none' : '1px solid rgba(62, 228, 200, 0.3)',
                 borderRadius: message.sender === 'user' ? '20px 20px 4px 20px' : '20px 20px 20px 4px'
               }}
             >
-              <Typography variant="body2">{message.text}</Typography>
+              <Typography variant="body2" sx={{ fontSize: isMobile ? '0.875rem' : '1rem' }}>
+                {message.text}
+              </Typography>
               <Typography variant="caption" sx={{ 
                 display: 'block', 
-                mt: 1, 
-                opacity: 0.7 
+                mt: 0.5, 
+                opacity: 0.7,
+                fontSize: isMobile ? '0.7rem' : '0.75rem'
               }}>
                 {new Date(message.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </Typography>
@@ -108,21 +112,23 @@ const PracticeEnhancerChat = () => {
 
       {/* Input Area */}
       <Box sx={{ 
-        p: 2, 
+        p: isMobile ? 1.5 : 2, 
         borderTop: '1px solid rgba(62, 228, 200, 0.2)',
         backgroundColor: '#ffffff'
       }}>
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', gap: isMobile ? 0.5 : 1, alignItems: 'center' }}>
           <TextField
             fullWidth
             variant="outlined"
-            placeholder="Ask about your practice performance, strategies, or insights..."
+            placeholder={isMobile ? "Ask about your practice..." : "Ask about your practice performance, strategies, or insights..."}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+            size={isMobile ? "small" : "medium"}
             sx={{
               '& .MuiOutlinedInput-root': {
                 borderRadius: '20px',
+                fontSize: isMobile ? '0.875rem' : '1rem',
                 '& fieldset': {
                   borderColor: 'rgba(62, 228, 200, 0.3)',
                 },
@@ -137,18 +143,26 @@ const PracticeEnhancerChat = () => {
           />
           <IconButton 
             onClick={handleSend}
+            size={isMobile ? "small" : "large"}
             sx={{ 
               backgroundColor: '#3EE4C8',
               color: 'white',
+              padding: isMobile ? 1 : 1.5,
               '&:hover': { 
                 backgroundColor: '#35ccb3' 
               }
             }}
           >
-            <SendIcon />
+            <SendIcon sx={{ fontSize: isMobile ? 20 : 24 }} />
           </IconButton>
         </Box>
-        <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.secondary', textAlign: 'center' }}>
+        <Typography variant="caption" sx={{ 
+          display: 'block', 
+          mt: isMobile ? 0.5 : 1, 
+          color: 'text.secondary', 
+          textAlign: 'center',
+          fontSize: isMobile ? '0.65rem' : '0.75rem'
+        }}>
           Powered by OmniDent AI • Your practice insights at your fingertips
         </Typography>
       </Box>
