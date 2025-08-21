@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Box, Paper, Typography, TextField, IconButton, useMediaQuery } from '@mui/material';
+import { Box, Paper, Typography, TextField, IconButton, useMediaQuery, Chip, Fade } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 
 const PracticeEnhancerChat = ({ isMobile: isMobileProp }) => {
   const isMobileQuery = useMediaQuery('(max-width:1000px)');
@@ -14,6 +15,14 @@ const PracticeEnhancerChat = ({ isMobile: isMobileProp }) => {
     }
   ]);
   const [input, setInput] = useState('');
+
+  const examplePrompts = [
+    "How many implant patients did we have this month?",
+    "What's our production split: new vs returning patients?",
+    "Which insurance has the highest denial rates?",
+    "Show me patient retention rate and strategies",
+    "What marketing channel brings best ROI?"
+  ];
 
   const handleSend = () => {
     if (input.trim()) {
@@ -38,6 +47,10 @@ const PracticeEnhancerChat = ({ isMobile: isMobileProp }) => {
       
       setInput('');
     }
+  };
+
+  const handleExampleClick = (example) => {
+    setInput(example);
   };
 
   const getAIResponse = (input) => {
@@ -113,6 +126,62 @@ const PracticeEnhancerChat = ({ isMobile: isMobileProp }) => {
           </Box>
         ))}
       </Box>
+
+      {/* Example Prompts */}
+      <Box sx={{ 
+            p: isMobile ? 1.5 : 2,
+            borderTop: '1px solid rgba(62, 228, 200, 0.2)',
+            backgroundColor: 'rgba(62, 228, 200, 0.03)'
+          }}>
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 1, 
+              mb: 1.5 
+            }}>
+              <AutoAwesomeIcon sx={{ 
+                color: '#3EE4C8', 
+                fontSize: isMobile ? 18 : 20 
+              }} />
+              <Typography variant="caption" sx={{ 
+                color: 'rgba(11, 25, 41, 0.7)', 
+                fontWeight: 600,
+                fontSize: isMobile ? '0.75rem' : '0.85rem'
+              }}>
+                Try asking me:
+              </Typography>
+            </Box>
+            <Box sx={{ 
+              display: 'flex', 
+              flexWrap: 'wrap', 
+              gap: isMobile ? 0.5 : 1 
+            }}>
+              {examplePrompts.map((prompt, index) => (
+                <Chip
+                  key={index}
+                  label={prompt}
+                  onClick={() => handleExampleClick(prompt)}
+                  sx={{
+                    backgroundColor: 'white',
+                    border: '1px solid rgba(62, 228, 200, 0.3)',
+                    color: '#0B1929',
+                    fontSize: isMobile ? '0.7rem' : '0.75rem',
+                    height: isMobile ? 26 : 28,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      backgroundColor: 'rgba(62, 228, 200, 0.1)',
+                      borderColor: '#3EE4C8',
+                      transform: 'translateY(-1px)'
+                    },
+                    '& .MuiChip-label': {
+                      px: isMobile ? 1 : 1.5
+                    }
+                  }}
+                />
+              ))}
+            </Box>
+          </Box>
 
       {/* Input Area */}
       <Box sx={{ 
