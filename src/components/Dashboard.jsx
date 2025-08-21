@@ -35,6 +35,7 @@ import { useNavigate } from 'react-router-dom';
 import SessionHistory from './SessionHistory';
 import PatientList from './PatientList';
 import ChatInterface from './ChatInterface';
+import OmniDentLogo from '../assets/OmniDent AI Logo (1).svg';
 import {
   LineChart,
   Line,
@@ -192,15 +193,20 @@ const Dashboard = ({ onLogout }) => {
   const drawer = (
     <Box sx={{ height: '100%', background: 'linear-gradient(180deg, #ffffff 0%, #f8fffe 100%)', borderRight: '1px solid rgba(62, 228, 200, 0.1)' }}>
       <Toolbar sx={{ 
-        borderBottom: '1px solid rgba(62, 228, 200, 0.15)'
+        borderBottom: '1px solid rgba(62, 228, 200, 0.15)',
+        display: 'flex',
+        justifyContent: 'center',
+        py: 2
       }}>
-        <Typography variant="h6" noWrap sx={{ 
-          fontWeight: 700,
-          color: '#0B1929',
-          letterSpacing: '0.5px'
-        }}>
-          OmniDent AI
-        </Typography>
+        <img 
+          src={OmniDentLogo} 
+          alt="OmniDent AI" 
+          style={{ 
+            height: '40px',
+            width: 'auto',
+            objectFit: 'contain'
+          }}
+        />
       </Toolbar>
       <List sx={{ px: 1, py: 2 }}>
         {sidebarItems.map((item) => (
