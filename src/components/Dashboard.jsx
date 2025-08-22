@@ -56,9 +56,11 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend
+  Legend,
+  Label
 } from 'recharts';
 import PracticeEnhancerChat from './PracticeEnhancerChat';
+import GoogleMapComponent from './GoogleMapComponent';
 
 const drawerWidth = 240;
 
@@ -183,7 +185,7 @@ const Dashboard = ({ onLogout }) => {
 
   const sidebarItems = [
     { text: 'Overview', icon: <DashboardIcon />, index: 0 },
-    { text: 'Customers', icon: <PeopleIcon />, index: 1 },
+    { text: 'Patients', icon: <PeopleIcon />, index: 1 },
     { text: 'Forms', icon: <FormsIcon />, index: 2 },
     { text: 'Reports', icon: <ReportsIcon />, index: 3 },
     { text: 'Practice Enhancer', icon: <EnhancerIcon />, index: 4 },
@@ -211,7 +213,6 @@ const Dashboard = ({ onLogout }) => {
       <List sx={{ px: 1, py: 2 }}>
         {sidebarItems.map((item) => (
           <ListItem 
-            button 
             key={item.text}
             onClick={() => {
               setSelectedIndex(item.index);
@@ -833,6 +834,10 @@ const Dashboard = ({ onLogout }) => {
                   </RadarChart>
                 </ResponsiveContainer>
               </Paper>
+
+              {/* Google Maps Patient Distribution */}
+              <GoogleMapComponent isMobile={isMobile} />
+              
             </Box>
           </>
         );
@@ -849,27 +854,25 @@ const Dashboard = ({ onLogout }) => {
           }}>
             {/* Mobile back button when patient is selected */}
             {isMobile && selectedPatient && (
-              <Box sx={{ 
-                p: 2, 
-                borderBottom: '1px solid rgba(62, 228, 200, 0.15)',
-                background: 'white'
-              }}>
+              <Box sx={{ mb: 1, px: 2, pt: 1 }}>
                 <Button
                   variant="contained"
                   startIcon={<ArrowBackIcon />}
                   onClick={() => setSelectedPatient(null)}
+                  size="small"
                   sx={{
                     backgroundColor: '#3EE4C8',
                     color: '#0B1929',
                     fontWeight: 600,
                     textTransform: 'none',
                     borderRadius: 2,
-                    px: 3,
-                    py: 1,
-                    boxShadow: 'none',
+                    px: 2,
+                    py: 0.5,
+                    fontSize: '0.875rem',
+                    boxShadow: '0 2px 8px rgba(62, 228, 200, 0.2)',
                     '&:hover': {
                       backgroundColor: '#35ccb3',
-                      boxShadow: '0 2px 8px rgba(62, 228, 200, 0.3)',
+                      boxShadow: '0 4px 12px rgba(62, 228, 200, 0.3)',
                       transform: 'translateY(-1px)',
                     },
                     transition: 'all 0.2s ease'
@@ -884,7 +887,12 @@ const Dashboard = ({ onLogout }) => {
             <Box sx={{ 
               display: 'flex',
               flex: 1,
-              overflow: 'hidden'
+              overflow: 'hidden',
+              borderRadius: '12px',
+              boxShadow: isMobile ? 'none' : '0 2px 12px rgba(0,0,0,0.08)',
+              background: 'transparent',
+              margin: isMobile ? '8px' : 2,
+              height: isMobile && selectedPatient ? 'calc(100vh - 200px)' : 'calc(100vh - 180px)'
             }}>
               {/* Patient List - hide on mobile when patient is selected */}
               <Box sx={{ 

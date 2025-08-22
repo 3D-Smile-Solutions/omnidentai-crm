@@ -44,10 +44,13 @@ const PatientList = ({ patients, selectedPatient, onSelectPatient, isMobile }) =
     <Box sx={{ 
       width: isMobile ? '100%' : 320, 
       height: '100%',
-      borderRight: isMobile ? 'none' : '1px solid rgba(62, 228, 200, 0.15)',
+      borderRight: 'none',
       display: 'flex',
       flexDirection: 'column',
-      background: 'linear-gradient(180deg, #ffffff 0%, #fafffe 100%)'
+      background: 'linear-gradient(180deg, #fefefe 0%, #fafbfc 100%)',
+      borderRadius: isMobile ? '12px' : '12px 0 0 12px',
+      overflow: 'hidden',
+      boxShadow: isMobile ? '0 2px 12px rgba(0,0,0,0.08)' : '0 1px 3px rgba(0,0,0,0.05)'
     }}>
       <Box sx={{ p: 2, borderBottom: '1px solid rgba(62, 228, 200, 0.15)' }}>
         <Paper
@@ -96,7 +99,6 @@ const PatientList = ({ patients, selectedPatient, onSelectPatient, isMobile }) =
           return (
             <ListItem
               key={patient.id}
-              button
               onClick={() => onSelectPatient(patient)}
               sx={{
                 py: 2,
@@ -146,12 +148,12 @@ const PatientList = ({ patients, selectedPatient, onSelectPatient, isMobile }) =
                   </Box>
                 }
                 secondary={
-                  <Box>
+                  <>
                     <Typography 
+                      component="span"
                       variant="body2" 
                       sx={{ 
                         color: 'rgba(11, 25, 41, 0.7)',
-                        mt: 0.5,
                         display: 'block'
                       }}
                     >
@@ -159,6 +161,7 @@ const PatientList = ({ patients, selectedPatient, onSelectPatient, isMobile }) =
                     </Typography>
                     {patient.unreadCount > 0 && (
                       <Chip 
+                        component="span"
                         label={patient.unreadCount} 
                         size="small"
                         sx={{ 
@@ -167,11 +170,12 @@ const PatientList = ({ patients, selectedPatient, onSelectPatient, isMobile }) =
                           backgroundColor: '#3EE4C8',
                           color: '#0B1929',
                           fontWeight: 600,
-                          fontSize: '0.7rem'
+                          fontSize: '0.7rem',
+                          display: 'inline-flex'
                         }}
                       />
                     )}
-                  </Box>
+                  </>
                 }
               />
             </ListItem>

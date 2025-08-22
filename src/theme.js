@@ -1,9 +1,5 @@
 import { createTheme } from '@mui/material/styles';
-import '@fontsource/plus-jakarta-sans/300.css';
-import '@fontsource/plus-jakarta-sans/400.css';
-import '@fontsource/plus-jakarta-sans/500.css';
-import '@fontsource/plus-jakarta-sans/600.css';
-import '@fontsource/plus-jakarta-sans/700.css';
+import '@fontsource/montserrat';
 
 const theme = createTheme({
   palette: {
@@ -51,7 +47,7 @@ const theme = createTheme({
   },
   typography: {
     fontFamily: [
-      '"Plus Jakarta Sans"',
+      '"Montserrat"',
       '-apple-system',
       'BlinkMacSystemFont',
       '"Segoe UI"',

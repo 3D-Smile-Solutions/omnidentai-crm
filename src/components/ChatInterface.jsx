@@ -14,7 +14,8 @@ import {
   Send as SendIcon,
   MoreVert as MoreVertIcon,
   Phone as PhoneIcon,
-  VideoCall as VideoCallIcon
+  VideoCall as VideoCallIcon,
+  ChatBubbleOutline as ChatBubbleOutlineIcon
 } from '@mui/icons-material';
 import CustomCheckbox from './CustomCheckbox';
 
@@ -107,13 +108,84 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
       <Box sx={{ 
         flex: 1, 
         display: 'flex', 
+        flexDirection: 'column',
         alignItems: 'center', 
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)'
+        background: 'linear-gradient(135deg, #fafbfc 0%, #f0f7f5 100%)',
+        borderRadius: isMobile ? '12px' : '0 12px 12px 0',
+        position: 'relative',
+        overflow: 'hidden',
+        height: '100%',
+        minHeight: '100%',
+        boxShadow: isMobile ? '0 2px 12px rgba(0,0,0,0.08)' : 'none'
       }}>
-        <Typography variant="h6" sx={{ color: 'rgba(11, 25, 41, 0.5)' }}>
-          Select a patient to start messaging
-        </Typography>
+        {/* Background Pattern */}
+        <Box sx={{
+          position: 'absolute',
+          width: '200%',
+          height: '200%',
+          opacity: 0.03,
+          background: `repeating-linear-gradient(
+            45deg,
+            #3EE4C8,
+            #3EE4C8 10px,
+            transparent 10px,
+            transparent 20px
+          )`,
+          animation: 'drift 20s infinite linear',
+          '@keyframes drift': {
+            '0%': { transform: 'translate(-50%, -50%)' },
+            '100%': { transform: 'translate(0%, 0%)' }
+          }
+        }} />
+        
+        {/* Empty State Content */}
+        <Box sx={{ 
+          textAlign: 'center',
+          zIndex: 1,
+          p: 4
+        }}>
+          <Box sx={{
+            width: 80,
+            height: 80,
+            borderRadius: '50%',
+            backgroundColor: 'rgba(62, 228, 200, 0.15)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 24px'
+          }}>
+            <ChatBubbleOutlineIcon sx={{ 
+              fontSize: 40, 
+              color: '#3EE4C8',
+              opacity: 0.9
+            }} />
+          </Box>
+          
+          <Typography 
+            variant="h5" 
+            sx={{ 
+              color: 'rgba(11, 25, 41, 0.4)',
+              fontWeight: 600,
+              mb: 1,
+              letterSpacing: '-0.02em'
+            }}
+          >
+            No Conversation Selected
+          </Typography>
+          
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              color: 'rgba(11, 25, 41, 0.35)',
+              maxWidth: 300,
+              margin: '0 auto',
+              lineHeight: 1.6
+            }}
+          >
+            Choose a patient from the list to view and manage their conversations across all channels
+          </Typography>
+        </Box>
       </Box>
     );
   }
@@ -134,13 +206,17 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
       display: 'flex', 
       flexDirection: 'column',
       height: '100%',
-      background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)'
+      minHeight: isMobile ? 'calc(100vh - 200px)' : '100%',
+      background: 'linear-gradient(135deg, #fafbfc 0%, #f0f7f5 100%)',
+      borderRadius: isMobile ? '12px' : '0 12px 12px 0',
+      overflow: 'hidden',
+      boxShadow: isMobile ? '0 2px 12px rgba(0,0,0,0.08)' : '0 1px 3px rgba(0,0,0,0.05)'
     }}>
       {/* Header */}
       <Paper 
         elevation={0} 
         sx={{ 
-          p: 2, 
+          p: isMobile ? 1.5 : 2, 
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'space-between',
@@ -152,18 +228,19 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
           <Avatar 
             sx={{ 
               bgcolor: getAvatarColor(patient.id),
-              width: 40,
-              height: 40,
-              mr: 2
+              width: isMobile ? 36 : 40,
+              height: isMobile ? 36 : 40,
+              mr: isMobile ? 1.5 : 2,
+              fontSize: isMobile ? '0.9rem' : '1rem'
             }}
           >
             {getInitials(patient.firstName, patient.lastName)}
           </Avatar>
           <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#0B1929' }}>
+            <Typography variant={isMobile ? "body2" : "subtitle1"} sx={{ fontWeight: 600, color: '#0B1929' }}>
               {patient.firstName} {patient.lastName}
             </Typography>
-            <Typography variant="caption" sx={{ color: 'rgba(11, 25, 41, 0.6)' }}>
+            <Typography variant="caption" sx={{ color: 'rgba(11, 25, 41, 0.6)', fontSize: isMobile ? '0.7rem' : '0.75rem' }}>
               Patient ID: #{patient.id.toString().padStart(4, '0')}
             </Typography>
           </Box>
@@ -321,24 +398,24 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
       <Paper 
         elevation={0} 
         sx={{ 
-          p: 2, 
+          p: isMobile ? 1.5 : 2, 
           borderTop: '1px solid rgba(62, 228, 200, 0.15)',
           background: 'white'
         }}
       >
         <Box sx={{ 
           display: 'flex', 
-          gap: isMobile ? 1 : 1.5, 
-          mb: isMobile ? 1 : 1.5,
+          gap: isMobile ? 0.75 : 1.5, 
+          mb: isMobile ? 0.75 : 1.5,
           alignItems: 'center',
           flexWrap: isMobile ? 'wrap' : 'nowrap'
         }}>
           <Typography variant="caption" sx={{ 
             color: 'rgba(11, 25, 41, 0.6)', 
             fontWeight: 600,
-            fontSize: isMobile ? '0.7rem' : '0.75rem'
+            fontSize: isMobile ? '0.65rem' : '0.75rem'
           }}>
-            Filter by:
+            Filter:
           </Typography>
           <CustomCheckbox 
             checked={localSelectedChannels.SMS}
@@ -359,13 +436,14 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
         <Box sx={{ 
           display: 'flex', 
           alignItems: 'flex-end',
-          gap: 1,
-          p: 1,
+          gap: isMobile ? 0.5 : 1,
+          p: isMobile ? 0.75 : 1,
           border: '1px solid rgba(62, 228, 200, 0.2)',
           borderRadius: 2,
           backgroundColor: 'rgba(62, 228, 200, 0.03)'
         }}>
           <IconButton 
+            size={isMobile ? "small" : "medium"}
             sx={{ 
               color: 'rgba(11, 25, 41, 0.6)',
               '&:hover': {
@@ -374,24 +452,27 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
             }}
             aria-label="attach file"
           >
-            <AttachFileIcon />
+            <AttachFileIcon fontSize={isMobile ? "small" : "medium"} />
           </IconButton>
           <InputBase
             sx={{ 
               flex: 1,
               color: '#0B1929',
+              fontSize: isMobile ? '0.875rem' : '1rem',
               '& ::placeholder': {
-                color: 'rgba(11, 25, 41, 0.5)'
+                color: 'rgba(11, 25, 41, 0.5)',
+                fontSize: isMobile ? '0.875rem' : '1rem'
               }
             }}
             placeholder="Type a message..."
             multiline
-            maxRows={4}
+            maxRows={isMobile ? 3 : 4}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
           />
           <IconButton 
+            size={isMobile ? "small" : "medium"}
             onClick={handleSendMessage}
             disabled={!message.trim()}
             sx={{ 
@@ -405,7 +486,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
             }}
             aria-label="send message"
           >
-            <SendIcon />
+            <SendIcon fontSize={isMobile ? "small" : "medium"} />
           </IconButton>
         </Box>
       </Paper>
