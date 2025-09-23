@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 import authRoutes from "./routes/auth.js";
+import patientRoutes from "./routes/patient.js";
 
 dotenv.config();
 
@@ -12,6 +13,8 @@ app.use(express.json());
 
 // routes
 app.use("/auth", authRoutes);
+app.use("/patients", patientRoutes);
+
 app.get("/", (req, res) => {
   res.json({ message: "Backend API is running 🚀" });
 });
