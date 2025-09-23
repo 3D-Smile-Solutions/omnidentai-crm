@@ -1,9 +1,8 @@
 // patientController.js
 import { getPatientsByDentist } from "../models/patientModel.js";
-
 export async function getPatients(req, res) {
   try {
-    const dentistId = req.user?.id; // comes from auth middleware
+    const dentistId = req.user?.id; // now populated by Supabase middleware
     if (!dentistId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
