@@ -61,17 +61,22 @@ import {
 } from 'recharts';
 import PracticeEnhancerChat from './PracticeEnhancerChat';
 import GoogleMapComponent from './GoogleMapComponent';
-
+import { useDispatch } from "react-redux";
+import { logout } from "../redux/slices/authSlice";
 const drawerWidth = 240;
 
-const Dashboard = ({ onLogout }) => {
-  const navigate = useNavigate();
+const Dashboard = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
-  
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const handleLogout = async () => {
+    await dispatch(logout());
+    navigate("/login");
+  };
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 1000);
@@ -159,11 +164,7 @@ const Dashboard = ({ onLogout }) => {
     setAnchorEl(null);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('currentUser');
-    onLogout();
-    navigate('/login');
-  };
+  
 
   const handleSendMessage = (patientId, message, channel = 'SMS') => {
     const newMessage = {

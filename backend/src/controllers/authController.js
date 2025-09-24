@@ -71,3 +71,24 @@ export const logout = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+// refreshtoken
+export const refresh = async (req, res) => {
+  try {
+    const refreshToken = req.cookies?.refresh_token;
+    if (!refreshToken) return res.status(401).json({ error: "Missing refresh token" });
+
+    const { data, error } = await supabase.auth.refreshSession({ refresh_token: refreshToken });
+    if (error) return res.status(401).json({ error: error.message });
+
+    // refresh cookie again
+    res.cookie("refresh_token", data.session.refresh_token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+    });
+
+    res.json({ access_token: data.session.access_token, user: data.user });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
