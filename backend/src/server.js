@@ -1,20 +1,21 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-
+import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.js";
 import patientRoutes from "./routes/patient.js";
 
 dotenv.config();
 
 const app = express();
+
 app.use(cors({
   origin: "http://localhost:3000", // your React app
   credentials: true
 }));
 
 app.use(express.json());
-
+app.use(cookieParser());
 // routes
 app.use("/auth", authRoutes);
 app.use("/patients", patientRoutes);

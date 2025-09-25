@@ -1,3 +1,4 @@
+// backend/src/controllers/authController
 import supabase from "../utils/supabaseClient.js";
 
 // POST /auth/signup
@@ -37,9 +38,16 @@ export const login = async (req, res) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return res.status(400).json({ error: error.message });
 
+    // set refresh_token in HttpOnly cookie
+    res.cookie("refresh_token", data.session.refresh_token, {
+      httpOnly: true,
+      secure: true, // set to false only in local dev without https
+      sameSite: "Strict",
+    });
+
     res.json({
       message: "Login successful",
-      session: data.session,
+      session: { access_token: data.session.access_token },
       user: data.user
     });
   } catch (err) {
@@ -47,20 +55,37 @@ export const login = async (req, res) => {
   }
 };
 
+
 // GET /auth/me
 export const me = async (req, res) => {
   const token = req.headers.authorization?.split(" ")[1];
-  if (!token) return res.status(401).json({ error: "Missing token" });
 
   try {
-    const { data, error } = await supabase.auth.getUser(token);
+    if (token) {
+      const { data, error } = await supabase.auth.getUser(token);
+      if (!error && data?.user) return res.json({ user: data.user });
+    }
+
+    // If no token OR expired, try using refresh_token cookie
+    const refreshToken = req.cookies?.refresh_token;
+    if (!refreshToken) return res.status(401).json({ error: "Not authenticated" });
+
+    const { data, error } = await supabase.auth.refreshSession({ refresh_token: refreshToken });
     if (error) return res.status(401).json({ error: error.message });
 
-    res.json({ user: data.user });
+    // renew cookie
+    res.cookie("refresh_token", data.session.refresh_token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+    });
+
+    res.json({ user: data.user, access_token: data.session.access_token });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // POST /auth/logout
 export const logout = async (req, res) => {

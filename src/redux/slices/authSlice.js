@@ -46,7 +46,7 @@ const authSlice = createSlice({
     builder
       .addCase(login.fulfilled, (state, action) => {
         state.user = action.payload.user;
-        
+        state.session = action.payload.session; // store access_token
       })
       .addCase(fetchMe.fulfilled, (state, action) => {
         state.user = action.payload;
