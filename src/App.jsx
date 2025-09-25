@@ -12,7 +12,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 import Login from "./components/Login";
 import Signup from "./components/Signup";
-import Dashboard from "./components/Dashboard";
+import Dashboard from "./components/Dashboard/Dashboard";
 
 function AppContent() {
   const dispatch = useDispatch();

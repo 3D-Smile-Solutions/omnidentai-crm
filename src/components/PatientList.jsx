@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box,
   List,
@@ -14,35 +14,60 @@ import {
 } from '@mui/material';
 import { Search as SearchIcon } from '@mui/icons-material';
 
-const PatientList = ({ patients, selectedPatient, onSelectPatient, isMobile }) => {
-  const getInitials = (firstName, lastName) => {
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+const PatientList = ({ patients = [], selectedPatient, onSelectPatient, isMobile }) => {
+  const [query, setQuery] = useState('');
+
+  const getInitials = (firstName = '', lastName = '') => {
+    const a = (firstName || '').trim();
+    const b = (lastName || '').trim();
+    if (a && b) return `${a[0]}${b[0]}`.toUpperCase();
+    if (a) return a.slice(0, 2).toUpperCase();
+    if (b) return b.slice(0, 2).toUpperCase();
+    return '??';
   };
 
-  const getAvatarColor = (id) => {
+  // deterministic color from id string (works for UUID)
+  const getAvatarColor = (id = '') => {
     const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#F7B801', '#96CEB4', '#DDA77B', '#9B59B6', '#3498DB'];
-    return colors[id % colors.length];
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = id.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
   };
 
-  const truncateMessage = (message, maxLength = 40) => {
+  const truncateMessage = (message = '', maxLength = 40) => {
+    if (!message) return 'No messages yet';
     if (message.length <= maxLength) return message;
     return message.substring(0, maxLength) + '...';
   };
 
   const getTimeAgo = (timestamp) => {
+    if (!timestamp) return '';
     const now = new Date();
     const messageTime = new Date(timestamp);
     const diffInMinutes = Math.floor((now - messageTime) / 60000);
-    
+
     if (diffInMinutes < 1) return 'Just now';
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
     return `${Math.floor(diffInMinutes / 1440)}d ago`;
   };
 
+  // client-side search
+  const filtered = useMemo(() => {
+    const q = (query || '').trim().toLowerCase();
+    if (!q) return patients;
+    return patients.filter(p => {
+      const name = `${(p.first_name || p.firstName || '')} ${(p.last_name || p.lastName || '')}`.toLowerCase();
+      const email = (p.email || '').toLowerCase();
+      return name.includes(q) || email.includes(q);
+    });
+  }, [patients, query]);
+
   return (
-    <Box sx={{ 
-      width: isMobile ? '100%' : 320, 
+    <Box sx={{
+      width: isMobile ? '100%' : 320,
       height: '100%',
       borderRight: 'none',
       display: 'flex',
@@ -71,35 +96,37 @@ const PatientList = ({ patients, selectedPatient, onSelectPatient, isMobile }) =
             sx={{ ml: 1, flex: 1, color: '#0B1929' }}
             placeholder="Search patients..."
             inputProps={{ 'aria-label': 'search patients' }}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
           />
         </Paper>
       </Box>
 
-      <List sx={{ 
-        flexGrow: 1, 
+      <List sx={{
+        flexGrow: 1,
         overflow: 'auto',
-        '&::-webkit-scrollbar': {
-          width: '6px',
-        },
-        '&::-webkit-scrollbar-track': {
-          background: 'rgba(62, 228, 200, 0.05)',
-        },
-        '&::-webkit-scrollbar-thumb': {
-          background: 'rgba(62, 228, 200, 0.3)',
-          borderRadius: '3px',
-          '&:hover': {
-            background: 'rgba(62, 228, 200, 0.5)',
-          },
-        },
+        '&::-webkit-scrollbar': { width: '6px' },
+        '&::-webkit-scrollbar-track': { background: 'rgba(62, 228, 200, 0.05)' },
+        '&::-webkit-scrollbar-thumb': { background: 'rgba(62, 228, 200, 0.3)', borderRadius: '3px' }
       }}>
-        {patients.map((patient) => {
-          const lastMessage = patient.messages[patient.messages.length - 1];
+        {(filtered.length === 0) && (
+          <Box sx={{ p: 3 }}>
+            <Typography variant="body2" color="text.secondary">No patients found</Typography>
+          </Box>
+        )}
+
+        {filtered.map((patient, idx) => {
+          const messages = patient.messages ?? [];
+          const lastMessage = messages.length ? messages[messages.length - 1] : { message: 'No messages yet', timestamp: new Date().toISOString() };
           const isSelected = selectedPatient?.id === patient.id;
-          
+          const firstName = patient.first_name ?? patient.firstName ?? '';
+          const lastName = patient.last_name ?? patient.lastName ?? '';
+          const unreadCount = patient.unreadCount ?? patient.unread_count ?? 0;
+
           return (
             <ListItem
-              key={patient.id}
-              onClick={() => onSelectPatient(patient)}
+              key={patient.id || idx}
+              onClick={() => onSelectPatient && onSelectPatient(patient)}
               sx={{
                 py: 2,
                 px: 2,
@@ -112,59 +139,41 @@ const PatientList = ({ patients, selectedPatient, onSelectPatient, isMobile }) =
               }}
             >
               <ListItemAvatar>
-                <Avatar 
-                  sx={{ 
-                    bgcolor: getAvatarColor(patient.id),
+                <Avatar
+                  sx={{
+                    bgcolor: getAvatarColor(String(patient.id || '')),
                     width: 45,
                     height: 45,
                     fontSize: '1.1rem',
                     fontWeight: 600
                   }}
                 >
-                  {getInitials(patient.firstName, patient.lastName)}
+                  {getInitials(firstName, lastName)}
                 </Avatar>
               </ListItemAvatar>
+
               <ListItemText
                 primary={
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Typography 
-                      variant="subtitle2" 
-                      sx={{ 
-                        fontWeight: 600,
-                        color: '#0B1929'
-                      }}
-                    >
-                      {patient.firstName} {patient.lastName}
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#0B1929' }}>
+                      {firstName} {lastName}
                     </Typography>
-                    <Typography 
-                      variant="caption" 
-                      sx={{ 
-                        color: 'rgba(11, 25, 41, 0.5)',
-                        fontSize: '0.7rem'
-                      }}
-                    >
+                    <Typography variant="caption" sx={{ color: 'rgba(11, 25, 41, 0.5)', fontSize: '0.7rem' }}>
                       {getTimeAgo(lastMessage.timestamp)}
                     </Typography>
                   </Box>
                 }
                 secondary={
                   <>
-                    <Typography 
-                      component="span"
-                      variant="body2" 
-                      sx={{ 
-                        color: 'rgba(11, 25, 41, 0.7)',
-                        display: 'block'
-                      }}
-                    >
+                    <Typography component="span" variant="body2" sx={{ color: 'rgba(11, 25, 41, 0.7)', display: 'block' }}>
                       {truncateMessage(lastMessage.message)}
                     </Typography>
-                    {patient.unreadCount > 0 && (
-                      <Chip 
+                    {unreadCount > 0 && (
+                      <Chip
                         component="span"
-                        label={patient.unreadCount} 
+                        label={unreadCount}
                         size="small"
-                        sx={{ 
+                        sx={{
                           mt: 1,
                           height: 20,
                           backgroundColor: '#3EE4C8',
