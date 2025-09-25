@@ -1,11 +1,14 @@
-// 16. Main Dashboard Component - src/components/Dashboard/Dashboard.jsx
+// ===========================================
+// FILE 2: src/components/Dashboard/Dashboard.jsx
 // ===========================================
 import React from 'react';
 import {
   Box,
   CssBaseline,
   Container,
-  Toolbar
+  Toolbar,
+  CircularProgress,
+  Alert
 } from '@mui/material';
 import Header from './components/Header/Header';
 import Sidebar from './components/Sidebar/Sidebar';
@@ -30,6 +33,7 @@ const Dashboard = () => {
     isMobile,
     patients,
     currentUser,
+    patientsStatus,
     handleDrawerToggle,
     handleMenuOpen,
     handleMenuClose,
@@ -43,6 +47,23 @@ const Dashboard = () => {
       case 0:
         return <Overview isMobile={isMobile} />;
       case 1:
+        // Show loading state for patients page
+        if (patientsStatus === 'loading') {
+          return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+              <CircularProgress sx={{ color: '#3EE4C8' }} />
+            </Box>
+          );
+        }
+        
+        if (patientsStatus === 'failed') {
+          return (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              Failed to load patients. Please try refreshing the page.
+            </Alert>
+          );
+        }
+
         return (
           <Patients 
             patients={patients}
