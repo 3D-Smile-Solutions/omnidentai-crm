@@ -8,19 +8,9 @@ import { toast } from "react-toastify";
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { status, error } = useSelector((state) => state.auth);
+  const { loginStatus, error, user } = useSelector((state) => state.auth);
 
   const [formData, setFormData] = useState({ email: "", password: "" });
-
-  useEffect(() => {
-    if (status === "succeeded") {
-      toast.success("Login successful!");
-      navigate("/dashboard");
-    }
-    if (status === "failed" && error) {
-      toast.error(error);
-    }
-  }, [status, error, navigate]);
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -29,6 +19,16 @@ const Login = () => {
     e.preventDefault();
     dispatch(login(formData));
   };
+
+  useEffect(() => {
+    if (loginStatus === "succeeded" && user) {
+      toast.success("Login successful!");
+      navigate("/dashboard");
+    }
+    if (loginStatus === "failed" && error) {
+      toast.error(error);
+    }
+  }, [loginStatus, error, user, navigate]);
 
   return (
     <AuthForm
@@ -54,7 +54,7 @@ const Login = () => {
       error={error}
       onSubmit={handleSubmit}
       submitLabel="Sign In"
-      submitting={status === "loading"}
+      submitting={loginStatus === "loading"}
       redirectText="Don't have an account? Sign Up"
       redirectPath="/signup"
     />

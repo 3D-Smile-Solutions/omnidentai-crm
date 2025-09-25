@@ -8,7 +8,7 @@ import { toast } from "react-toastify";
 const Signup = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { status, error } = useSelector((state) => state.auth);
+  const { signupStatus, error } = useSelector((state) => state.auth);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -17,16 +17,6 @@ const Signup = () => {
     password: "",
     confirmPassword: "",
   });
-
-  useEffect(() => {
-    if (status === "succeeded") {
-      toast.success("Account created! Redirecting...");
-      setTimeout(() => navigate("/login"), 2000);
-    }
-    if (status === "failed" && error) {
-      toast.error(error);
-    }
-  }, [status, error, navigate]);
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -47,6 +37,16 @@ const Signup = () => {
     );
   };
 
+  useEffect(() => {
+    if (signupStatus === "succeeded") {
+      toast.success("Account created! Redirecting...");
+      setTimeout(() => navigate("/login"), 2000);
+    }
+    if (signupStatus === "failed" && error) {
+      toast.error(error);
+    }
+  }, [signupStatus, error, navigate]);
+
   return (
     <AuthForm
       title="Create Account"
@@ -60,7 +60,7 @@ const Signup = () => {
       error={error}
       onSubmit={handleSubmit}
       submitLabel="Sign Up"
-      submitting={status === "loading"}
+      submitting={signupStatus === "loading"}
       redirectText="Already have an account? Sign In"
       redirectPath="/login"
     />

@@ -1,4 +1,3 @@
-// App.jsx
 import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
@@ -17,7 +16,7 @@ import Dashboard from "./components/Dashboard";
 
 function AppContent() {
   const dispatch = useDispatch();
-  const { user, status } = useSelector((state) => state.auth);
+  const { user, fetchStatus } = useSelector((state) => state.auth);
 
   useEffect(() => {
     dispatch(fetchMe());
@@ -25,7 +24,8 @@ function AppContent() {
 
   const isAuthenticated = !!user;
 
-  if (status === "loading") {
+  // only block UI while fetching current session on app load
+  if (fetchStatus === "loading") {
     return (
       <div className="flex items-center justify-center h-screen">
         <p>Loading...</p>
@@ -40,21 +40,15 @@ function AppContent() {
         <Routes>
           <Route
             path="/login"
-            element={
-              isAuthenticated ? <Navigate to="/dashboard" /> : <Login />
-            }
+            element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />}
           />
           <Route
             path="/signup"
-            element={
-              isAuthenticated ? <Navigate to="/dashboard" /> : <Signup />
-            }
+            element={isAuthenticated ? <Navigate to="/dashboard" /> : <Signup />}
           />
           <Route
             path="/dashboard"
-            element={
-              isAuthenticated ? <Dashboard /> : <Navigate to="/login" />
-            }
+            element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />}
           />
           <Route
             path="/"

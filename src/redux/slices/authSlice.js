@@ -1,20 +1,26 @@
-// store/authSlice.js
+// redux/slices/authSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
 const API_URL = "http://localhost:5000";
 
-// Thunks
-export const signup = createAsyncThunk("auth/signup", async (formData) => {
-  const res = await axios.post(`${API_URL}/auth/signup`, formData, { withCredentials: true });
-  return res.data;
+// --- Thunks ---
+export const signup = createAsyncThunk("auth/signup", async (formData, { rejectWithValue }) => {
+  try {
+    const res = await axios.post(`${API_URL}/auth/signup`, formData, { withCredentials: true });
+    return res.data;
+  } catch (err) {
+    return rejectWithValue(err.response?.data?.error || "Signup failed");
+  }
 });
 
-export const login = createAsyncThunk("auth/login", async (formData, { dispatch }) => {
-  const res = await axios.post(`${API_URL}/auth/login`, formData, { withCredentials: true });
-  // immediately fetch user profile after login
-  await dispatch(fetchMe());
-  return res.data;
+export const login = createAsyncThunk("auth/login", async (formData, { rejectWithValue }) => {
+  try {
+    const res = await axios.post(`${API_URL}/auth/login`, formData, { withCredentials: true });
+    return res.data;
+  } catch (err) {
+    return rejectWithValue(err.response?.data?.error || "Login failed");
+  }
 });
 
 export const fetchMe = createAsyncThunk("auth/me", async (_, { rejectWithValue }) => {
@@ -22,19 +28,27 @@ export const fetchMe = createAsyncThunk("auth/me", async (_, { rejectWithValue }
     const res = await axios.get(`${API_URL}/auth/me`, { withCredentials: true });
     return res.data.user;
   } catch (err) {
-    return rejectWithValue(err.response?.data || "Unauthorized");
+    return rejectWithValue(err.response?.data?.error || "Unauthorized");
   }
 });
 
-export const logout = createAsyncThunk("auth/logout", async () => {
-  await axios.post(`${API_URL}/auth/logout`, {}, { withCredentials: true });
+export const logout = createAsyncThunk("auth/logout", async (_, { rejectWithValue }) => {
+  try {
+    await axios.post(`${API_URL}/auth/logout`, {}, { withCredentials: true });
+  } catch (err) {
+    return rejectWithValue(err.response?.data?.error || "Logout failed");
+  }
 });
 
+// --- Slice ---
 const authSlice = createSlice({
   name: "auth",
   initialState: {
     user: null,
-    status: "idle", // idle | loading | succeeded | failed
+    signupStatus: "idle",
+    loginStatus: "idle",
+    fetchStatus: "idle",
+    logoutStatus: "idle",
     error: null,
   },
   reducers: {},
@@ -42,49 +56,55 @@ const authSlice = createSlice({
     builder
       // Signup
       .addCase(signup.pending, (state) => {
-        state.status = "loading";
+        state.signupStatus = "loading";
         state.error = null;
       })
       .addCase(signup.fulfilled, (state) => {
-        state.status = "succeeded";
+        state.signupStatus = "succeeded";
       })
       .addCase(signup.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.payload || action.error.message;
+        state.signupStatus = "failed";
+        state.error = action.payload;
       })
 
       // Login
       .addCase(login.pending, (state) => {
-        state.status = "loading";
+        state.loginStatus = "loading";
         state.error = null;
       })
       .addCase(login.fulfilled, (state, action) => {
-        state.status = "succeeded";
+        state.loginStatus = "succeeded";
         state.user = action.payload.user;
-        state.session = action.payload.session;
       })
       .addCase(login.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.payload || action.error.message;
+        state.loginStatus = "failed";
+        state.error = action.payload;
       })
 
       // FetchMe
       .addCase(fetchMe.pending, (state) => {
-        state.status = "loading";
+        state.fetchStatus = "loading";
       })
       .addCase(fetchMe.fulfilled, (state, action) => {
-        state.status = "succeeded";
+        state.fetchStatus = "succeeded";
         state.user = action.payload;
       })
       .addCase(fetchMe.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.payload || action.error.message;
+        state.fetchStatus = "failed";
+        state.error = action.payload;
       })
 
       // Logout
+      .addCase(logout.pending, (state) => {
+        state.logoutStatus = "loading";
+      })
       .addCase(logout.fulfilled, (state) => {
+        state.logoutStatus = "succeeded";
         state.user = null;
-        state.status = "idle";
+      })
+      .addCase(logout.rejected, (state, action) => {
+        state.logoutStatus = "failed";
+        state.error = action.payload;
       });
   },
 });

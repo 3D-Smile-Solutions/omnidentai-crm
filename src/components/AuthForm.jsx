@@ -1,4 +1,3 @@
-// src/components/AuthForm.jsx
 import React from "react";
 import {
   Container,
@@ -9,6 +8,7 @@ import {
   Box,
   Alert,
   Link,
+  CircularProgress,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
@@ -82,6 +82,7 @@ const AuthForm = ({
                 name={field.name}
                 value={field.value}
                 onChange={field.onChange}
+                disabled={submitting}
               />
             ))}
 
@@ -106,7 +107,11 @@ const AuthForm = ({
                 },
               }}
             >
-              {submitting ? "Please wait..." : submitLabel}
+              {submitting ? (
+                <CircularProgress size={24} sx={{ color: "#0B1929" }} />
+              ) : (
+                submitLabel
+              )}
             </Button>
 
             {redirectText && redirectPath && (
