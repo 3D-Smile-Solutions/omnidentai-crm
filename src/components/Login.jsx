@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { login } from "../redux/slices/authSlice";
 import AuthForm from "./AuthForm";
+import { toast } from "react-toastify";
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -11,17 +12,22 @@ const Login = () => {
 
   const [formData, setFormData] = useState({ email: "", password: "" });
 
+  useEffect(() => {
+    if (status === "succeeded") {
+      toast.success("Login successful!");
+      navigate("/dashboard");
+    }
+    if (status === "failed" && error) {
+      toast.error(error);
+    }
+  }, [status, error, navigate]);
+
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    try {
-      const result = await dispatch(login(formData)).unwrap();
-      if (result.user) navigate("/dashboard");
-    } catch (err) {
-      console.error("Login failed:", err);
-    }
+    dispatch(login(formData));
   };
 
   return (

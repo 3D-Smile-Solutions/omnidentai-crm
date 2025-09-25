@@ -1,3 +1,4 @@
+// App.jsx
 import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
@@ -7,6 +8,8 @@ import { Provider } from "react-redux";
 import { store } from "./redux/store";
 import { fetchMe } from "./redux/slices/authSlice";
 import theme from "./theme";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import Login from "./components/Login";
 import Signup from "./components/Signup";
@@ -14,15 +17,21 @@ import Dashboard from "./components/Dashboard";
 
 function AppContent() {
   const dispatch = useDispatch();
-  const { user, session } = useSelector((state) => state.auth);
+  const { user, status } = useSelector((state) => state.auth);
 
-  // Auto-fetch user if refresh token cookie is valid
-useEffect(() => {
-  dispatch(fetchMe()); // no token needed, backend reads cookie
-}, [dispatch]);
-
+  useEffect(() => {
+    dispatch(fetchMe());
+  }, [dispatch]);
 
   const isAuthenticated = !!user;
+
+  if (status === "loading") {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <ThemeProvider theme={theme}>
@@ -53,6 +62,7 @@ useEffect(() => {
           />
         </Routes>
       </Router>
+      <ToastContainer position="top-right" autoClose={3000} />
     </ThemeProvider>
   );
 }
