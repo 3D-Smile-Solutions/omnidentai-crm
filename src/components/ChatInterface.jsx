@@ -325,7 +325,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
             );
           }
 
-          const isStaff = item.sender === 'staff';
+          const isStaff = item.sender === 'dentist';
           return (
             <Box
               key={item.id}

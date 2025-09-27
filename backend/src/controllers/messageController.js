@@ -47,7 +47,7 @@ export async function getMessagesWithPatient(req, res) {
     const transformedMessages = messages.map(msg => ({
       id: msg.id,
       message: msg.message,
-      sender: msg.sender === 'bot' ? 'staff' : 'patient', // bot = dentist/staff, user = patient
+      sender: msg.sender === 'client' ? 'dentist' : 'patient', 
       channel: msg.channel,
       timestamp: msg.created_at
     }));
@@ -93,7 +93,7 @@ export async function getAllMessages(req, res) {
       acc[contactId].messages.push({
         id: msg.id,
         message: msg.message,
-        sender: msg.sender === 'bot' ? 'staff' : 'patient',
+        sender: msg.sender === 'client' ? 'dentist' : 'patient',
         channel: msg.channel,
         timestamp: msg.created_at
       });
@@ -161,7 +161,7 @@ export async function sendMessage(req, res) {
     const messageData = {
       contactId: patient.contact_id,
       content: content.trim(),
-      senderType: 'bot', // dentist messages are sent as 'bot'
+      senderType: 'client', 
       channelType
     };
 
@@ -175,7 +175,7 @@ export async function sendMessage(req, res) {
     const transformedMessage = {
       id: newMessage.id,
       message: newMessage.message,
-      sender: 'staff', // bot -> staff for frontend
+      sender: 'dentist', // 
       channel: newMessage.channel,
       timestamp: newMessage.created_at
     };

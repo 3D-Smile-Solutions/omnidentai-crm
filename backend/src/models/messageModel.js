@@ -1,32 +1,16 @@
+// backend/src/models/messageModel.js
+// Production-ready with proper field handling
+
 import supabase from "../utils/supabaseClient.js";
 
 // ===========================================
-// HELPER FUNCTION: Set dentist session for RLS
+// MESSAGE OPERATIONS (Service Key = No RLS restrictions)
 // ===========================================
-async function setDentistSession(dentistId) {
-  console.log(`Setting session variable app.current_dentist_id = ${dentistId}`);
-  
-  const { error } = await supabase.rpc('set_config', {
-    setting_name: 'app.current_dentist_id',
-    setting_value: dentistId,
-    is_local: true
-  });
-  
-  if (error) {
-    console.error('Failed to set dentist session variable:', error);
-    throw new Error(`Failed to set session variable: ${error.message}`);
-  }
-  
-  console.log('✅ Dentist session variable set successfully');
-}
 
-// Get messages for a specific patient (using contact_id)
+// Get messages for a specific patient (CRM dashboard)
 export async function getMessagesByContactId(dentistId, contactId) {
   try {
     console.log(`Fetching messages for contact: ${contactId}, dentist: ${dentistId}`);
-    
-    // Set dentist session for RLS
-    await setDentistSession(dentistId);
     
     const { data, error } = await supabase
       .from("chat_messages")
@@ -59,9 +43,6 @@ export async function getAllMessagesForDentist(dentistId) {
   try {
     console.log(`Fetching all messages for dentist: ${dentistId}`);
     
-    // Set dentist session for RLS
-    await setDentistSession(dentistId);
-    
     // First get all patients for this dentist
     const { data: patients, error: patientsError } = await supabase
       .from("user_profiles")
@@ -77,7 +58,7 @@ export async function getAllMessagesForDentist(dentistId) {
       return [];
     }
 
-    // Now we can query all messages at once (RLS will allow it)
+    // Query all messages for these contacts
     const { data: messages, error: messagesError } = await supabase
       .from("chat_messages")
       .select(`
@@ -110,38 +91,27 @@ export async function getAllMessagesForDentist(dentistId) {
   }
 }
 
-// Create a new message
+// Create a new message (CRM dashboard) - PROPER FIELD HANDLING
 export async function createMessage(messageData) {
   try {
-    // Add at the top of createMessage function
-console.log('Supabase URL:', process.env.SUPABASE_URL);
-console.log('Service Key (first 20 chars):', process.env.SUPABASE_SERVICE_ROLE_KEY?.substring(0, 20));
     console.log(`Creating message: ${JSON.stringify(messageData)}`);
     
-    // We need the dentist_id to set session. 
-    // This should be passed in messageData or we can get it from the patient
-    const { data: patient, error: patientError } = await supabase
-      .from("user_profiles")
-      .select("dentist_id")
-      .eq("contact_id", messageData.contactId)
-      .single();
-
-    if (patientError) throw patientError;
+    const insertData = {
+      contact_id: messageData.contactId,
+      message: messageData.content,
+      sender: 'client', 
+      channel: 'webchat',
+      // FIXED: Match chat widget session_id format
+      session_id: `${messageData.contactId}_session_${Date.now()}`,
+      created_at: new Date().toISOString(),
+      delivered: true
+    };
     
-    // Set dentist session for RLS
-    await setDentistSession(patient.dentist_id);
+    console.log('Insert data:', insertData);
     
     const { data, error } = await supabase
       .from("chat_messages")
-      .insert([{
-        contact_id: messageData.contactId,
-        message: messageData.content,
-        sender: messageData.senderType, // 'user' or 'bot'
-        channel: messageData.channelType, // 'webchat', 'sms', 'call'
-        session_id: `dentist-${patient.dentist_id}-${Date.now()}`, // Generate session_id
-        created_at: new Date().toISOString(),
-        delivered: true
-      }])
+      .insert([insertData])
       .select(`
         id,
         message,
@@ -168,9 +138,6 @@ console.log('Service Key (first 20 chars):', process.env.SUPABASE_SERVICE_ROLE_K
 // Get patient by contact_id
 export async function getPatientByContactId(contactId, dentistId) {
   try {
-    // Set dentist session for RLS
-    await setDentistSession(dentistId);
-    
     const { data, error } = await supabase
       .from("user_profiles")
       .select("id, first_name, last_name, contact_id")
@@ -186,13 +153,10 @@ export async function getPatientByContactId(contactId, dentistId) {
   }
 }
 
-// Get unread message counts per patient (messages where sender='user')
+// Get unread message counts per patient
 export async function getUnreadCounts(dentistId) {
   try {
     console.log(`Fetching unread counts for dentist: ${dentistId}`);
-    
-    // Set dentist session for RLS
-    await setDentistSession(dentistId);
     
     // First get all patients for this dentist
     const { data: patients, error: patientsError } = await supabase
@@ -210,12 +174,13 @@ export async function getUnreadCounts(dentistId) {
       return {};
     }
 
-    // Now we can query all at once (RLS will allow it)
+    // Query unread messages for all patients
+    // Only count 'user' messages as unread (messages FROM patients TO dentist)
     const { data, error } = await supabase
       .from("chat_messages")
       .select("contact_id")
       .in("contact_id", contactIds)
-      .eq("sender", "user"); // user messages are the ones dentist needs to read
+      .eq("sender", "user"); // Only patient messages are "unread" for dentist
 
     if (error) {
       console.error('Error counting messages:', error);
@@ -242,6 +207,62 @@ export async function getUnreadCounts(dentistId) {
     return patientCounts;
   } catch (error) {
     console.error('Error in getUnreadCounts:', error);
+    throw error;
+  }
+}
+
+// ===========================================
+// CHAT WIDGET FUNCTIONS (for reference)
+// These would be used by your chat widget with session variables
+// ===========================================
+
+// Set contact session for chat widget (patients)
+export async function setContactSessionForWidget(contactId) {
+  try {
+    console.log(`Setting contact session for widget: ${contactId}`);
+    
+    const { error } = await supabase.rpc('set_contact_session', contactId);
+    
+    if (error) {
+      console.error('Failed to set contact session:', error);
+      throw new Error(`Failed to set contact session: ${error.message}`);
+    }
+    
+    console.log('✅ Contact session set successfully');
+  } catch (error) {
+    console.error('Error in setContactSessionForWidget:', error);
+    throw error;
+  }
+}
+
+// Create message from chat widget (patients)
+export async function createMessageFromWidget(contactId, messageContent, senderType = 'user', channel = 'webchat') {
+  try {
+    console.log(`Creating widget message for contact: ${contactId}`);
+    
+    // Set contact session for RLS
+    await setContactSessionForWidget(contactId);
+    
+    const { data, error } = await supabase
+      .from("chat_messages")
+      .insert([{
+        contact_id: contactId,
+        message: messageContent,
+        sender: senderType,
+        channel: channel,
+        session_id: `widget-${contactId}-${Date.now()}`,
+        created_at: new Date().toISOString(),
+        delivered: true
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    
+    console.log('✅ Widget message created successfully');
+    return data;
+  } catch (error) {
+    console.error('Error in createMessageFromWidget:', error);
     throw error;
   }
 }
