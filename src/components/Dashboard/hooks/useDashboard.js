@@ -1,10 +1,17 @@
-// FILE 1: src/components/Dashboard/hooks/useDashboard.js
-// ===========================================
+//src/components/Dashboard/hooks/useDashboard.js
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from 'react-router-dom';
 import { logout } from "../../../redux/slices/authSlice";
 import { fetchPatients } from "../../../redux/slices/patientSlice";
+import { 
+  fetchUnreadCounts, 
+  setCurrentPatient, 
+  clearCurrentPatient,
+  sendMessage,
+  fetchMessagesWithPatient,
+  markMessagesAsRead
+} from "../../../redux/slices/messageSlice";
 
 export const useDashboard = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -19,11 +26,19 @@ export const useDashboard = () => {
   // Get data from Redux store
   const { user: currentUser } = useSelector((state) => state.auth);
   const { list: patients, status: patientsStatus } = useSelector((state) => state.patients);
+  const { 
+    messagesByPatient, 
+    currentMessages, 
+    unreadCounts,
+    fetchStatus: messagesFetchStatus,
+    sendStatus: messageSendStatus 
+  } = useSelector((state) => state.messages);
   
-  // Fetch patients when component mounts or user changes
+  // Fetch patients and unread counts when component mounts or user changes
   useEffect(() => {
     if (currentUser?.id) {
       dispatch(fetchPatients());
+      dispatch(fetchUnreadCounts());
     }
   }, [dispatch, currentUser?.id]);
 
@@ -53,45 +68,45 @@ export const useDashboard = () => {
     navigate("/login");
   };
 
-  // Transform real patients to match the expected format with dummy messages
-  // In a real app, you'd fetch messages from your backend
-  const transformedPatients = patients.map(patient => ({
-    id: patient.id,
-    firstName: patient.first_name,
-    lastName: patient.last_name,
-    unreadCount: Math.floor(Math.random() * 5), // Random unread count for demo
-    messages: [
-      // Add some default messages for demo purposes
-      // In reality, you'd fetch these from your messages table
-      {
-        id: 1,
-        sender: 'patient',
-        channel: 'SMS',
-        message: `Hi, this is ${patient.first_name}. I need some assistance.`,
-        timestamp: new Date(Date.now() - Math.random() * 86400000).toISOString()
-      }
-    ]
-  }));
-
-  const handleSendMessage = (patientId, message, channel = 'SMS') => {
-    // In a real application, you would:
-    // 1. Send the message to your backend API
-    // 2. Update the messages in your Redux store
-    // 3. Possibly send real SMS/notifications
+  // Transform real patients to include message data
+  const transformedPatients = patients.map(patient => {
+    const patientMessages = messagesByPatient[patient.id]?.messages || [];
+    const unreadCount = unreadCounts[patient.id] || 0;
     
-    const newMessage = {
-      id: Date.now(),
-      sender: 'staff',
-      channel: channel,
-      message: message,
-      timestamp: new Date().toISOString()
+    return {
+      id: patient.id,
+      firstName: patient.first_name,
+      lastName: patient.last_name,
+      unreadCount,
+      messages: patientMessages
     };
+  });
 
-    // For now, we'll just log this since we don't have a messages system yet
-    console.log('Sending message:', { patientId, message: newMessage });
+  const handleSelectPatient = (patient) => {
+    setSelectedPatient(patient);
+    dispatch(setCurrentPatient(patient.id));
     
-    // TODO: Implement actual message sending logic
-    // dispatch(sendMessage({ patientId, message: newMessage }));
+    // Fetch messages for this patient if not already loaded
+    if (!messagesByPatient[patient.id] || messagesByPatient[patient.id].messages.length === 0) {
+      dispatch(fetchMessagesWithPatient(patient.id));
+    }
+    
+    // Mark messages as read when patient is selected
+    if (unreadCounts[patient.id] > 0) {
+      dispatch(markMessagesAsRead(patient.id));
+    }
+  };
+
+  const handleSendMessage = async (patientId, message, channel = 'webchat') => {
+    try {
+      await dispatch(sendMessage({ 
+        patientId, 
+        content: message, 
+        channelType: channel 
+      })).unwrap();
+    } catch (error) {
+      console.error('Failed to send message:', error);
+    }
   };
 
   return {
@@ -100,11 +115,13 @@ export const useDashboard = () => {
     setSelectedIndex,
     anchorEl,
     selectedPatient,
-    setSelectedPatient,
+    setSelectedPatient: handleSelectPatient,
     isMobile,
     patients: transformedPatients,
     currentUser,
     patientsStatus,
+    messagesFetchStatus,
+    messageSendStatus,
     handleDrawerToggle,
     handleMenuOpen,
     handleMenuClose,

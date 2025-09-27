@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.js";
 import patientRoutes from "./routes/patient.js";
-
+import messageRoutes from "./routes/message.js";
 dotenv.config();
 
 const app = express();
@@ -19,6 +19,7 @@ app.use(cookieParser());
 // routes
 app.use("/auth", authRoutes);
 app.use("/patients", patientRoutes);
+app.use("/messages", messageRoutes); 
 
 app.get("/", (req, res) => {
   res.json({ message: "Backend API is running 🚀" });

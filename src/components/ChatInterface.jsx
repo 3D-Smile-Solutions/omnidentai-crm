@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import {
   Box,
   Paper,
@@ -6,8 +7,9 @@ import {
   Avatar,
   IconButton,
   InputBase,
-  Divider,
-  Chip
+  Chip,
+  CircularProgress,
+  Alert
 } from '@mui/material';
 import {
   AttachFile as AttachFileIcon,
@@ -22,11 +24,19 @@ import CustomCheckbox from './CustomCheckbox';
 const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
   const [message, setMessage] = useState('');
   const [localSelectedChannels, setLocalSelectedChannels] = useState({
-    SMS: true,
-    Call: true,
-    Webchat: true
+    sms: true,
+    call: true,
+    webchat: true
   });
   const messagesEndRef = useRef(null);
+  
+  // Get messages from Redux store
+  const { 
+    currentMessages, 
+    fetchStatus, 
+    sendStatus, 
+    error 
+  } = useSelector((state) => state.messages);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -34,11 +44,11 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [patient?.messages]);
+  }, [currentMessages]);
 
   const handleSendMessage = () => {
     if (message.trim()) {
-      onSendMessage(patient.id, message);
+      onSendMessage(patient.id, message, 'webchat');
       setMessage('');
     }
   };
@@ -103,6 +113,15 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     return groups;
   };
 
+  // Helper function to safely render error
+  const renderError = (error) => {
+    if (typeof error === 'string') return error;
+    if (error && typeof error === 'object') {
+      return error.message || error.error || JSON.stringify(error);
+    }
+    return 'An error occurred';
+  };
+
   if (!patient) {
     return (
       <Box sx={{ 
@@ -119,27 +138,6 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
         minHeight: '100%',
         boxShadow: isMobile ? '0 2px 12px rgba(0,0,0,0.08)' : 'none'
       }}>
-        {/* Background Pattern */}
-        <Box sx={{
-          position: 'absolute',
-          width: '200%',
-          height: '200%',
-          opacity: 0.03,
-          background: `repeating-linear-gradient(
-            45deg,
-            #3EE4C8,
-            #3EE4C8 10px,
-            transparent 10px,
-            transparent 20px
-          )`,
-          animation: 'drift 20s infinite linear',
-          '@keyframes drift': {
-            '0%': { transform: 'translate(-50%, -50%)' },
-            '100%': { transform: 'translate(0%, 0%)' }
-          }
-        }} />
-        
-        {/* Empty State Content */}
         <Box sx={{ 
           textAlign: 'center',
           zIndex: 1,
@@ -197,7 +195,9 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     }));
   };
 
-  const filteredMessages = patient.messages.filter(msg => localSelectedChannels[msg.channel]);
+  // FIXED: Safe handling of currentMessages
+  const safeCurrentMessages = Array.isArray(currentMessages) ? currentMessages : [];
+  const filteredMessages = safeCurrentMessages.filter(msg => localSelectedChannels[msg.channel]);
   const groupedMessages = groupMessagesByDate(filteredMessages);
 
   return (
@@ -283,7 +283,27 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
           },
         },
       }}>
-        {groupedMessages.map((item, index) => {
+        {/* Loading state */}
+        {fetchStatus === 'loading' && (
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center',
+            flex: 1
+          }}>
+            <CircularProgress sx={{ color: '#3EE4C8' }} />
+          </Box>
+        )}
+
+        {/* Error state - FIXED */}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {renderError(error)}
+          </Alert>
+        )}
+
+        {/* Messages */}
+        {fetchStatus !== 'loading' && groupedMessages.map((item, index) => {
           if (item.type === 'date') {
             return (
               <Box key={`date-${index}`} sx={{ 
@@ -374,11 +394,11 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
                       sx={{ 
                         height: 16,
                         fontSize: '0.65rem',
-                        backgroundColor: item.channel === 'SMS' ? 'rgba(46, 125, 50, 0.1)' : 
-                                        item.channel === 'Call' ? 'rgba(33, 150, 243, 0.1)' : 
+                        backgroundColor: item.channel === 'sms' ? 'rgba(46, 125, 50, 0.1)' : 
+                                        item.channel === 'call' ? 'rgba(33, 150, 243, 0.1)' : 
                                         'rgba(156, 39, 176, 0.1)',
-                        color: item.channel === 'SMS' ? '#2E7D32' : 
-                               item.channel === 'Call' ? '#1976D2' : 
+                        color: item.channel === 'sms' ? '#2E7D32' : 
+                               item.channel === 'call' ? '#1976D2' : 
                                '#7B1FA2',
                         '& .MuiChip-label': {
                           px: 0.5
@@ -418,18 +438,18 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
             Filter:
           </Typography>
           <CustomCheckbox 
-            checked={localSelectedChannels.SMS}
-            onChange={(e) => handleLocalChannelChange('SMS', e.target.checked)}
+            checked={localSelectedChannels.sms}
+            onChange={(e) => handleLocalChannelChange('sms', e.target.checked)}
             label="SMS"
           />
           <CustomCheckbox 
-            checked={localSelectedChannels.Call}
-            onChange={(e) => handleLocalChannelChange('Call', e.target.checked)}
+            checked={localSelectedChannels.call}
+            onChange={(e) => handleLocalChannelChange('call', e.target.checked)}
             label="Call"
           />
           <CustomCheckbox 
-            checked={localSelectedChannels.Webchat}
-            onChange={(e) => handleLocalChannelChange('Webchat', e.target.checked)}
+            checked={localSelectedChannels.webchat}
+            onChange={(e) => handleLocalChannelChange('webchat', e.target.checked)}
             label="Webchat"
           />
         </Box>
@@ -470,15 +490,16 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
+            disabled={sendStatus === 'loading'}
           />
           <IconButton 
             size={isMobile ? "small" : "medium"}
             onClick={handleSendMessage}
-            disabled={!message.trim()}
+            disabled={!message.trim() || sendStatus === 'loading'}
             sx={{ 
-              color: message.trim() ? '#3EE4C8' : 'rgba(11, 25, 41, 0.3)',
+              color: message.trim() && sendStatus !== 'loading' ? '#3EE4C8' : 'rgba(11, 25, 41, 0.3)',
               '&:hover': {
-                color: message.trim() ? '#2BC4A8' : 'rgba(11, 25, 41, 0.3)'
+                color: message.trim() && sendStatus !== 'loading' ? '#2BC4A8' : 'rgba(11, 25, 41, 0.3)'
               },
               '&.Mui-disabled': {
                 color: 'rgba(11, 25, 41, 0.3)'
@@ -486,7 +507,11 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
             }}
             aria-label="send message"
           >
-            <SendIcon fontSize={isMobile ? "small" : "medium"} />
+            {sendStatus === 'loading' ? (
+              <CircularProgress size={20} sx={{ color: '#3EE4C8' }} />
+            ) : (
+              <SendIcon fontSize={isMobile ? "small" : "medium"} />
+            )}
           </IconButton>
         </Box>
       </Paper>
