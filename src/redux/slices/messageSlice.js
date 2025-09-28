@@ -1,7 +1,12 @@
+//src/redux/slices/messageSlice.js - Enhanced for WebSocket
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
 const API_URL = "http://localhost:5000";
+
+// ==========================================
+// EXISTING ASYNC THUNKS (UNCHANGED)
+// ==========================================
 
 // Fetch messages for a specific patient
 export const fetchMessagesWithPatient = createAsyncThunk(
@@ -43,7 +48,7 @@ export const fetchAllMessages = createAsyncThunk(
   }
 );
 
-// Send a message
+// Send a message (HTTP fallback)
 export const sendMessage = createAsyncThunk(
   "messages/send",
   async ({ patientId, content, channelType = 'webchat' }, { getState, rejectWithValue }) => {
@@ -68,7 +73,7 @@ export const sendMessage = createAsyncThunk(
   }
 );
 
-// Mark messages as read
+// Mark messages as read (HTTP)
 export const markMessagesAsRead = createAsyncThunk(
   "messages/markAsRead",
   async (patientId, { getState, rejectWithValue }) => {
@@ -108,6 +113,10 @@ export const fetchUnreadCounts = createAsyncThunk(
   }
 );
 
+// ==========================================
+// ENHANCED MESSAGE SLICE
+// ==========================================
+
 const messageSlice = createSlice({
   name: "messages",
   initialState: {
@@ -124,6 +133,9 @@ const messageSlice = createSlice({
     
     // Unread counts
     unreadCounts: {},
+    
+    // WebSocket connection status
+    isWebSocketConnected: false,
     
     // Errors
     error: null,
@@ -142,27 +154,106 @@ const messageSlice = createSlice({
       state.currentMessages = [];
     },
     
-    // Add message to current conversation (for real-time updates)
+    // ==========================================
+    // ENHANCED: Add message (from WebSocket or HTTP)
+    // ==========================================
     addMessage: (state, action) => {
       const { patientId, message } = action.payload;
       
-      // Add to messagesByPatient
+      // Initialize patient messages if not exists
       if (!state.messagesByPatient[patientId]) {
         state.messagesByPatient[patientId] = { messages: [], unreadCount: 0 };
       }
-      state.messagesByPatient[patientId].messages.push(message);
       
-      // Add to current messages if this is the selected patient
-      if (state.currentPatientId === patientId) {
-        state.currentMessages.push(message);
+      // Check for duplicate messages (avoid adding same message twice)
+      const existingMessage = state.messagesByPatient[patientId].messages.find(
+        msg => msg.id === message.id || 
+        (msg.isOptimistic && message.isOptimistic && msg.message === message.message)
+      );
+      
+      if (!existingMessage) {
+        // Add to messagesByPatient
+        state.messagesByPatient[patientId].messages.push(message);
+        
+        // Add to current messages if this is the selected patient
+        if (state.currentPatientId === patientId) {
+          state.currentMessages.push(message);
+        }
+        
+        // Update unread count if message is from patient
+        if (message.sender === 'patient') {
+          state.unreadCounts[patientId] = (state.unreadCounts[patientId] || 0) + 1;
+          if (state.messagesByPatient[patientId]) {
+            state.messagesByPatient[patientId].unreadCount = state.unreadCounts[patientId];
+          }
+        }
+      }
+    },
+    
+    // ==========================================
+    // NEW: Update optimistic message with real one
+    // ==========================================
+    updateMessage: (state, action) => {
+      const { patientId, oldMessageId, newMessage } = action.payload;
+      
+      // Update in messagesByPatient
+      if (state.messagesByPatient[patientId]) {
+        const messageIndex = state.messagesByPatient[patientId].messages.findIndex(
+          msg => msg.id === oldMessageId
+        );
+        
+        if (messageIndex !== -1) {
+          state.messagesByPatient[patientId].messages[messageIndex] = newMessage;
+        }
       }
       
-      // Update unread count if message is from patient
-      if (message.sender === 'patient') {
-        state.unreadCounts[patientId] = (state.unreadCounts[patientId] || 0) + 1;
-        if (state.messagesByPatient[patientId]) {
-          state.messagesByPatient[patientId].unreadCount = state.unreadCounts[patientId];
+      // Update in currentMessages if this is the selected patient
+      if (state.currentPatientId === patientId) {
+        const currentIndex = state.currentMessages.findIndex(msg => msg.id === oldMessageId);
+        if (currentIndex !== -1) {
+          state.currentMessages[currentIndex] = newMessage;
         }
+      }
+    },
+    
+    // ==========================================
+    // NEW: Remove failed optimistic messages
+    // ==========================================
+    removeOptimisticMessage: (state, action) => {
+      const { patientId, messageId } = action.payload;
+      
+      // Remove from messagesByPatient
+      if (state.messagesByPatient[patientId]) {
+        state.messagesByPatient[patientId].messages = state.messagesByPatient[patientId].messages.filter(
+          msg => msg.id !== messageId
+        );
+      }
+      
+      // Remove from currentMessages if this is the selected patient
+      if (state.currentPatientId === patientId) {
+        state.currentMessages = state.currentMessages.filter(msg => msg.id !== messageId);
+      }
+    },
+    
+    // ==========================================
+    // NEW: Set WebSocket connection status
+    // ==========================================
+    setWebSocketConnectionStatus: (state, action) => {
+      state.isWebSocketConnected = action.payload;
+    },
+    
+    // ==========================================
+    // ENHANCED: Clear messages as read (for WebSocket)
+    // ==========================================
+    clearUnreadCount: (state, action) => {
+      const patientId = action.payload;
+      
+      // Reset unread count
+      if (state.unreadCounts[patientId]) {
+        state.unreadCounts[patientId] = 0;
+      }
+      if (state.messagesByPatient[patientId]) {
+        state.messagesByPatient[patientId].unreadCount = 0;
       }
     },
     
@@ -185,6 +276,8 @@ const messageSlice = createSlice({
         if (!state.messagesByPatient[patientId]) {
           state.messagesByPatient[patientId] = { messages: [], unreadCount: 0 };
         }
+        
+        // Replace messages completely (HTTP fetch overwrites WebSocket messages)
         state.messagesByPatient[patientId].messages = messages;
         
         // Update current messages if this is the selected patient
@@ -207,7 +300,7 @@ const messageSlice = createSlice({
         }
       })
       
-      // Send message
+      // Send message (HTTP fallback)
       .addCase(sendMessage.pending, (state) => {
         state.sendStatus = "loading";
         state.error = null;
@@ -216,15 +309,23 @@ const messageSlice = createSlice({
         state.sendStatus = "succeeded";
         const { patientId, message } = action.payload;
         
-        // Add message to messagesByPatient
+        // Add message (will check for duplicates automatically)
         if (!state.messagesByPatient[patientId]) {
           state.messagesByPatient[patientId] = { messages: [], unreadCount: 0 };
         }
-        state.messagesByPatient[patientId].messages.push(message);
         
-        // Add to current messages if this is the selected patient
-        if (state.currentPatientId === patientId) {
-          state.currentMessages.push(message);
+        // Check if this message already exists (from WebSocket)
+        const existingMessage = state.messagesByPatient[patientId].messages.find(
+          msg => msg.id === message.id
+        );
+        
+        if (!existingMessage) {
+          state.messagesByPatient[patientId].messages.push(message);
+          
+          // Add to current messages if this is the selected patient
+          if (state.currentPatientId === patientId) {
+            state.currentMessages.push(message);
+          }
         }
         
         // Reset send status after a delay
@@ -239,7 +340,7 @@ const messageSlice = createSlice({
         state.error = action.payload || action.error.message;
       })
       
-      // Mark as read
+      // Mark as read (HTTP)
       .addCase(markMessagesAsRead.fulfilled, (state, action) => {
         const patientId = action.payload;
         
@@ -269,7 +370,11 @@ const messageSlice = createSlice({
 export const { 
   setCurrentPatient, 
   clearCurrentPatient, 
-  addMessage, 
+  addMessage,
+  updateMessage,
+  removeOptimisticMessage,
+  setWebSocketConnectionStatus,
+  clearUnreadCount,
   clearError 
 } = messageSlice.actions;
 
