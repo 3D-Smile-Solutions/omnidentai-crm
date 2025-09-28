@@ -329,11 +329,11 @@ const messageSlice = createSlice({
         }
         
         // Reset send status after a delay
-        setTimeout(() => {
-          if (state.sendStatus === "succeeded") {
-            state.sendStatus = "idle";
-          }
-        }, 1000);
+        // setTimeout(() => {
+        //   if (state.sendStatus === "succeeded") {
+        //     state.sendStatus = "idle";
+        //   }
+        // }, 1000);
       })
       .addCase(sendMessage.rejected, (state, action) => {
         state.sendStatus = "failed";

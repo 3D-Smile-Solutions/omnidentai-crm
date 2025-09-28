@@ -23,10 +23,11 @@ export const login = createAsyncThunk("auth/login", async (formData, { rejectWit
   }
 });
 
+// 🔧 CHANGE 1: Update fetchMe to return full response data
 export const fetchMe = createAsyncThunk("auth/me", async (_, { rejectWithValue }) => {
   try {
     const res = await axios.get(`${API_URL}/auth/me`, { withCredentials: true });
-    return res.data.user;
+    return res.data; // ← CHANGED: Return full response, not just res.data.user
   } catch (err) {
     return rejectWithValue(err.response?.data?.error || "Unauthorized");
   }
@@ -45,6 +46,7 @@ const authSlice = createSlice({
   name: "auth",
   initialState: {
     user: null,
+    session: null,
     signupStatus: "idle",
     loginStatus: "idle",
     fetchStatus: "idle",
@@ -75,19 +77,28 @@ const authSlice = createSlice({
       .addCase(login.fulfilled, (state, action) => {
         state.loginStatus = "succeeded";
         state.user = action.payload.user;
+        state.session = action.payload.session;
       })
       .addCase(login.rejected, (state, action) => {
         state.loginStatus = "failed";
         state.error = action.payload;
       })
 
-      // FetchMe
+      // 🔧 CHANGE 2: Fix fetchMe.fulfilled to preserve session
       .addCase(fetchMe.pending, (state) => {
         state.fetchStatus = "loading";
       })
       .addCase(fetchMe.fulfilled, (state, action) => {
         state.fetchStatus = "succeeded";
-        state.user = action.payload;
+        state.user = action.payload.user || action.payload; // Handle both response formats
+        
+        // ← CHANGED: Only update session if provided, preserve existing session
+        if (action.payload.access_token) {
+          state.session = { access_token: action.payload.access_token };
+        } else if (action.payload.session) {
+          state.session = action.payload.session;
+        }
+        // If no session data in response, keep existing session intact
       })
       .addCase(fetchMe.rejected, (state, action) => {
         state.fetchStatus = "failed";
@@ -101,6 +112,7 @@ const authSlice = createSlice({
       .addCase(logout.fulfilled, (state) => {
         state.logoutStatus = "succeeded";
         state.user = null;
+        state.session = null;
       })
       .addCase(logout.rejected, (state, action) => {
         state.logoutStatus = "failed";

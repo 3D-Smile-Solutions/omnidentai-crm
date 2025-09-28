@@ -157,7 +157,7 @@ io.on('connection', (socket) => {
       };
 
       // Broadcast to all users in this patient's conversation room
-      io.to(`patient_${patientId}`).emit('new_message', transformedMessage);
+     socket.to(`patient_${patientId}`).emit('new_message', transformedMessage);
 
       // Send success confirmation to sender
       socket.emit('message_sent', transformedMessage);
