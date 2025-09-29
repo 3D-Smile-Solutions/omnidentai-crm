@@ -3,6 +3,8 @@ import { useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { io } from 'socket.io-client';
 import { addMessage } from '../../../redux/slices/messageSlice';
+import { updatePatientLastMessage } from '../../../redux/slices/patientSlice'; // 🆕 Import new action
+import { setUserTyping } from '../../../redux/slices/typingSlice';
 
 const useWebSocket = () => {
   const socket = useRef(null);
@@ -13,8 +15,9 @@ const useWebSocket = () => {
   
   // Initialize WebSocket connection
   useEffect(() => {
-  console.log('Session:', session);
-  console.log('Access Token:', session?.access_token ? 'Present' : 'Missing');
+    console.log('Session:', session);
+    console.log('Access Token:', session?.access_token ? 'Present' : 'Missing');
+    
     // Only connect if user is authenticated
     if (!session?.access_token) {
       console.log('❌ No access token - WebSocket not connecting');
@@ -60,12 +63,27 @@ const useWebSocket = () => {
         patientId: message.patientId,
         message: message
       }));
+
+      // 🆕 NEW: Update patient's last message in the patient list
+      dispatch(updatePatientLastMessage({
+        patientId: message.patientId,
+        lastMessage: message.message,
+        lastMessageTime: message.timestamp,
+        lastMessageChannel: message.channel
+      }));
     });
 
     // Listen for confirmation that your message was sent
     socket.current.on('message_sent', (message) => {
       console.log('✅ Message sent confirmation:', message);
-      // Message already added optimistically, no need to add again
+      
+      // 🆕 NEW: Update patient's last message for sender too
+      dispatch(updatePatientLastMessage({
+        patientId: message.patientId,
+        lastMessage: message.message,
+        lastMessageTime: message.timestamp,
+        lastMessageChannel: message.channel
+      }));
     });
 
     // Listen for message errors
@@ -80,7 +98,13 @@ const useWebSocket = () => {
 
     socket.current.on('user_typing', (data) => {
       console.log('👤 User typing:', data);
-      // You can implement typing indicators in UI here later
+      const { userId, userEmail, isTyping, patientId } = data;
+      dispatch(setUserTyping({
+    patientId,
+    userId,
+    userEmail,
+    isTyping
+  }));
     });
 
     // ==========================================

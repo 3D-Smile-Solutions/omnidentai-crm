@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   List,
@@ -16,7 +16,18 @@ import { Search as SearchIcon } from '@mui/icons-material';
 
 const PatientList = ({ patients = [], selectedPatient, onSelectPatient, isMobile }) => {
   const [query, setQuery] = useState('');
-
+useEffect(() => {
+  console.log('🔍 REDUX STATE CHECK:', {
+    patientsCount: patients.length,
+    firstPatient: patients[0] ? {
+      id: patients[0].id,
+      first_name: patients[0].first_name,
+      last_name: patients[0].last_name,
+      lastMessage: patients[0].lastMessage,
+      lastMessageTime: patients[0].lastMessageTime
+    } : 'No patients'
+  });
+}, [patients]);
   const getInitials = (firstName = '', lastName = '') => {
     const a = (firstName || '').trim();
     const b = (lastName || '').trim();
@@ -26,7 +37,6 @@ const PatientList = ({ patients = [], selectedPatient, onSelectPatient, isMobile
     return '??';
   };
 
-  // deterministic color from id string (works for UUID)
   const getAvatarColor = (id = '') => {
     const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#F7B801', '#96CEB4', '#DDA77B', '#9B59B6', '#3498DB'];
     let hash = 0;
@@ -54,7 +64,6 @@ const PatientList = ({ patients = [], selectedPatient, onSelectPatient, isMobile
     return `${Math.floor(diffInMinutes / 1440)}d ago`;
   };
 
-  // client-side search
   const filtered = useMemo(() => {
     const q = (query || '').trim().toLowerCase();
     if (!q) return patients;
@@ -116,8 +125,17 @@ const PatientList = ({ patients = [], selectedPatient, onSelectPatient, isMobile
         )}
 
         {filtered.map((patient, idx) => {
-          const messages = patient.messages ?? [];
-          const lastMessage = messages.length ? messages[messages.length - 1] : { message: 'No messages yet', timestamp: new Date().toISOString() };
+          // Determine last message - prioritize backend data
+          let lastMessage = patient.lastMessage || 'No messages yet';
+          let lastTimestamp = patient.lastMessageTime || null;
+          
+          // Fallback to messages array if backend data not available
+          if (!patient.lastMessage && patient.messages?.length > 0) {
+            const msg = patient.messages[patient.messages.length - 1];
+            lastMessage = msg.message || 'No messages yet';
+            lastTimestamp = msg.timestamp || msg.created_at || null;
+          }
+
           const isSelected = selectedPatient?.id === patient.id;
           const firstName = patient.first_name ?? patient.firstName ?? '';
           const lastName = patient.last_name ?? patient.lastName ?? '';
@@ -159,14 +177,14 @@ const PatientList = ({ patients = [], selectedPatient, onSelectPatient, isMobile
                       {firstName} {lastName}
                     </Typography>
                     <Typography variant="caption" sx={{ color: 'rgba(11, 25, 41, 0.5)', fontSize: '0.7rem' }}>
-                      {getTimeAgo(lastMessage.timestamp)}
+                      {getTimeAgo(lastTimestamp)}
                     </Typography>
                   </Box>
                 }
                 secondary={
                   <>
                     <Typography component="span" variant="body2" sx={{ color: 'rgba(11, 25, 41, 0.7)', display: 'block' }}>
-                      {truncateMessage(lastMessage.message)}
+                      {truncateMessage(lastMessage)}
                     </Typography>
                     {unreadCount > 0 && (
                       <Chip

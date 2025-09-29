@@ -20,15 +20,21 @@ import {
   ChatBubbleOutline as ChatBubbleOutlineIcon
 } from '@mui/icons-material';
 import CustomCheckbox from './CustomCheckbox';
+import TypingIndicator from './Dashboard/TypingIndicator';
+import useWebSocket from './Dashboard/hooks/useWebSocket'; // Import useWebSocket
 
 const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
   const [message, setMessage] = useState('');
+  const [isTyping, setIsTyping] = useState(false); // Track typing state
   const [localSelectedChannels, setLocalSelectedChannels] = useState({
     sms: true,
     call: true,
     webchat: true
   });
   const messagesEndRef = useRef(null);
+  
+  // Get WebSocket functions
+  const { startTyping, stopTyping } = useWebSocket();
   
   // Get messages from Redux store
   const { 
@@ -47,6 +53,12 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
   }, [currentMessages]);
 
   const handleSendMessage = () => {
+    // Stop typing when message is sent
+    if (patient?.id) {
+      stopTyping(patient.id);
+      setIsTyping(false);
+    }
+    
     if (message.trim()) {
       onSendMessage(patient.id, message, 'webchat');
       setMessage('');
@@ -60,9 +72,32 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     }
   };
 
-  const getInitials = (firstName, lastName) => {
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  // Handle input change with typing indicator
+  const handleInputChange = (e) => {
+    setMessage(e.target.value);
+    
+    // Start typing indicator
+    if (!isTyping && patient?.id && e.target.value.trim()) {
+      startTyping(patient.id);
+      setIsTyping(true);
+    }
+    
+    // Stop typing if message is cleared
+    if (isTyping && !e.target.value.trim() && patient?.id) {
+      stopTyping(patient.id);
+      setIsTyping(false);
+    }
   };
+
+ const getInitials = (firstName, lastName) => {
+  const first = (firstName || '').trim();
+  const last = (lastName || '').trim();
+  
+  if (!first && !last) return '??';
+  if (first && last) return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
+  if (first) return first.slice(0, 2).toUpperCase();
+  return last.slice(0, 2).toUpperCase();
+};
 
   const getAvatarColor = (id) => {
     const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#F7B801', '#96CEB4', '#DDA77B', '#9B59B6', '#3498DB'];
@@ -113,7 +148,6 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     return groups;
   };
 
-  // Helper function to safely render error
   const renderError = (error) => {
     if (typeof error === 'string') return error;
     if (error && typeof error === 'object') {
@@ -195,7 +229,6 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     }));
   };
 
-  // FIXED: Safe handling of currentMessages
   const safeCurrentMessages = Array.isArray(currentMessages) ? currentMessages : [];
   const filteredMessages = safeCurrentMessages.filter(msg => localSelectedChannels[msg.channel]);
   const groupedMessages = groupMessagesByDate(filteredMessages);
@@ -224,7 +257,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
           background: 'white'
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
           <Avatar 
             sx={{ 
               bgcolor: getAvatarColor(patient.id),
@@ -234,14 +267,14 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
               fontSize: isMobile ? '0.9rem' : '1rem'
             }}
           >
-            {getInitials(patient.firstName, patient.lastName)}
+            {getInitials(patient.first_name || patient.firstName, patient.last_name || patient.lastName)}
           </Avatar>
-          <Box>
+          <Box sx={{ flex: 1 }}>
             <Typography variant={isMobile ? "body2" : "subtitle1"} sx={{ fontWeight: 600, color: '#0B1929' }}>
-              {patient.firstName} {patient.lastName}
+               {patient.first_name || patient.firstName} {patient.last_name || patient.lastName}
             </Typography>
             <Typography variant="caption" sx={{ color: 'rgba(11, 25, 41, 0.6)', fontSize: isMobile ? '0.7rem' : '0.75rem' }}>
-              Patient ID: #{patient.id.toString().padStart(4, '0')}
+              Patient ID: #{patient.id}
             </Typography>
           </Box>
         </Box>
@@ -283,7 +316,6 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
           },
         },
       }}>
-        {/* Loading state */}
         {fetchStatus === 'loading' && (
           <Box sx={{ 
             display: 'flex', 
@@ -295,14 +327,12 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
           </Box>
         )}
 
-        {/* Error state - FIXED */}
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {renderError(error)}
           </Alert>
         )}
 
-        {/* Messages */}
         {fetchStatus !== 'loading' && groupedMessages.map((item, index) => {
           if (item.type === 'date') {
             return (
@@ -351,7 +381,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
                       fontSize: '0.9rem'
                     }}
                   >
-                    {getInitials(patient.firstName, patient.lastName)}
+                   {getInitials(patient.first_name || patient.firstName, patient.last_name || patient.lastName)}
                   </Avatar>
                 )}
                 <Box>
@@ -411,6 +441,10 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
             </Box>
           );
         })}
+        
+        {/* Typing Indicator - Add at bottom of messages */}
+        <TypingIndicator patientId={patient?.id} />
+        
         <div ref={messagesEndRef} />
       </Box>
 
@@ -488,7 +522,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
             multiline
             maxRows={isMobile ? 3 : 4}
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={handleInputChange}
             onKeyPress={handleKeyPress}
             disabled={sendStatus === 'loading'}
           />

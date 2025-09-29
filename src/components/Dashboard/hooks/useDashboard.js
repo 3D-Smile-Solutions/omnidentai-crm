@@ -108,12 +108,10 @@ export const useDashboard = () => {
     const unreadCount = unreadCounts[patient.id] || 0;
     
     return {
-      id: patient.id,
-      firstName: patient.first_name,
-      lastName: patient.last_name,
-      unreadCount,
-      messages: patientMessages
-    };
+    ...patient, // ✅ Spread all original fields (includes first_name, last_name, lastMessage, etc.)
+    unreadCount,
+    messages: patientMessages
+  };
   });
 
   const handleSelectPatient = (patient) => {

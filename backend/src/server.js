@@ -180,6 +180,7 @@ io.on('connection', (socket) => {
   socket.on('typing_start', (data) => {
     const { patientId } = data;
     socket.to(`patient_${patientId}`).emit('user_typing', {
+      patientId, 
       userId: socket.userId,
       userEmail: socket.userEmail,
       isTyping: true
@@ -189,6 +190,7 @@ io.on('connection', (socket) => {
   socket.on('typing_stop', (data) => {
     const { patientId } = data;
     socket.to(`patient_${patientId}`).emit('user_typing', {
+      patientId,
       userId: socket.userId,
       userEmail: socket.userEmail,
       isTyping: false

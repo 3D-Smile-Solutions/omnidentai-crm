@@ -1,4 +1,4 @@
-import supabase from "../utils/supabaseClient.js"; // FIXED: ADD THIS IMPORT
+import supabase from "../utils/supabaseClient.js";
 import { 
   getMessagesByContactId,
   getAllMessagesForDentist, 
@@ -43,7 +43,7 @@ export async function getMessagesWithPatient(req, res) {
     
     console.log("Fetched messages:", messages.length);
 
-    // Transform to match your frontend format
+    // 🔧 FIX: Changed handleInputChange to messages.map
     const transformedMessages = messages.map(msg => ({
       id: msg.id,
       message: msg.message,
@@ -175,7 +175,7 @@ export async function sendMessage(req, res) {
     const transformedMessage = {
       id: newMessage.id,
       message: newMessage.message,
-      sender: 'dentist', // 
+      sender: 'dentist',
       channel: newMessage.channel,
       timestamp: newMessage.created_at
     };
