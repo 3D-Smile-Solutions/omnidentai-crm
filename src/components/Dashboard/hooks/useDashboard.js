@@ -16,7 +16,6 @@ import {
 import useWebSocket from '../../../components/Dashboard/hooks/useWebSocket'; // Import our WebSocket hook
 
 export const useDashboard = () => {
-  console.log('🔍 useDashboard: Hook called');
   const [mobileOpen, setMobileOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -36,7 +35,6 @@ export const useDashboard = () => {
     stopTyping,
     markMessagesAsRead: markMessagesAsReadWS
   } = useWebSocket();
-  console.log('🔍 useDashboard: useWebSocket hook imported');
   // Get data from Redux store (same as before)
   const { user: currentUser } = useSelector((state) => state.auth);
   const { list: patients, status: patientsStatus } = useSelector((state) => state.patients);

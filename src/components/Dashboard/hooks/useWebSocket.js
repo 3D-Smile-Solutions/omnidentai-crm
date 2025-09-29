@@ -13,7 +13,6 @@ const useWebSocket = () => {
   
   // Initialize WebSocket connection
   useEffect(() => {
-    console.log('🔍 useWebSocket Effect Triggered');
   console.log('Session:', session);
   console.log('Access Token:', session?.access_token ? 'Present' : 'Missing');
     // Only connect if user is authenticated
