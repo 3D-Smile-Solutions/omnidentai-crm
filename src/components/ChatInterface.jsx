@@ -1,5 +1,4 @@
-// Update your ChatInterface.jsx - Add these changes
-
+// frontend/src/components/ChatInterface.jsx - COMPLETE UPDATED VERSION
 import React, { useState, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -11,7 +10,8 @@ import {
   InputBase,
   Chip,
   CircularProgress,
-  Alert
+  Alert,
+  Link
 } from '@mui/material';
 import {
   AttachFile as AttachFileIcon,
@@ -20,17 +20,20 @@ import {
   Phone as PhoneIcon,
   VideoCall as VideoCallIcon,
   ChatBubbleOutline as ChatBubbleOutlineIcon,
-  InsertDriveFile as FileIcon
+  InsertDriveFile as FileIcon,
+  GetApp as DownloadIcon
 } from '@mui/icons-material';
 import CustomCheckbox from './CustomCheckbox';
 import TypingIndicator from './Dashboard/TypingIndicator';
-import FileUploadModal from './Dashboard/components/FileUpload/FileUploadModal'; // 🆕 Import
+import FileUploadModal from './Dashboard/components/FileUpload/FileUploadModal';
+import PatientDetailsModal from './Dashboard/components/PatientDetails/PatientDetailsModal'; // 🆕 Import
 import useWebSocket from './Dashboard/hooks/useWebSocket';
 
 const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [uploadModalOpen, setUploadModalOpen] = useState(false); // 🆕 Upload modal state
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false); // 🆕 Patient details modal state
   const [localSelectedChannels, setLocalSelectedChannels] = useState({
     sms: true,
     call: true,
@@ -88,16 +91,175 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     }
   };
 
-  // 🆕 Handle file upload complete
+  // 🆕 Handle file upload complete - send file attachment message
   const handleFileUploadComplete = (fileData) => {
     console.log('✅ File uploaded:', fileData);
     
-    // Send file as message
-    const fileMessage = `📎 File: ${fileData.filename}`;
-    onSendMessage(patient.id, fileMessage, 'webchat');
+    // Send file metadata as message
+    const fileMessage = JSON.stringify({
+      type: 'file',
+      filename: fileData.filename,
+      url: fileData.url,
+      mimeType: fileData.mimeType,
+      size: fileData.size
+    });
     
-    // Optionally: Store file metadata in a separate table or attach to message
-    // You could create a chat_attachments table to store file metadata
+    onSendMessage(patient.id, fileMessage, 'webchat');
+  };
+
+  // 🆕 Check if message is a file attachment
+  const isFileMessage = (messageText) => {
+    try {
+      const parsed = JSON.parse(messageText);
+      return parsed.type === 'file';
+    } catch {
+      return false;
+    }
+  };
+
+  // 🆕 Parse file message
+  const parseFileMessage = (messageText) => {
+    try {
+      return JSON.parse(messageText);
+    } catch {
+      return null;
+    }
+  };
+
+  // 🆕 Render file attachment
+const renderFileAttachment = (fileData) => {
+  const isImage = fileData.mimeType?.startsWith('image/');
+  
+  // Function to trigger download
+  const handleDownload = async (e) => {
+    e.stopPropagation(); // Prevent opening in new tab
+    
+    try {
+      const response = await fetch(fileData.url);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileData.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download failed:', error);
+      // Fallback: open in new tab
+      window.open(fileData.url, '_blank');
+    }
+  };
+  
+  return (
+    <Box
+      sx={{
+        maxWidth: 300,
+        borderRadius: 2,
+        overflow: 'hidden',
+        backgroundColor: 'rgba(255,255,255,0.1)'
+      }}
+    >
+      {isImage ? (
+        <Box>
+          <Link
+            href={fileData.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            sx={{ display: 'block', textDecoration: 'none' }}
+          >
+            <img
+              src={fileData.url}
+              alt={fileData.filename}
+              style={{
+                width: '100%',
+                maxHeight: 200,
+                objectFit: 'cover',
+                display: 'block',
+                cursor: 'pointer'
+              }}
+            />
+          </Link>
+          {fileData.filename && (
+            <Box 
+              sx={{ 
+                p: 1, 
+                backgroundColor: 'rgba(0,0,0,0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}
+            >
+              <Typography
+                variant="caption"
+                sx={{
+                  color: '#fff',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  flex: 1
+                }}
+              >
+                {fileData.filename}
+              </Typography>
+              <IconButton 
+                size="small" 
+                sx={{ color: '#fff', ml: 1 }}
+                onClick={handleDownload}
+              >
+                <DownloadIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          )}
+        </Box>
+      ) : (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            p: 1.5,
+            backgroundColor: 'rgba(255,255,255,0.2)',
+          }}
+        >
+          <FileIcon sx={{ fontSize: 40, color: '#fff' }} />
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                color: '#fff',
+                fontWeight: 500,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {fileData.filename}
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+              {formatFileSize(fileData.size)}
+            </Typography>
+          </Box>
+          <IconButton 
+            size="small" 
+            sx={{ color: '#fff' }}
+            onClick={handleDownload}
+          >
+            <DownloadIcon />
+          </IconButton>
+        </Box>
+      )}
+    </Box>
+  );
+};
+
+  const formatFileSize = (bytes) => {
+    if (!bytes || bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
   };
 
   const getInitials = (firstName, lastName) => {
@@ -256,7 +418,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
       overflow: 'hidden',
       boxShadow: isMobile ? '0 2px 12px rgba(0,0,0,0.08)' : '0 1px 3px rgba(0,0,0,0.05)'
     }}>
-      {/* Header - same as before */}
+      {/* Header */}
       <Paper 
         elevation={0} 
         sx={{ 
@@ -285,7 +447,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
               {patient.first_name || patient.firstName} {patient.last_name || patient.lastName}
             </Typography>
             <Typography variant="caption" sx={{ color: 'rgba(11, 25, 41, 0.6)', fontSize: isMobile ? '0.7rem' : '0.75rem' }}>
-              Patient ID: #{patient.id.substring(0, 8)}
+              Patient ID: {patient.id.substring(0, 8)}...
             </Typography>
           </Box>
         </Box>
@@ -300,13 +462,17 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
               </IconButton>
             </>
           )}
-          <IconButton sx={{ color: 'rgba(11, 25, 41, 0.6)' }}>
+          {/* 🆕 More button opens patient details */}
+          <IconButton 
+            sx={{ color: 'rgba(11, 25, 41, 0.6)' }}
+            onClick={() => setDetailsModalOpen(true)}
+          >
             <MoreVertIcon />
           </IconButton>
         </Box>
       </Paper>
 
-      {/* Messages Area - same as before */}
+      {/* Messages Area */}
       <Box sx={{ 
         flex: 1, 
         overflow: 'auto',
@@ -367,6 +533,9 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
           }
 
           const isStaff = item.sender === 'dentist';
+          const isFile = isFileMessage(item.message);
+          const fileData = isFile ? parseFileMessage(item.message) : null;
+
           return (
             <Box
               key={item.id}
@@ -399,7 +568,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
                   <Paper
                     elevation={0}
                     sx={{
-                      p: 1.5,
+                      p: isFile ? 0.5 : 1.5,
                       backgroundColor: isStaff ? '#3EE4C8' : 'white',
                       color: isStaff ? '#0B1929' : '#0B1929',
                       border: isStaff ? 'none' : '1px solid rgba(62, 228, 200, 0.2)',
@@ -408,9 +577,13 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
                       borderTopRightRadius: isStaff ? 4 : 16,
                     }}
                   >
-                    <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                      {item.message}
-                    </Typography>
+                    {isFile && fileData ? (
+                      renderFileAttachment(fileData)
+                    ) : (
+                      <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                        {item.message}
+                      </Typography>
+                    )}
                   </Paper>
                   <Box sx={{ 
                     display: 'flex', 
@@ -506,7 +679,6 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
           borderRadius: 2,
           backgroundColor: 'rgba(62, 228, 200, 0.03)'
         }}>
-          {/* 🆕 Updated Attach File Button */}
           <IconButton 
             size={isMobile ? "small" : "medium"}
             onClick={() => setUploadModalOpen(true)}
@@ -562,12 +734,19 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
         </Box>
       </Paper>
 
-      {/* 🆕 File Upload Modal */}
+      {/* File Upload Modal */}
       <FileUploadModal
         open={uploadModalOpen}
         onClose={() => setUploadModalOpen(false)}
         onUploadComplete={handleFileUploadComplete}
         patientId={patient.id}
+      />
+
+      {/* 🆕 Patient Details Modal */}
+      <PatientDetailsModal
+        open={detailsModalOpen}
+        onClose={() => setDetailsModalOpen(false)}
+        patient={patient}
       />
     </Box>
   );
