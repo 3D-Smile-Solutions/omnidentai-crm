@@ -1,3 +1,5 @@
+// Update your ChatInterface.jsx - Add these changes
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -17,15 +19,18 @@ import {
   MoreVert as MoreVertIcon,
   Phone as PhoneIcon,
   VideoCall as VideoCallIcon,
-  ChatBubbleOutline as ChatBubbleOutlineIcon
+  ChatBubbleOutline as ChatBubbleOutlineIcon,
+  InsertDriveFile as FileIcon
 } from '@mui/icons-material';
 import CustomCheckbox from './CustomCheckbox';
 import TypingIndicator from './Dashboard/TypingIndicator';
-import useWebSocket from './Dashboard/hooks/useWebSocket'; // Import useWebSocket
+import FileUploadModal from './Dashboard/components/FileUpload/FileUploadModal'; // 🆕 Import
+import useWebSocket from './Dashboard/hooks/useWebSocket';
 
 const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
   const [message, setMessage] = useState('');
-  const [isTyping, setIsTyping] = useState(false); // Track typing state
+  const [isTyping, setIsTyping] = useState(false);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false); // 🆕 Upload modal state
   const [localSelectedChannels, setLocalSelectedChannels] = useState({
     sms: true,
     call: true,
@@ -33,10 +38,8 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
   });
   const messagesEndRef = useRef(null);
   
-  // Get WebSocket functions
   const { startTyping, stopTyping } = useWebSocket();
   
-  // Get messages from Redux store
   const { 
     currentMessages, 
     fetchStatus, 
@@ -53,7 +56,6 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
   }, [currentMessages]);
 
   const handleSendMessage = () => {
-    // Stop typing when message is sent
     if (patient?.id) {
       stopTyping(patient.id);
       setIsTyping(false);
@@ -72,32 +74,41 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     }
   };
 
-  // Handle input change with typing indicator
   const handleInputChange = (e) => {
     setMessage(e.target.value);
     
-    // Start typing indicator
     if (!isTyping && patient?.id && e.target.value.trim()) {
       startTyping(patient.id);
       setIsTyping(true);
     }
     
-    // Stop typing if message is cleared
     if (isTyping && !e.target.value.trim() && patient?.id) {
       stopTyping(patient.id);
       setIsTyping(false);
     }
   };
 
- const getInitials = (firstName, lastName) => {
-  const first = (firstName || '').trim();
-  const last = (lastName || '').trim();
-  
-  if (!first && !last) return '??';
-  if (first && last) return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
-  if (first) return first.slice(0, 2).toUpperCase();
-  return last.slice(0, 2).toUpperCase();
-};
+  // 🆕 Handle file upload complete
+  const handleFileUploadComplete = (fileData) => {
+    console.log('✅ File uploaded:', fileData);
+    
+    // Send file as message
+    const fileMessage = `📎 File: ${fileData.filename}`;
+    onSendMessage(patient.id, fileMessage, 'webchat');
+    
+    // Optionally: Store file metadata in a separate table or attach to message
+    // You could create a chat_attachments table to store file metadata
+  };
+
+  const getInitials = (firstName, lastName) => {
+    const first = (firstName || '').trim();
+    const last = (lastName || '').trim();
+    
+    if (!first && !last) return '??';
+    if (first && last) return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
+    if (first) return first.slice(0, 2).toUpperCase();
+    return last.slice(0, 2).toUpperCase();
+  };
 
   const getAvatarColor = (id) => {
     const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#F7B801', '#96CEB4', '#DDA77B', '#9B59B6', '#3498DB'];
@@ -245,7 +256,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
       overflow: 'hidden',
       boxShadow: isMobile ? '0 2px 12px rgba(0,0,0,0.08)' : '0 1px 3px rgba(0,0,0,0.05)'
     }}>
-      {/* Header */}
+      {/* Header - same as before */}
       <Paper 
         elevation={0} 
         sx={{ 
@@ -271,10 +282,10 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
           </Avatar>
           <Box sx={{ flex: 1 }}>
             <Typography variant={isMobile ? "body2" : "subtitle1"} sx={{ fontWeight: 600, color: '#0B1929' }}>
-               {patient.first_name || patient.firstName} {patient.last_name || patient.lastName}
+              {patient.first_name || patient.firstName} {patient.last_name || patient.lastName}
             </Typography>
             <Typography variant="caption" sx={{ color: 'rgba(11, 25, 41, 0.6)', fontSize: isMobile ? '0.7rem' : '0.75rem' }}>
-              Patient ID: #{patient.id}
+              Patient ID: #{patient.id.substring(0, 8)}
             </Typography>
           </Box>
         </Box>
@@ -295,7 +306,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
         </Box>
       </Paper>
 
-      {/* Messages Area */}
+      {/* Messages Area - same as before */}
       <Box sx={{ 
         flex: 1, 
         overflow: 'auto',
@@ -381,7 +392,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
                       fontSize: '0.9rem'
                     }}
                   >
-                   {getInitials(patient.first_name || patient.firstName, patient.last_name || patient.lastName)}
+                    {getInitials(patient.first_name || patient.firstName, patient.last_name || patient.lastName)}
                   </Avatar>
                 )}
                 <Box>
@@ -442,7 +453,6 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
           );
         })}
         
-        {/* Typing Indicator - Add at bottom of messages */}
         <TypingIndicator patientId={patient?.id} />
         
         <div ref={messagesEndRef} />
@@ -496,8 +506,10 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
           borderRadius: 2,
           backgroundColor: 'rgba(62, 228, 200, 0.03)'
         }}>
+          {/* 🆕 Updated Attach File Button */}
           <IconButton 
             size={isMobile ? "small" : "medium"}
+            onClick={() => setUploadModalOpen(true)}
             sx={{ 
               color: 'rgba(11, 25, 41, 0.6)',
               '&:hover': {
@@ -549,6 +561,14 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
           </IconButton>
         </Box>
       </Paper>
+
+      {/* 🆕 File Upload Modal */}
+      <FileUploadModal
+        open={uploadModalOpen}
+        onClose={() => setUploadModalOpen(false)}
+        onUploadComplete={handleFileUploadComplete}
+        patientId={patient.id}
+      />
     </Box>
   );
 };
