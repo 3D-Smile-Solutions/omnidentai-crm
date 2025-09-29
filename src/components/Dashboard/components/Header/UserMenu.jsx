@@ -1,5 +1,4 @@
-// 5. src/components/Dashboard/components/Header/UserMenu.jsx
-// ===========================================
+// frontend/src/components/Dashboard/components/Header/UserMenu.jsx
 import React from 'react';
 import {
   Menu,
@@ -13,14 +12,21 @@ import {
   ExitToApp as LogoutIcon
 } from '@mui/icons-material';
 
-const UserMenu = ({ anchorEl, onClose, onLogout }) => {
+const UserMenu = ({ anchorEl, onClose, onLogout, onProfileClick }) => {
+  const handleProfileClick = () => {
+    onClose();
+    if (onProfileClick) {
+      onProfileClick();
+    }
+  };
+
   return (
     <Menu
       anchorEl={anchorEl}
       open={Boolean(anchorEl)}
       onClose={onClose}
     >
-      <MenuItem onClick={onClose}>
+      <MenuItem onClick={handleProfileClick}>
         <ListItemIcon><PersonIcon fontSize="small" /></ListItemIcon>
         Profile
       </MenuItem>
