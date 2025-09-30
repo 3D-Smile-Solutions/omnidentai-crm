@@ -1,5 +1,6 @@
 // frontend/src/components/Dashboard/components/Header/UserMenu.jsx
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Menu,
   MenuItem,
@@ -12,12 +13,12 @@ import {
   ExitToApp as LogoutIcon
 } from '@mui/icons-material';
 
-const UserMenu = ({ anchorEl, onClose, onLogout, onProfileClick }) => {
+const UserMenu = ({ anchorEl, onClose, onLogout }) => {
+  const navigate = useNavigate();
+
   const handleProfileClick = () => {
     onClose();
-    if (onProfileClick) {
-      onProfileClick();
-    }
+    navigate('/profile');
   };
 
   return (

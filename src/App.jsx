@@ -13,6 +13,8 @@ import "react-toastify/dist/ReactToastify.css";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
 import Dashboard from "./components/Dashboard/Dashboard";
+import Profile from "./components/Profile/Profile";
+
 
 function AppContent() {
   const dispatch = useDispatch();
@@ -50,6 +52,10 @@ function AppContent() {
             path="/dashboard"
             element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />}
           />
+          <Route 
+          path="/profile" 
+         element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} 
+        />
           <Route
             path="/"
             element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />}
