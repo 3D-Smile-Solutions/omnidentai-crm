@@ -1,35 +1,77 @@
-// 13. src/components/Dashboard/components/Reports/Reports.jsx
-// ===========================================
-import React from 'react';
-import { Typography, Box, Paper, Button } from '@mui/material';
-import { Assessment as ReportsIcon } from '@mui/icons-material';
+// frontend/src/components/Dashboard/components/Reports/Reports.jsx
+import React, { useState } from 'react';
+import { Typography, Box, Paper, IconButton, Tooltip } from '@mui/material';
+import { Assessment as ReportsIcon, CloudUpload as UploadIcon } from '@mui/icons-material';
+import GenericDocumentUploadModal from '../uploadModal/GenericDocumentUploadModal';
 
-const ReportCard = ({ title, description }) => (
-  <Paper elevation={0} sx={{ 
-    p: 3,
-    background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
-    border: '1px solid rgba(62, 228, 200, 0.2)',
-    transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-    '&:hover': {
-      boxShadow: '0 4px 20px rgba(62, 228, 200, 0.15)',
-      transform: 'translateY(-2px)'
-    }
-  }}>
-    <ReportsIcon sx={{ color: '#3EE4C8', fontSize: 40, mb: 2 }} />
-    <Typography variant="h6" sx={{ fontWeight: 600, color: '#0B1929' }}>{title}</Typography>
-    <Typography variant="body2" sx={{ color: 'rgba(11, 25, 41, 0.6)', mt: 1 }}>
-      {description}
-    </Typography>
-  </Paper>
-);
+const ReportCard = ({ title, description, category, onUpload }) => {
+  const [uploadOpen, setUploadOpen] = useState(false);
+
+  return (
+    <>
+      <Paper elevation={0} sx={{ 
+        p: 3,
+        position: 'relative',
+        background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
+        border: '1px solid rgba(62, 228, 200, 0.2)',
+        transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+        '&:hover': {
+          boxShadow: '0 4px 20px rgba(62, 228, 200, 0.15)',
+          transform: 'translateY(-2px)'
+        }
+      }}>
+        <Tooltip title="Upload Report">
+          <IconButton
+            sx={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              backgroundColor: 'rgba(62, 228, 200, 0.1)',
+              '&:hover': {
+                backgroundColor: '#3EE4C8',
+                color: '#fff'
+              }
+            }}
+            onClick={() => setUploadOpen(true)}
+          >
+            <UploadIcon />
+          </IconButton>
+        </Tooltip>
+
+        <ReportsIcon sx={{ color: '#3EE4C8', fontSize: 40, mb: 2 }} />
+        <Typography variant="h6" sx={{ fontWeight: 600, color: '#0B1929', pr: 5 }}>{title}</Typography>
+        <Typography variant="body2" sx={{ color: 'rgba(11, 25, 41, 0.6)', mt: 1 }}>
+          {description}
+        </Typography>
+      </Paper>
+
+      <GenericDocumentUploadModal
+        open={uploadOpen}
+        onClose={() => setUploadOpen(false)}
+        onUploadComplete={(doc) => {
+          console.log('Report uploaded:', doc);
+          if (onUpload) onUpload(doc);
+        }}
+        documentType="report"
+        category={category}
+        title={`Upload ${title}`}
+        allowedTypes="documents"
+      />
+    </>
+  );
+};
 
 const Reports = () => {
   const reportTypes = [
-    { title: 'Financial Reports', description: 'Production, collections, and accounts receivable' },
-    { title: 'Patient Reports', description: 'Demographics, retention, and satisfaction' },
-    { title: 'Insurance Analysis', description: 'Claims, payments, and aging reports' },
-    { title: 'Operational Metrics', description: 'Appointment utilization and staff productivity' }
+    { title: 'Financial Reports', description: 'Production, collections, and accounts receivable', category: 'financial_report' },
+    { title: 'Patient Reports', description: 'Demographics, retention, and satisfaction', category: 'patient_report' },
+    { title: 'Insurance Analysis', description: 'Claims, payments, and aging reports', category: 'insurance_analysis' },
+    { title: 'Operational Metrics', description: 'Appointment utilization and staff productivity', category: 'operational_metrics' }
   ];
+
+  const handleReportUpload = (document) => {
+    console.log('New report uploaded:', document);
+  };
 
   return (
     <>
@@ -45,6 +87,8 @@ const Reports = () => {
             key={index}
             title={report.title}
             description={report.description}
+            category={report.category}
+            onUpload={handleReportUpload}
           />
         ))}
       </Box>
