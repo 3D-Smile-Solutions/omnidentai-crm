@@ -136,14 +136,14 @@ const useWebSocket = () => {
   const joinPatientConversation = (patientId) => {
     if (socket.current && patientId) {
       socket.current.emit('join_patient_conversation', patientId);
-      console.log(`👥 Joined conversation with patient ${patientId}`);
+      // console.log(`👥 Joined conversation with patient ${patientId}`);
     }
   };
 
   const leavePatientConversation = (patientId) => {
     if (socket.current && patientId) {
       socket.current.emit('leave_patient_conversation', patientId);
-      console.log(`👋 Left conversation with patient ${patientId}`);
+      // console.log(`👋 Left conversation with patient ${patientId}`);
     }
   };
 

@@ -69,7 +69,7 @@ const authenticateSocket = async (socket, next) => {
     socket.userId = data.user.id;
     socket.userEmail = data.user.email;
     
-    console.log(`✅ Socket authenticated for user: ${data.user.email}`);
+    // console.log(`✅ Socket authenticated for user: ${data.user.email}`);
     next();
   } catch (err) {
     console.error('Socket authentication error:', err);
@@ -82,7 +82,7 @@ io.use(authenticateSocket);
 
 // Handle WebSocket connections
 io.on('connection', (socket) => {
-  console.log(`🔌 User connected: ${socket.userEmail} (${socket.userId})`);
+  // console.log(`🔌 User connected: ${socket.userEmail} (${socket.userId})`);
 
   // Join user to their personal room for receiving updates
   socket.join(`dentist_${socket.userId}`);
@@ -94,13 +94,13 @@ io.on('connection', (socket) => {
   // Join a specific patient conversation
   socket.on('join_patient_conversation', (patientId) => {
     socket.join(`patient_${patientId}`);
-    console.log(`👥 ${socket.userEmail} joined conversation with patient ${patientId}`);
+    // console.log(`👥 ${socket.userEmail} joined conversation with patient ${patientId}`);
   });
 
   // Leave a specific patient conversation
   socket.on('leave_patient_conversation', (patientId) => {
     socket.leave(`patient_${patientId}`);
-    console.log(`👋 ${socket.userEmail} left conversation with patient ${patientId}`);
+    // console.log(`👋 ${socket.userEmail} left conversation with patient ${patientId}`);
   });
 
   // ==========================================
@@ -241,7 +241,7 @@ export { io };
 const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);
-  console.log(`🔌 WebSocket server ready`);
+  // console.log(`🔌 WebSocket server ready`);
 });
 
 export default app;

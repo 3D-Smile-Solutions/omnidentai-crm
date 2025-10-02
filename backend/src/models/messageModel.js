@@ -193,7 +193,7 @@ export async function getUnreadCounts(dentistId) {
       return acc;
     }, {}) || {};
     
-    console.log(`Unread counts by contact_id:`, contactCounts);
+    // console.log(`Unread counts by contact_id:`, contactCounts);
     
     // Convert contact_id counts to patient_id counts
     const patientCounts = {};

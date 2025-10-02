@@ -206,7 +206,7 @@ export async function getUnreadMessageCounts(req, res) {
 
     const unreadCountsByContactId = await getUnreadCounts(dentistId);
     
-    console.log("Unread counts by contact_id:", unreadCountsByContactId);
+    // console.log("Unread counts by contact_id:", unreadCountsByContactId);
     
     // Convert contact_id based counts to patient_id based counts
     const { data: patients, error } = await supabase
