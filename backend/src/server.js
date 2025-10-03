@@ -11,6 +11,7 @@ import authRoutes from "./routes/auth.js";
 import patientRoutes from "./routes/patient.js";
 import messageRoutes from "./routes/message.js";
 import upload from './routes/upload.js';
+import metrics from './routes/metrics.js';
 import practiceDocumentRoutes from './routes/practiceDocumentRoutes.js';
 dotenv.config();
 
@@ -39,6 +40,7 @@ app.use("/auth", authRoutes);
 app.use("/patients", patientRoutes);
 app.use("/messages", messageRoutes);
 app.use('/upload', upload);
+app.use('/api/metrics', metrics);
 app.use('/practice-documents', practiceDocumentRoutes);
 app.get("/", (req, res) => {
   res.json({ message: "Backend API is running 🚀" });

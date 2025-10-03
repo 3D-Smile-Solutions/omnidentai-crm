@@ -4,7 +4,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { useSelector, useDispatch } from "react-redux";
 import { Provider } from "react-redux";
-import { store } from "./redux/store";
+import  store  from "./redux/store";
 import { fetchMe } from "./redux/slices/authSlice";
 import theme from "./theme";
 import { ToastContainer } from "react-toastify";

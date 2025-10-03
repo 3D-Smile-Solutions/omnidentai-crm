@@ -1,7 +1,7 @@
 // api/axiosInstance.js
 import axios from "axios";
-import store from "../store";
-import { fetchMe } from "../store/authSlice";
+import store from "../redux/store";
+import { fetchMe } from "../redux/slices/authSlice";
 
 const API_URL = "http://localhost:5000";
 
