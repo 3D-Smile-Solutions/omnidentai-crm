@@ -3,9 +3,9 @@ import supabase from "../utils/supabaseClient.js";
 
 export async function getPatientsByDentist(dentistId) {
   try {
-    console.log('==========================================');
-    console.log('🔍 getPatientsByDentist called');
-    console.log(`Dentist ID: ${dentistId}`);
+    // console.log('==========================================');
+    // console.log('🔍 getPatientsByDentist called');
+    // console.log(`Dentist ID: ${dentistId}`);
 
     // Fetch patients with ALL necessary fields
     const { data: patients, error: patientsError } = await supabase
@@ -80,14 +80,14 @@ export async function getPatientsByDentist(dentistId) {
       })
     );
 
-    console.log('✅ Returning patients with last messages');
-    console.log('Sample result:', {
-      id: patientsWithLastMessage[0].id,
-      name: `${patientsWithLastMessage[0].first_name} ${patientsWithLastMessage[0].last_name}`,
-      lastMessage: patientsWithLastMessage[0].lastMessage?.substring(0, 30) || 'none',
-      lastMessageTime: patientsWithLastMessage[0].lastMessageTime
-    });
-    console.log('==========================================\n');
+    // console.log('✅ Returning patients with last messages');
+    // console.log('Sample result:', {
+    //   id: patientsWithLastMessage[0].id,
+    //   name: `${patientsWithLastMessage[0].first_name} ${patientsWithLastMessage[0].last_name}`,
+    //   lastMessage: patientsWithLastMessage[0].lastMessage?.substring(0, 30) || 'none',
+    //   lastMessageTime: patientsWithLastMessage[0].lastMessageTime
+    // });
+    // console.log('==========================================\n');
 
     return patientsWithLastMessage;
 

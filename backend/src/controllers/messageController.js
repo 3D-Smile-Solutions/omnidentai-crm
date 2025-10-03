@@ -198,7 +198,7 @@ export async function getUnreadMessageCounts(req, res) {
   try {
     const dentistId = req.user?.id;
     
-    console.log("Fetching unread counts for dentist:", dentistId);
+    // console.log("Fetching unread counts for dentist:", dentistId);
     
     if (!dentistId) {
       return res.status(401).json({ error: "Unauthorized" });
@@ -219,7 +219,7 @@ export async function getUnreadMessageCounts(req, res) {
       throw error;
     }
 
-    console.log("Found patients:", patients.length);
+    // console.log("Found patients:", patients.length);
 
     const unreadCountsByPatientId = {};
     patients.forEach(patient => {
@@ -229,7 +229,7 @@ export async function getUnreadMessageCounts(req, res) {
       }
     });
     
-    console.log("Unread counts by patient_id:", unreadCountsByPatientId);
+    // console.log("Unread counts by patient_id:", unreadCountsByPatientId);
     
     res.json({ unreadCounts: unreadCountsByPatientId });
   } catch (err) {

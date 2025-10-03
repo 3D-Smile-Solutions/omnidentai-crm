@@ -156,7 +156,7 @@ export async function getPatientByContactId(contactId, dentistId) {
 // Get unread message counts per patient
 export async function getUnreadCounts(dentistId) {
   try {
-    console.log(`Fetching unread counts for dentist: ${dentistId}`);
+    // console.log(`Fetching unread counts for dentist: ${dentistId}`);
     
     // First get all patients for this dentist
     const { data: patients, error: patientsError } = await supabase
@@ -166,7 +166,7 @@ export async function getUnreadCounts(dentistId) {
 
     if (patientsError) throw patientsError;
 
-    console.log(`Found patients: ${patients?.length || 0}`);
+    // console.log(`Found patients: ${patients?.length || 0}`);
 
     const contactIds = patients.map(p => p.contact_id).filter(Boolean);
 
@@ -203,7 +203,7 @@ export async function getUnreadCounts(dentistId) {
       }
     });
     
-    console.log(`Unread counts by patient_id:`, patientCounts);
+    // console.log(`Unread counts by patient_id:`, patientCounts);
     return patientCounts;
   } catch (error) {
     console.error('Error in getUnreadCounts:', error);
