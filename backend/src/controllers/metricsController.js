@@ -2,20 +2,20 @@
 import supabase from '../utils/supabaseClient.js';
 
 /**
- * Get overview metrics for dashboard
+ * Get overview metrics for dashboard - Each column gets its own visualization
  * GET /api/metrics/overview
  */
 export async function getOverviewMetrics(req, res) {
   try {
-    const clientId = req.user.id; // From JWT token via authMiddleware
+    const clientId = req.user.id;
 
-    console.log('📊 Fetching overview metrics for client:', clientId);
+    console.log('📊 Fetching column-based metrics for client:', clientId);
 
-    // Fetch all conversation metrics for this client
+    // TEMPORARY FIX: Fetch ALL conversation metrics (remove client_id filter)
+    // TODO: Once you populate client_id in conversation_metrics table, add back: .eq('client_id', clientId)
     const { data: metrics, error } = await supabase
       .from('conversation_metrics')
       .select('*')
-      .eq('client_id', clientId)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -25,176 +25,230 @@ export async function getOverviewMetrics(req, res) {
 
     console.log(`✅ Fetched ${metrics.length} conversation records`);
 
-    // Calculate aggregate metrics
-    const totalRevenue = metrics.reduce((sum, m) => sum + (parseFloat(m.estimated_value) || 0), 0);
-    const totalBookings = metrics.filter(m => m.appointment_booked === true).length;
-    const totalConversations = metrics.length;
-    
-    // Get most recent booking
-    const recentBooking = metrics.find(m => m.appointment_booked === true && m.appointment_type);
-    
-    // Calculate monthly revenue (last 6 months)
-    const monthlyRevenue = {};
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-
-    metrics
-      .filter(m => new Date(m.created_at) >= sixMonthsAgo)
-      .forEach(m => {
-        const date = new Date(m.created_at);
-        const monthKey = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-        monthlyRevenue[monthKey] = (monthlyRevenue[monthKey] || 0) + (parseFloat(m.estimated_value) || 0);
+    // If no data, return empty structure
+    if (metrics.length === 0) {
+      console.log('⚠️ No metrics found in database');
+      return res.json({
+        summary: {
+          totalConversations: 0,
+          totalBookings: 0,
+          totalRevenue: 0,
+          avgSessionDuration: 0
+        },
+        charts: {
+          appointmentBooked: [],
+          appointmentType: [],
+          treatmentPlan: [],
+          caseAccepted: [],
+          patientType: [],
+          conversationChannel: [],
+          aiHandled: [],
+          humanHandoff: [],
+          conversationResolved: [],
+          insuranceMentioned: [],
+          insuranceProvider: [],
+          paymentPlan: [],
+          procedurePrimary: [],
+          bookingOutcome: [],
+          monthlyRevenue: [],
+          avgMessagesByChannel: []
+        }
       });
+    }
 
-    // Convert to array and sort chronologically
-    const revenueData = Object.entries(monthlyRevenue)
-      .map(([month, revenue]) => ({ month, revenue: Math.round(revenue) }))
-      .sort((a, b) => new Date(a.month) - new Date(b.month));
+    // ========== SUMMARY CARDS ==========
+    const totalConversations = metrics.length;
+    const totalBookings = metrics.filter(m => m.appointment_booked === true).length;
+    const totalRevenue = metrics.reduce((sum, m) => sum + (parseFloat(m.estimated_value) || 0), 0);
+    const avgSessionDuration = metrics.filter(m => m.session_duration_minutes)
+      .reduce((sum, m) => sum + m.session_duration_minutes, 0) / 
+      metrics.filter(m => m.session_duration_minutes).length || 0;
 
-    // Calculate appointment types with revenue
-    const appointmentTypesMap = {};
+    console.log('📊 Summary calculated:', { totalConversations, totalBookings, totalRevenue: Math.round(totalRevenue) });
+
+    // ========== 1. APPOINTMENT_BOOKED (Pie Chart) ==========
+    const appointmentBookedData = [
+      { name: 'Booked', value: metrics.filter(m => m.appointment_booked === true).length },
+      { name: 'Not Booked', value: metrics.filter(m => m.appointment_booked === false).length }
+    ];
+
+    // ========== 2. APPOINTMENT_TYPE (Bar Chart) ==========
+    const appointmentTypeMap = {};
     metrics.forEach(m => {
       if (m.appointment_type) {
-        if (!appointmentTypesMap[m.appointment_type]) {
-          appointmentTypesMap[m.appointment_type] = { count: 0, revenue: 0 };
-        }
-        appointmentTypesMap[m.appointment_type].count++;
-        appointmentTypesMap[m.appointment_type].revenue += parseFloat(m.estimated_value) || 0;
+        const type = m.appointment_type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        appointmentTypeMap[type] = (appointmentTypeMap[type] || 0) + 1;
       }
     });
-
-    const appointmentTypes = Object.entries(appointmentTypesMap)
-      .map(([type, data]) => ({
-        type: type.charAt(0).toUpperCase() + type.slice(1).replace(/_/g, ' '),
-        count: data.count,
-        revenue: Math.round(data.revenue)
-      }))
+    const appointmentTypeData = Object.entries(appointmentTypeMap)
+      .map(([type, count]) => ({ type, count }))
       .sort((a, b) => b.count - a.count);
 
-    // Conversations by channel
-    const channelsMap = {};
-    metrics.forEach(m => {
-      const channel = m.conversation_channel || 'unknown';
-      channelsMap[channel] = (channelsMap[channel] || 0) + 1;
-    });
+    // ========== 3. TREATMENT_PLAN_PRESENTED (Pie Chart) ==========
+    const treatmentPlanData = [
+      { name: 'Presented', value: metrics.filter(m => m.treatment_plan_presented === true).length },
+      { name: 'Not Presented', value: metrics.filter(m => m.treatment_plan_presented === false).length }
+    ];
 
-    const conversationsByChannel = Object.entries(channelsMap)
-      .map(([channel, count]) => ({
-        channel: channel.charAt(0).toUpperCase() + channel.slice(1),
-        count
+    // ========== 4. CASE_ACCEPTED (Pie Chart) ==========
+    const caseAcceptedMap = {};
+    metrics.forEach(m => {
+      const status = m.case_accepted || 'Not Specified';
+      caseAcceptedMap[status] = (caseAcceptedMap[status] || 0) + 1;
+    });
+    const caseAcceptedData = Object.entries(caseAcceptedMap)
+      .map(([name, count]) => ({ 
+        name: typeof name === 'string' ? name.charAt(0).toUpperCase() + name.slice(1) : name, 
+        value: count
       }));
 
-    // Popular procedures
-    const proceduresMap = {};
-    metrics.forEach(m => {
-      if (m.procedure_primary) {
-        proceduresMap[m.procedure_primary] = (proceduresMap[m.procedure_primary] || 0) + 1;
-      }
-    });
-
-    const popularProcedures = Object.entries(proceduresMap)
-      .map(([name, value]) => ({
-        name: name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-        value
-      }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 8);
-
-    // Insurance providers
-    const insuranceMap = {};
-    metrics.forEach(m => {
-      if (m.insurance_provider) {
-        insuranceMap[m.insurance_provider] = (insuranceMap[m.insurance_provider] || 0) + 1;
-      }
-    });
-
-    const insuranceProviders = Object.entries(insuranceMap)
-      .map(([provider, count]) => ({ provider, count }))
-      .sort((a, b) => b.count - a.count);
-
-    // Patient types
-    const patientTypesMap = {};
+    // ========== 5. PATIENT_TYPE (Pie Chart) ==========
+    const patientTypeMap = {};
     metrics.forEach(m => {
       if (m.patient_type) {
         const type = m.patient_type.charAt(0).toUpperCase() + m.patient_type.slice(1);
-        patientTypesMap[type] = (patientTypesMap[type] || 0) + 1;
+        patientTypeMap[type] = (patientTypeMap[type] || 0) + 1;
       }
     });
+    const patientTypeData = Object.entries(patientTypeMap)
+      .map(([name, value]) => ({ name, value }));
 
-    const totalPatients = Object.values(patientTypesMap).reduce((sum, count) => sum + count, 0);
-    const patientTypes = Object.entries(patientTypesMap)
-      .map(([name, count]) => ({
-        name,
-        value: totalPatients > 0 ? Math.round((count / totalPatients) * 100) : 0
-      }));
+    // ========== 6. CONVERSATION_CHANNEL (Bar Chart) ==========
+    const channelMap = {};
+    metrics.forEach(m => {
+      if (m.conversation_channel) {
+        const channel = m.conversation_channel.charAt(0).toUpperCase() + m.conversation_channel.slice(1);
+        channelMap[channel] = (channelMap[channel] || 0) + 1;
+      }
+    });
+    const conversationChannelData = Object.entries(channelMap)
+      .map(([channel, count]) => ({ channel, count }));
 
-    // Revenue by appointment type (for pie chart)
-    const revenueByType = appointmentTypes.map(apt => ({
-      name: apt.type,
-      value: apt.revenue
-    }));
-
-    // Calculate satisfaction metrics (AI performance)
-    const totalResolved = metrics.filter(m => m.conversation_resolved === true).length;
-    const totalAiHandled = metrics.filter(m => m.ai_handled === true).length;
-    const totalAppointments = metrics.filter(m => m.appointment_booked === true).length;
-    const avgConfidence = metrics.length > 0 
-      ? metrics.reduce((sum, m) => sum + (m.confidence_score || 0), 0) / metrics.length 
-      : 0;
-
-    const patientSatisfaction = [
-      { metric: 'Response Time', score: 95 },
-      { metric: 'Conversation Quality', score: Math.round(avgConfidence * 100) },
-      { metric: 'Resolution Rate', score: metrics.length > 0 ? Math.round((totalResolved / metrics.length) * 100) : 0 },
-      { metric: 'AI Automation', score: metrics.length > 0 ? Math.round((totalAiHandled / metrics.length) * 100) : 0 },
-      { metric: 'Booking Success', score: metrics.length > 0 ? Math.round((totalAppointments / metrics.length) * 100) : 0 },
-      { metric: 'Follow-up Rate', score: 88 }
+    // ========== 7. AI_HANDLED (Pie Chart) ==========
+    const aiHandledData = [
+      { name: 'AI Handled', value: metrics.filter(m => m.ai_handled === true).length },
+      { name: 'Manual', value: metrics.filter(m => m.ai_handled === false).length }
     ];
 
-    // Calculate last month comparison
-    const lastMonth = new Date();
-    lastMonth.setMonth(lastMonth.getMonth() - 1);
-    const lastMonthMetrics = metrics.filter(m => new Date(m.created_at) >= lastMonth);
-    const lastMonthRevenue = lastMonthMetrics.reduce((sum, m) => sum + (parseFloat(m.estimated_value) || 0), 0);
-    
-    const twoMonthsAgo = new Date();
-    twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
-    const previousMonthMetrics = metrics.filter(m => {
-      const date = new Date(m.created_at);
-      return date >= twoMonthsAgo && date < lastMonth;
-    });
-    const previousMonthRevenue = previousMonthMetrics.reduce((sum, m) => sum + (parseFloat(m.estimated_value) || 0), 0);
-    
-    const revenueGrowth = previousMonthRevenue > 0 
-      ? Math.round(((lastMonthRevenue - previousMonthRevenue) / previousMonthRevenue) * 100)
-      : 0;
+    // ========== 8. HUMAN_HANDOFF (Pie Chart) ==========
+    const humanHandoffData = [
+      { name: 'Handed Off', value: metrics.filter(m => m.human_handoff === true).length },
+      { name: 'No Handoff', value: metrics.filter(m => m.human_handoff === false).length }
+    ];
 
-    // Response data
+    // ========== 9. CONVERSATION_RESOLVED (Pie Chart) ==========
+    const conversationResolvedData = [
+      { name: 'Resolved', value: metrics.filter(m => m.conversation_resolved === true).length },
+      { name: 'Unresolved', value: metrics.filter(m => m.conversation_resolved === false).length }
+    ];
+
+    // ========== 10. INSURANCE_MENTIONED (Pie Chart) ==========
+    const insuranceMentionedData = [
+      { name: 'Mentioned', value: metrics.filter(m => m.insurance_mentioned === true).length },
+      { name: 'Not Mentioned', value: metrics.filter(m => m.insurance_mentioned === false).length }
+    ];
+
+    // ========== 11. INSURANCE_PROVIDER (Bar Chart) ==========
+    const insuranceProviderMap = {};
+    metrics.forEach(m => {
+      if (m.insurance_provider) {
+        insuranceProviderMap[m.insurance_provider] = (insuranceProviderMap[m.insurance_provider] || 0) + 1;
+      }
+    });
+    const insuranceProviderData = Object.entries(insuranceProviderMap)
+      .map(([provider, count]) => ({ provider, count }))
+      .sort((a, b) => b.count - a.count);
+
+    // ========== 12. PAYMENT_PLAN_DISCUSSED (Pie Chart) ==========
+    const paymentPlanData = [
+      { name: 'Discussed', value: metrics.filter(m => m.payment_plan_discussed === true).length },
+      { name: 'Not Discussed', value: metrics.filter(m => m.payment_plan_discussed === false).length }
+    ];
+
+    // ========== 13. PROCEDURE_PRIMARY (Bar Chart) ==========
+    const procedureMap = {};
+    metrics.forEach(m => {
+      if (m.procedure_primary) {
+        const procedure = m.procedure_primary.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        procedureMap[procedure] = (procedureMap[procedure] || 0) + 1;
+      }
+    });
+    const procedurePrimaryData = Object.entries(procedureMap)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 10); // Top 10
+
+    // ========== 14. BOOKING_OUTCOME (Bar Chart) ==========
+    const bookingOutcomeMap = {};
+    metrics.forEach(m => {
+      if (m.booking_outcome) {
+        bookingOutcomeMap[m.booking_outcome] = (bookingOutcomeMap[m.booking_outcome] || 0) + 1;
+      }
+    });
+    const bookingOutcomeData = Object.entries(bookingOutcomeMap)
+      .map(([outcome, count]) => ({ outcome, count }));
+
+    // ========== 15. MONTHLY REVENUE TREND (Line Chart) ==========
+    const monthlyRevenueMap = {};
+    metrics.forEach(m => {
+      if (m.created_at && m.estimated_value) {
+        const month = new Date(m.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        monthlyRevenueMap[month] = (monthlyRevenueMap[month] || 0) + parseFloat(m.estimated_value);
+      }
+    });
+    const monthlyRevenueData = Object.entries(monthlyRevenueMap)
+      .map(([month, revenue]) => ({ month, revenue: Math.round(revenue) }))
+      .sort((a, b) => new Date(a.month) - new Date(b.month));
+
+    // ========== 16. AVERAGE MESSAGES PER CONVERSATION (by channel) ==========
+    const avgMessagesByChannel = {};
+    const channelCounts = {};
+    metrics.forEach(m => {
+      const channel = m.conversation_channel || 'unknown';
+      avgMessagesByChannel[channel] = (avgMessagesByChannel[channel] || 0) + (m.total_messages || 0);
+      channelCounts[channel] = (channelCounts[channel] || 0) + 1;
+    });
+    const avgMessagesData = Object.entries(avgMessagesByChannel)
+      .map(([channel, total]) => ({
+        channel: channel.charAt(0).toUpperCase() + channel.slice(1),
+        avgMessages: Math.round((total / channelCounts[channel]) * 10) / 10
+      }));
+
+    // Response
     const response = {
       summary: {
-        totalRevenue: Math.round(totalRevenue),
-        totalBookings,
         totalConversations,
-        recentBooking: recentBooking ? {
-          type: recentBooking.appointment_type,
-          time: recentBooking.created_at
-        } : null,
-        revenueGrowth,
-        conversationGrowth: 28 // Can calculate if needed
+        totalBookings,
+        totalRevenue: Math.round(totalRevenue),
+        avgSessionDuration: Math.round(avgSessionDuration * 10) / 10
       },
       charts: {
-        revenueData,
-        appointmentTypes,
-        conversationsByChannel,
-        popularProcedures,
-        insuranceProviders,
-        patientTypes,
-        revenueByType,
-        patientSatisfaction
+        appointmentBooked: appointmentBookedData,
+        appointmentType: appointmentTypeData,
+        treatmentPlan: treatmentPlanData,
+        caseAccepted: caseAcceptedData,
+        patientType: patientTypeData,
+        conversationChannel: conversationChannelData,
+        aiHandled: aiHandledData,
+        humanHandoff: humanHandoffData,
+        conversationResolved: conversationResolvedData,
+        insuranceMentioned: insuranceMentionedData,
+        insuranceProvider: insuranceProviderData,
+        paymentPlan: paymentPlanData,
+        procedurePrimary: procedurePrimaryData,
+        bookingOutcome: bookingOutcomeData,
+        monthlyRevenue: monthlyRevenueData,
+        avgMessagesByChannel: avgMessagesData
       }
     };
 
-    console.log('✅ Successfully calculated overview metrics');
+    console.log('✅ Successfully calculated column-based metrics');
+    console.log('📊 Sample data:', {
+      appointmentTypes: appointmentTypeData.length,
+      procedures: procedurePrimaryData.length,
+      monthlyRevenue: monthlyRevenueData.length
+    });
+    
     res.json(response);
 
   } catch (error) {

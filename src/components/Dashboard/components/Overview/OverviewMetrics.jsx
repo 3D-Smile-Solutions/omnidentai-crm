@@ -1,4 +1,4 @@
-// frontend/src/components/Dashboard/components/Overview/OverviewMetrics.jsx
+// src/components/Dashboard/components/Overview/OverviewMetrics.jsx
 import React from 'react';
 import { Box, Paper, Typography, Skeleton } from '@mui/material';
 import { useSelector } from 'react-redux';
@@ -46,50 +46,29 @@ const OverviewMetrics = () => {
     }).format(amount);
   };
 
-  // Format time ago
-  const getTimeAgo = (timestamp) => {
-    if (!timestamp) return 'N/A';
-    const seconds = Math.floor((new Date() - new Date(timestamp)) / 1000);
-    
-    if (seconds < 60) return 'Just now';
-    if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
-    if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
-    return `${Math.floor(seconds / 86400)} days ago`;
-  };
-
   const metrics = [
     {
-      title: 'Total Revenue',
-      value: formatCurrency(summary.totalRevenue),
-      subtitle: summary.revenueGrowth > 0 
-        ? `+${summary.revenueGrowth}% from last month`
-        : summary.revenueGrowth < 0 
-        ? `${summary.revenueGrowth}% from last month`
-        : 'No change from last month',
-      color: summary.revenueGrowth >= 0 ? 'success.main' : 'error.main'
+      title: 'Total Conversations',
+      value: summary.totalConversations || 0,
+      subtitle: 'All conversation records',
+      color: 'primary.main'
     },
     {
       title: 'Total Bookings',
-      value: summary.totalBookings,
-      subtitle: `${summary.totalBookings} appointments booked`,
-      color: 'text.secondary'
+      value: summary.totalBookings || 0,
+      subtitle: 'Appointments booked',
+      color: 'success.main'
     },
     {
-      title: 'Total Conversations',
-      value: summary.totalConversations,
-      subtitle: summary.conversationGrowth > 0 
-        ? `+${summary.conversationGrowth}% from last week`
-        : `${summary.totalConversations} total interactions`,
-      color: summary.conversationGrowth > 0 ? 'success.main' : 'text.secondary'
+      title: 'Total Revenue',
+      value: formatCurrency(summary.totalRevenue || 0),
+      subtitle: 'Estimated value from conversations',
+      color: 'success.main'
     },
     {
-      title: 'Most Recent Booking',
-      value: summary.recentBooking?.type 
-        ? summary.recentBooking.type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-        : 'No bookings yet',
-      subtitle: summary.recentBooking 
-        ? `Booked ${getTimeAgo(summary.recentBooking.time)}`
-        : 'Waiting for first booking',
+      title: 'Avg Session Duration',
+      value: `${summary.avgSessionDuration || 0} min`,
+      subtitle: 'Average conversation length',
       color: 'text.secondary'
     }
   ];

@@ -1,4 +1,4 @@
-// frontend/src/components/Dashboard/components/Overview/Overview.jsx
+// src/components/Dashboard/components/Overview/Overview.jsx
 import React, { useEffect } from 'react';
 import { Typography, Box, CircularProgress } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
@@ -8,21 +8,27 @@ import OverviewCharts from './OverviewCharts';
 
 const Overview = ({ isMobile }) => {
   const dispatch = useDispatch();
-  const { loading, error, lastFetched } = useSelector((state) => state.metrics);
+  const { loading, error, lastFetched, summary, charts } = useSelector((state) => state.metrics);
 
   useEffect(() => {
-    // Fetch metrics on mount
     console.log('📊 Overview component mounted - fetching metrics');
     dispatch(fetchOverviewMetrics());
-
-    // Optional: Refresh metrics every 5 minutes
-    const interval = setInterval(() => {
-      console.log('🔄 Auto-refreshing metrics...');
-      dispatch(fetchOverviewMetrics());
-    }, 5 * 60 * 1000); // 5 minutes
-
-    return () => clearInterval(interval);
   }, [dispatch]);
+
+  // DEBUG: Log the entire metrics state
+  useEffect(() => {
+    console.log('🔍 METRICS STATE DEBUG:');
+    console.log('Summary:', summary);
+    console.log('Charts:', charts);
+    console.log('Charts keys:', Object.keys(charts));
+    console.log('Loading:', loading);
+    console.log('Error:', error);
+    
+    // Check each chart array
+    Object.keys(charts).forEach(key => {
+      console.log(`📊 ${key}:`, charts[key]);
+    });
+  }, [summary, charts, loading, error]);
 
   if (loading && !lastFetched) {
     return (
@@ -37,6 +43,9 @@ const Overview = ({ isMobile }) => {
       <Box sx={{ p: 3 }}>
         <Typography color="error">
           Error loading metrics: {error}
+        </Typography>
+        <Typography variant="body2" sx={{ mt: 2 }}>
+          Check browser console for details
         </Typography>
       </Box>
     );

@@ -1,20 +1,15 @@
-// frontend/src/components/Dashboard/components/Overview/OverviewCharts.jsx
+// src/components/Dashboard/components/Overview/OverviewCharts.jsx
 import React from 'react';
 import { Box, Paper, Typography, Skeleton } from '@mui/material';
 import { useSelector } from 'react-redux';
 import {
-  AreaChart,
-  Area,
   BarChart,
   Bar,
+  LineChart,
+  Line,
   PieChart,
   Pie,
   Cell,
-  RadarChart,
-  Radar,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -52,115 +47,287 @@ const OverviewCharts = ({ isMobile }) => {
     borderRadius: 8
   };
 
-  const getXAxisProps = (rotateLabels = false) => ({
-    stroke: "#0B1929",
-    interval: isMobile && rotateLabels ? 1 : 0,
-    tick: { fontSize: isMobile ? 10 : 12 },
-    ...(rotateLabels && isMobile && {
-      angle: -45,
-      textAnchor: "end",
-      height: 60
-    })
-  });
-
-  const getYAxisProps = (formatK = false) => ({
-    stroke: "#0B1929",
-    tick: { fontSize: isMobile ? 10 : 12 },
-    ...(formatK && isMobile && {
-      tickFormatter: (value) => `${value/1000}k`
-    })
-  });
-
-  // Colors for pie charts
-  const patientTypeColors = {
-    'New': '#3EE4C8',
-    'Returning': '#45B7D1',
-    'Existing': '#96CEB4'
-  };
-
-  const revenueColors = [
-    '#3EE4C8', '#45B7D1', '#96CEB4', '#DDA77B', '#F7B801', '#FF6B6B', '#9B59B6', '#3498DB'
-  ];
+  const COLORS = ['#3EE4C8', '#45B7D1', '#96CEB4', '#F7B801', '#FF6B6B', '#9B59B6', '#3498DB', '#DDA77B'];
 
   return (
     <Box sx={{ mt: 4 }}>
       <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
-        Analytics Dashboard
+        Detailed Analytics
       </Typography>
-      
-      {/* Revenue Chart */}
-      {charts.revenueData && charts.revenueData.length > 0 && (
-        <ChartContainer title="Monthly Revenue Trends" height={300} sx={{ mb: 3 }} loading={loading}>
-          <AreaChart data={charts.revenueData} margin={{ bottom: isMobile ? 5 : 5, left: isMobile ? -20 : 5 }}>
-            <defs>
-              <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#3EE4C8" stopOpacity={0.8}/>
-                <stop offset="95%" stopColor="#3EE4C8" stopOpacity={0.1}/>
-              </linearGradient>
-            </defs>
+
+      {/* ROW 1: Monthly Revenue */}
+      {charts.monthlyRevenue && charts.monthlyRevenue.length > 0 && (
+        <ChartContainer title="Monthly Revenue Trend" height={300} sx={{ mb: 3 }} loading={loading}>
+          <LineChart data={charts.monthlyRevenue}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(62, 228, 200, 0.1)" />
-            <XAxis dataKey="month" {...getXAxisProps()} />
-            <YAxis {...getYAxisProps(true)} />
+            <XAxis dataKey="month" stroke="#0B1929" tick={{ fontSize: 12 }} />
+            <YAxis stroke="#0B1929" tick={{ fontSize: 12 }} />
             <Tooltip contentStyle={tooltipStyle} formatter={(value) => `$${value.toLocaleString()}`} />
             <Legend />
-            <Area 
-              type="monotone" 
-              dataKey="revenue" 
-              stroke="#3EE4C8" 
-              fillOpacity={1} 
-              fill="url(#colorRevenue)" 
-              strokeWidth={2}
-              name="Revenue ($)"
-            />
-          </AreaChart>
+            <Line type="monotone" dataKey="revenue" stroke="#3EE4C8" strokeWidth={3} name="Revenue ($)" />
+          </LineChart>
         </ChartContainer>
       )}
 
-      {/* Two column layout for smaller charts */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
-        {/* Appointment Types Chart */}
-        {charts.appointmentTypes && charts.appointmentTypes.length > 0 && (
-          <ChartContainer title="Appointment Types" loading={loading}>
-            <BarChart data={charts.appointmentTypes} margin={{ bottom: isMobile ? 40 : 5, left: isMobile ? -20 : 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(62, 228, 200, 0.1)" />
-              <XAxis 
-                dataKey="type" 
-                stroke="#0B1929"
-                angle={isMobile ? -45 : 0}
-                textAnchor={isMobile ? "end" : "middle"}
-                interval={0}
-                tick={{ fontSize: isMobile ? 9 : 12 }}
-                height={isMobile ? 60 : 30}
-              />
-              <YAxis {...getYAxisProps()} />
+      {/* ROW 2: Appointment Status & Type */}
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3, mb: 3 }}>
+        {charts.appointmentBooked && charts.appointmentBooked.length > 0 && (
+          <ChartContainer title="Appointment Booking Status" loading={loading}>
+            <PieChart>
+              <Pie
+                data={charts.appointmentBooked}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, value }) => `${name}: ${value}`}
+                outerRadius={isMobile ? 60 : 80}
+                dataKey="value"
+              >
+                {charts.appointmentBooked.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
               <Tooltip contentStyle={tooltipStyle} />
-              <Legend />
-              <Bar dataKey="count" fill="#3EE4C8" name="Bookings" radius={[8, 8, 0, 0]} />
-              <Bar dataKey="revenue" fill="#45B7D1" name="Revenue ($)" radius={[8, 8, 0, 0]} />
-            </BarChart>
+            </PieChart>
           </ChartContainer>
         )}
 
-        {/* Conversations by Channel */}
-        {charts.conversationsByChannel && charts.conversationsByChannel.length > 0 && (
-          <ChartContainer title="Conversations by Channel" loading={loading}>
-            <BarChart data={charts.conversationsByChannel} margin={{ bottom: isMobile ? 5 : 5, left: isMobile ? -20 : 5 }}>
+        {charts.appointmentType && charts.appointmentType.length > 0 && (
+          <ChartContainer title="Appointment Types" loading={loading}>
+            <BarChart data={charts.appointmentType}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(62, 228, 200, 0.1)" />
-              <XAxis dataKey="channel" {...getXAxisProps()} />
-              <YAxis {...getYAxisProps()} />
+              <XAxis 
+                dataKey="type" 
+                stroke="#0B1929" 
+                angle={-45} 
+                textAnchor="end" 
+                height={80}
+                tick={{ fontSize: 10 }}
+              />
+              <YAxis stroke="#0B1929" tick={{ fontSize: 12 }} />
               <Tooltip contentStyle={tooltipStyle} />
-              <Bar dataKey="count" fill="#3EE4C8" name="Messages" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="count" fill="#3EE4C8" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ChartContainer>
         )}
       </Box>
 
-      {/* Popular Procedures and Insurance */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3, mt: 3 }}>
-        {/* Popular Procedures */}
-        {charts.popularProcedures && charts.popularProcedures.length > 0 && (
-          <ChartContainer title="Most Popular Procedures" loading={loading}>
-            <BarChart data={charts.popularProcedures} margin={{ bottom: isMobile ? 80 : 60, left: isMobile ? -20 : 5 }}>
+      {/* ROW 3: Treatment & Case Status */}
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3, mb: 3 }}>
+        {charts.treatmentPlan && charts.treatmentPlan.length > 0 && (
+          <ChartContainer title="Treatment Plan Presented" loading={loading}>
+            <PieChart>
+              <Pie
+                data={charts.treatmentPlan}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, value }) => `${name}: ${value}`}
+                outerRadius={isMobile ? 60 : 80}
+                dataKey="value"
+              >
+                {charts.treatmentPlan.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip contentStyle={tooltipStyle} />
+            </PieChart>
+          </ChartContainer>
+        )}
+
+        {charts.caseAccepted && charts.caseAccepted.length > 0 && (
+          <ChartContainer title="Case Acceptance Status" loading={loading}>
+            <PieChart>
+              <Pie
+                data={charts.caseAccepted}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, value }) => `${name}: ${value}`}
+                outerRadius={isMobile ? 60 : 80}
+                dataKey="value"
+              >
+                {charts.caseAccepted.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip contentStyle={tooltipStyle} />
+            </PieChart>
+          </ChartContainer>
+        )}
+      </Box>
+
+      {/* ROW 4: Patient Type & Channel */}
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3, mb: 3 }}>
+        {charts.patientType && charts.patientType.length > 0 && (
+          <ChartContainer title="Patient Type Distribution" loading={loading}>
+            <PieChart>
+              <Pie
+                data={charts.patientType}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, value }) => `${name}: ${value}`}
+                outerRadius={isMobile ? 60 : 80}
+                dataKey="value"
+              >
+                {charts.patientType.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip contentStyle={tooltipStyle} />
+            </PieChart>
+          </ChartContainer>
+        )}
+
+        {charts.conversationChannel && charts.conversationChannel.length > 0 && (
+          <ChartContainer title="Conversation Channels" loading={loading}>
+            <BarChart data={charts.conversationChannel}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(62, 228, 200, 0.1)" />
+              <XAxis dataKey="channel" stroke="#0B1929" tick={{ fontSize: 12 }} />
+              <YAxis stroke="#0B1929" tick={{ fontSize: 12 }} />
+              <Tooltip contentStyle={tooltipStyle} />
+              <Bar dataKey="count" fill="#45B7D1" radius={[8, 8, 0, 0]} />
+            </BarChart>
+          </ChartContainer>
+        )}
+      </Box>
+
+      {/* ROW 5: AI Metrics */}
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 3, mb: 3 }}>
+        {charts.aiHandled && charts.aiHandled.length > 0 && (
+          <ChartContainer title="AI Handled vs Manual" loading={loading}>
+            <PieChart>
+              <Pie
+                data={charts.aiHandled}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, value }) => `${name}: ${value}`}
+                outerRadius={isMobile ? 50 : 70}
+                dataKey="value"
+              >
+                {charts.aiHandled.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip contentStyle={tooltipStyle} />
+            </PieChart>
+          </ChartContainer>
+        )}
+
+        {charts.humanHandoff && charts.humanHandoff.length > 0 && (
+          <ChartContainer title="Human Handoff Rate" loading={loading}>
+            <PieChart>
+              <Pie
+                data={charts.humanHandoff}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, value }) => `${name}: ${value}`}
+                outerRadius={isMobile ? 50 : 70}
+                dataKey="value"
+              >
+                {charts.humanHandoff.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip contentStyle={tooltipStyle} />
+            </PieChart>
+          </ChartContainer>
+        )}
+
+        {charts.conversationResolved && charts.conversationResolved.length > 0 && (
+          <ChartContainer title="Resolution Rate" loading={loading}>
+            <PieChart>
+              <Pie
+                data={charts.conversationResolved}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, value }) => `${name}: ${value}`}
+                outerRadius={isMobile ? 50 : 70}
+                dataKey="value"
+              >
+                {charts.conversationResolved.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip contentStyle={tooltipStyle} />
+            </PieChart>
+          </ChartContainer>
+        )}
+      </Box>
+
+      {/* ROW 6: Insurance & Payment */}
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3, mb: 3 }}>
+        {charts.insuranceMentioned && charts.insuranceMentioned.length > 0 && (
+          <ChartContainer title="Insurance Discussed" loading={loading}>
+            <PieChart>
+              <Pie
+                data={charts.insuranceMentioned}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, value }) => `${name}: ${value}`}
+                outerRadius={isMobile ? 60 : 80}
+                dataKey="value"
+              >
+                {charts.insuranceMentioned.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip contentStyle={tooltipStyle} />
+            </PieChart>
+          </ChartContainer>
+        )}
+
+        {charts.paymentPlan && charts.paymentPlan.length > 0 && (
+          <ChartContainer title="Payment Plan Discussed" loading={loading}>
+            <PieChart>
+              <Pie
+                data={charts.paymentPlan}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, value }) => `${name}: ${value}`}
+                outerRadius={isMobile ? 60 : 80}
+                dataKey="value"
+              >
+                {charts.paymentPlan.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip contentStyle={tooltipStyle} />
+            </PieChart>
+          </ChartContainer>
+        )}
+      </Box>
+
+      {/* ROW 7: Procedures & Outcomes */}
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3, mb: 3 }}>
+        {charts.insuranceProvider && charts.insuranceProvider.length > 0 && (
+          <ChartContainer title="Insurance Providers" loading={loading}>
+            <BarChart data={charts.insuranceProvider}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(62, 228, 200, 0.1)" />
+              <XAxis 
+                dataKey="provider" 
+                stroke="#0B1929" 
+                angle={-45} 
+                textAnchor="end" 
+                height={80}
+                tick={{ fontSize: 10 }}
+              />
+              <YAxis stroke="#0B1929" tick={{ fontSize: 12 }} />
+              <Tooltip contentStyle={tooltipStyle} />
+              <Bar dataKey="count" fill="#96CEB4" radius={[8, 8, 0, 0]} />
+            </BarChart>
+          </ChartContainer>
+        )}
+
+        {charts.procedurePrimary && charts.procedurePrimary.length > 0 && (
+          <ChartContainer title="Most Common Procedures" loading={loading}>
+            <BarChart data={charts.procedurePrimary}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(62, 228, 200, 0.1)" />
               <XAxis 
                 dataKey="name" 
@@ -168,125 +335,49 @@ const OverviewCharts = ({ isMobile }) => {
                 angle={-45} 
                 textAnchor="end" 
                 height={80}
-                interval={0}
-                tick={{ fontSize: isMobile ? 8 : 12 }}
+                tick={{ fontSize: 10 }}
               />
-              <YAxis {...getYAxisProps()} />
+              <YAxis stroke="#0B1929" tick={{ fontSize: 12 }} />
               <Tooltip contentStyle={tooltipStyle} />
-              <Bar dataKey="value" fill="#3EE4C8" name="Count" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="value" fill="#F7B801" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ChartContainer>
         )}
+      </Box>
 
-        {/* Insurance Providers */}
-        {charts.insuranceProviders && charts.insuranceProviders.length > 0 && (
-          <ChartContainer title="Insurance Providers" loading={loading}>
-            <BarChart data={charts.insuranceProviders} margin={{ bottom: isMobile ? 70 : 20, left: isMobile ? -20 : 5 }}>
+      {/* ROW 8: Booking Outcomes & Avg Messages */}
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3, mb: 3 }}>
+        {charts.bookingOutcome && charts.bookingOutcome.length > 0 && (
+          <ChartContainer title="Booking Outcomes" loading={loading}>
+            <BarChart data={charts.bookingOutcome}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(62, 228, 200, 0.1)" />
               <XAxis 
-                dataKey="provider" 
-                stroke="#0B1929"
-                interval={0}
-                angle={isMobile ? -45 : -15}
-                textAnchor="end"
-                height={isMobile ? 80 : 60}
-                tick={{ fontSize: isMobile ? 8 : 12 }}
+                dataKey="outcome" 
+                stroke="#0B1929" 
+                angle={-45} 
+                textAnchor="end" 
+                height={80}
+                tick={{ fontSize: 10 }}
               />
-              <YAxis {...getYAxisProps()} />
+              <YAxis stroke="#0B1929" tick={{ fontSize: 12 }} />
               <Tooltip contentStyle={tooltipStyle} />
-              <Bar dataKey="count" fill="#3EE4C8" name="Patients" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="count" fill="#FF6B6B" radius={[8, 8, 0, 0]} />
+            </BarChart>
+          </ChartContainer>
+        )}
+
+        {charts.avgMessagesByChannel && charts.avgMessagesByChannel.length > 0 && (
+          <ChartContainer title="Avg Messages per Conversation by Channel" loading={loading}>
+            <BarChart data={charts.avgMessagesByChannel}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(62, 228, 200, 0.1)" />
+              <XAxis dataKey="channel" stroke="#0B1929" tick={{ fontSize: 12 }} />
+              <YAxis stroke="#0B1929" tick={{ fontSize: 12 }} />
+              <Tooltip contentStyle={tooltipStyle} />
+              <Bar dataKey="avgMessages" fill="#9B59B6" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ChartContainer>
         )}
       </Box>
-
-      {/* Patient Types and Revenue Distribution */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3, mt: 3 }}>
-        {/* Patient Types */}
-        {charts.patientTypes && charts.patientTypes.length > 0 && (
-          <ChartContainer title="Patient Types Distribution" loading={loading}>
-            <PieChart>
-              <Pie
-                data={charts.patientTypes}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value }) => isMobile ? `${value}%` : `${name}: ${value}%`}
-                outerRadius={isMobile ? 60 : 80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {charts.patientTypes.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={patientTypeColors[entry.name] || revenueColors[index % revenueColors.length]} />
-                ))}
-              </Pie>
-              <Tooltip contentStyle={tooltipStyle} formatter={(value) => `${value}%`} />
-            </PieChart>
-          </ChartContainer>
-        )}
-
-        {/* Revenue by Type */}
-        {charts.revenueByType && charts.revenueByType.length > 0 && (
-          <ChartContainer title="Revenue by Appointment Type" loading={loading}>
-            <PieChart>
-              <Pie
-                data={charts.revenueByType}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value }) => isMobile ? `$${(value/1000).toFixed(1)}k` : `${name}: $${value.toLocaleString()}`}
-                outerRadius={isMobile ? 60 : 80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {charts.revenueByType.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={revenueColors[index % revenueColors.length]} />
-                ))}
-              </Pie>
-              <Tooltip 
-                contentStyle={tooltipStyle}
-                formatter={(value) => `$${value.toLocaleString()}`}
-              />
-              <Legend />
-            </PieChart>
-          </ChartContainer>
-        )}
-      </Box>
-
-      {/* Patient Satisfaction Radar Chart */}
-      {charts.patientSatisfaction && charts.patientSatisfaction.length > 0 && (
-        <ChartContainer title="OmniDent AI Performance Metrics" height={isMobile ? 300 : 400} sx={{ mt: 3 }} loading={loading}>
-          <RadarChart data={charts.patientSatisfaction}>
-            <PolarGrid 
-              stroke="rgba(62, 228, 200, 0.3)" 
-              strokeDasharray="3 3"
-            />
-            <PolarAngleAxis 
-              dataKey="metric" 
-              stroke="#0B1929"
-              tick={{ fontSize: isMobile ? 9 : 12 }}
-            />
-            <PolarRadiusAxis 
-              angle={90} 
-              domain={[0, 100]} 
-              stroke="rgba(62, 228, 200, 0.3)"
-            />
-            <Radar 
-              name="Performance Score" 
-              dataKey="score" 
-              stroke="#3EE4C8" 
-              fill="#3EE4C8" 
-              fillOpacity={0.6}
-              strokeWidth={2}
-            />
-            <Tooltip 
-              contentStyle={tooltipStyle}
-              formatter={(value) => `${value}%`}
-            />
-            <Legend />
-          </RadarChart>
-        </ChartContainer>
-      )}
     </Box>
   );
 };
