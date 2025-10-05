@@ -1,4 +1,4 @@
-// frontend/src/components/ChatInterface.jsx - COMPLETE UPDATED VERSION
+// frontend/src/components/ChatInterface.jsx - COMPLETE INTEGRATED VERSION
 import React, { useState, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -11,7 +11,12 @@ import {
   Chip,
   CircularProgress,
   Alert,
-  Link
+  Link,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button
 } from '@mui/material';
 import {
   AttachFile as AttachFileIcon,
@@ -21,19 +26,24 @@ import {
   VideoCall as VideoCallIcon,
   ChatBubbleOutline as ChatBubbleOutlineIcon,
   InsertDriveFile as FileIcon,
-  GetApp as DownloadIcon
+  GetApp as DownloadIcon,
+  Mic as MicIcon,
+  MicOff as MicOffIcon
 } from '@mui/icons-material';
 import CustomCheckbox from './CustomCheckbox';
 import TypingIndicator from './Dashboard/TypingIndicator';
 import FileUploadModal from './Dashboard/components/FileUpload/FileUploadModal';
-import PatientDetailsModal from './Dashboard/components/PatientDetails/PatientDetailsModal'; // 🆕 Import
+import PatientDetailsModal from './Dashboard/components/PatientDetails/PatientDetailsModal';
 import useWebSocket from './Dashboard/hooks/useWebSocket';
+import { useVoiceCall } from './Dashboard/hooks/useVoiceCall';
 
 const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
-  const [detailsModalOpen, setDetailsModalOpen] = useState(false); // 🆕 Patient details modal state
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [callDialogOpen, setCallDialogOpen] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
   const [localSelectedChannels, setLocalSelectedChannels] = useState({
     sms: true,
     call: true,
@@ -42,6 +52,18 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
   const messagesEndRef = useRef(null);
   
   const { startTyping, stopTyping } = useWebSocket();
+  
+  // Voice call hook
+  const {
+    isReady,
+    isCallInProgress,
+    currentCall,
+    error: callError,
+    callDuration,
+    makeCall,
+    endCall,
+    toggleMute
+  } = useVoiceCall();
   
   const { 
     currentMessages, 
@@ -91,7 +113,48 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     }
   };
 
-  // 🆕 Handle file upload complete - send file attachment message
+  // Voice call handlers
+  const handlePhoneClick = () => {
+    if (!patient) return;
+    
+    if (!patient.phone) {
+      alert('This patient has no phone number on file.');
+      return;
+    }
+
+    if (!isReady) {
+      alert('Voice calling is not ready. Please refresh the page.');
+      return;
+    }
+
+    if (isCallInProgress) {
+      setCallDialogOpen(true);
+      return;
+    }
+
+    // Show confirmation dialog
+    const confirmed = window.confirm(
+      `Call ${patient.first_name} ${patient.last_name} at ${patient.phone}?`
+    );
+
+    if (confirmed) {
+      makeCall(patient.id, patient.phone);
+      setCallDialogOpen(true);
+    }
+  };
+
+  const handleEndCall = () => {
+    endCall();
+    setCallDialogOpen(false);
+    setIsMuted(false);
+  };
+
+  const handleToggleMute = () => {
+    const newMuteState = toggleMute();
+    setIsMuted(newMuteState);
+  };
+
+  // File upload handler
   const handleFileUploadComplete = (fileData) => {
     console.log('✅ File uploaded:', fileData);
     
@@ -107,7 +170,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     onSendMessage(patient.id, fileMessage, 'webchat');
   };
 
-  // 🆕 Check if message is a file attachment
+  // File message helpers
   const isFileMessage = (messageText) => {
     try {
       const parsed = JSON.parse(messageText);
@@ -117,7 +180,6 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     }
   };
 
-  // 🆕 Parse file message
   const parseFileMessage = (messageText) => {
     try {
       return JSON.parse(messageText);
@@ -126,133 +188,131 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     }
   };
 
-  // 🆕 Render file attachment
-const renderFileAttachment = (fileData) => {
-  const isImage = fileData.mimeType?.startsWith('image/');
-  
-  // Function to trigger download
-  const handleDownload = async (e) => {
-    e.stopPropagation(); // Prevent opening in new tab
+  // Render file attachment
+  const renderFileAttachment = (fileData) => {
+    const isImage = fileData.mimeType?.startsWith('image/');
     
-    try {
-      const response = await fetch(fileData.url);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = fileData.filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Download failed:', error);
-      // Fallback: open in new tab
-      window.open(fileData.url, '_blank');
-    }
-  };
-  
-  return (
-    <Box
-      sx={{
-        maxWidth: 300,
-        borderRadius: 2,
-        overflow: 'hidden',
-        backgroundColor: 'rgba(255,255,255,0.1)'
-      }}
-    >
-      {isImage ? (
-        <Box>
-          <Link
-            href={fileData.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            sx={{ display: 'block', textDecoration: 'none' }}
-          >
-            <img
-              src={fileData.url}
-              alt={fileData.filename}
-              style={{
-                width: '100%',
-                maxHeight: 200,
-                objectFit: 'cover',
-                display: 'block',
-                cursor: 'pointer'
-              }}
-            />
-          </Link>
-          {fileData.filename && (
-            <Box 
-              sx={{ 
-                p: 1, 
-                backgroundColor: 'rgba(0,0,0,0.3)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}
+    const handleDownload = async (e) => {
+      e.stopPropagation();
+      
+      try {
+        const response = await fetch(fileData.url);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileData.filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Download failed:', error);
+        window.open(fileData.url, '_blank');
+      }
+    };
+    
+    return (
+      <Box
+        sx={{
+          maxWidth: 300,
+          borderRadius: 2,
+          overflow: 'hidden',
+          backgroundColor: 'rgba(255,255,255,0.1)'
+        }}
+      >
+        {isImage ? (
+          <Box>
+            <Link
+              href={fileData.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{ display: 'block', textDecoration: 'none' }}
             >
+              <img
+                src={fileData.url}
+                alt={fileData.filename}
+                style={{
+                  width: '100%',
+                  maxHeight: 200,
+                  objectFit: 'cover',
+                  display: 'block',
+                  cursor: 'pointer'
+                }}
+              />
+            </Link>
+            {fileData.filename && (
+              <Box 
+                sx={{ 
+                  p: 1, 
+                  backgroundColor: 'rgba(0,0,0,0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}
+              >
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: '#fff',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    flex: 1
+                  }}
+                >
+                  {fileData.filename}
+                </Typography>
+                <IconButton 
+                  size="small" 
+                  sx={{ color: '#fff', ml: 1 }}
+                  onClick={handleDownload}
+                >
+                  <DownloadIcon fontSize="small" />
+                </IconButton>
+              </Box>
+            )}
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              p: 1.5,
+              backgroundColor: 'rgba(255,255,255,0.2)',
+            }}
+          >
+            <FileIcon sx={{ fontSize: 40, color: '#fff' }} />
+            <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography
-                variant="caption"
+                variant="body2"
                 sx={{
                   color: '#fff',
+                  fontWeight: 500,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  flex: 1
+                  whiteSpace: 'nowrap'
                 }}
               >
                 {fileData.filename}
               </Typography>
-              <IconButton 
-                size="small" 
-                sx={{ color: '#fff', ml: 1 }}
-                onClick={handleDownload}
-              >
-                <DownloadIcon fontSize="small" />
-              </IconButton>
+              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                {formatFileSize(fileData.size)}
+              </Typography>
             </Box>
-          )}
-        </Box>
-      ) : (
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1,
-            p: 1.5,
-            backgroundColor: 'rgba(255,255,255,0.2)',
-          }}
-        >
-          <FileIcon sx={{ fontSize: 40, color: '#fff' }} />
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography
-              variant="body2"
-              sx={{
-                color: '#fff',
-                fontWeight: 500,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
-              }}
+            <IconButton 
+              size="small" 
+              sx={{ color: '#fff' }}
+              onClick={handleDownload}
             >
-              {fileData.filename}
-            </Typography>
-            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
-              {formatFileSize(fileData.size)}
-            </Typography>
+              <DownloadIcon />
+            </IconButton>
           </Box>
-          <IconButton 
-            size="small" 
-            sx={{ color: '#fff' }}
-            onClick={handleDownload}
-          >
-            <DownloadIcon />
-          </IconButton>
-        </Box>
-      )}
-    </Box>
-  );
-};
+        )}
+      </Box>
+    );
+  };
 
   const formatFileSize = (bytes) => {
     if (!bytes || bytes === 0) return '0 Bytes';
@@ -454,7 +514,16 @@ const renderFileAttachment = (fileData) => {
         <Box sx={{ display: 'flex', gap: isMobile ? 0 : 1 }}>
           {!isMobile && (
             <>
-              <IconButton sx={{ color: 'rgba(11, 25, 41, 0.6)' }}>
+              <IconButton 
+                sx={{ 
+                  color: isCallInProgress ? '#3EE4C8' : 'rgba(11, 25, 41, 0.6)',
+                  '&:hover': { color: '#3EE4C8' },
+                  '&:disabled': { color: 'rgba(11, 25, 41, 0.3)' }
+                }}
+                onClick={handlePhoneClick}
+                disabled={!isReady || !patient?.phone}
+                title={!isReady ? 'Voice calling initializing...' : !patient?.phone ? 'No phone number' : 'Call patient'}
+              >
                 <PhoneIcon />
               </IconButton>
               <IconButton sx={{ color: 'rgba(11, 25, 41, 0.6)' }}>
@@ -462,7 +531,6 @@ const renderFileAttachment = (fileData) => {
               </IconButton>
             </>
           )}
-          {/* 🆕 More button opens patient details */}
           <IconButton 
             sx={{ color: 'rgba(11, 25, 41, 0.6)' }}
             onClick={() => setDetailsModalOpen(true)}
@@ -742,12 +810,89 @@ const renderFileAttachment = (fileData) => {
         patientId={patient.id}
       />
 
-      {/* 🆕 Patient Details Modal */}
+      {/* Patient Details Modal */}
       <PatientDetailsModal
         open={detailsModalOpen}
         onClose={() => setDetailsModalOpen(false)}
         patient={patient}
       />
+
+      {/* Voice Call Dialog */}
+      <Dialog
+        open={callDialogOpen}
+        onClose={() => !isCallInProgress && setCallDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          {isCallInProgress ? 'Call in Progress' : 'Calling...'}
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ textAlign: 'center', py: 3 }}>
+            <Avatar 
+              sx={{ 
+                bgcolor: getAvatarColor(patient?.id || 0),
+                width: 80,
+                height: 80,
+                margin: '0 auto 16px',
+                fontSize: '2rem'
+              }}
+            >
+              {getInitials(patient?.first_name || '', patient?.last_name || '')}
+            </Avatar>
+            <Typography variant="h6" gutterBottom>
+              {patient?.first_name} {patient?.last_name}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              {patient?.phone}
+            </Typography>
+            
+            {isCallInProgress && (
+              <Box sx={{ mt: 3 }}>
+                <Typography variant="h4" sx={{ color: '#3EE4C8', fontWeight: 600 }}>
+                  {callDuration}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Duration
+                </Typography>
+              </Box>
+            )}
+            
+            {callError && (
+              <Typography color="error" variant="body2" sx={{ mt: 2 }}>
+                {callError}
+              </Typography>
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
+          {isCallInProgress && (
+            <Button
+              variant="outlined"
+              startIcon={isMuted ? <MicOffIcon /> : <MicIcon />}
+              onClick={handleToggleMute}
+              sx={{ 
+                borderColor: '#3EE4C8',
+                color: isMuted ? '#FF6B6B' : '#3EE4C8',
+                '&:hover': { 
+                  borderColor: '#2BC4A8', 
+                  backgroundColor: 'rgba(62, 228, 200, 0.1)' 
+                }
+              }}
+            >
+              {isMuted ? 'Unmute' : 'Mute'}
+            </Button>
+          )}
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleEndCall}
+            disabled={!isCallInProgress}
+          >
+            {isCallInProgress ? 'End Call' : 'Cancel'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
