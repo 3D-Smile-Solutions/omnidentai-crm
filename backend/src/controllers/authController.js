@@ -1,6 +1,6 @@
 // backend/src/controllers/authController.js
 import supabase from "../utils/supabaseClient.js";
-
+import { getOrCreateSession, endSession } from '../middlewares/sessionLogger.js';
 // Helper to set refresh cookie consistently
 const setRefreshCookie = (res, refreshToken) => {
   res.cookie("refresh_token", refreshToken, {
@@ -46,15 +46,16 @@ export const login = async (req, res) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return res.status(400).json({ error: error.message });
 
-    // Fetch profile data from client_profiles
     const { data: profile, error: profileError } = await supabase
       .from("client_profiles")
       .select("id, first_name, last_name")
       .eq("id", data.user.id)
       .single();
 
-    // Set refresh_token in HttpOnly cookie
     setRefreshCookie(res, data.session.refresh_token);
+
+    // Create session log
+    const sessionId = await getOrCreateSession(data.user.id, req);
 
     res.json({
       message: "Login successful",
@@ -64,11 +65,13 @@ export const login = async (req, res) => {
         first_name: profile?.first_name,
         last_name: profile?.last_name
       },
+      sessionLogId: sessionId // Send to frontend for tracking
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // GET /auth/me
 export const me = async (req, res) => {
@@ -129,6 +132,12 @@ export const me = async (req, res) => {
 // POST /auth/logout
 export const logout = async (req, res) => {
   try {
+    const userId = req.user?.id;
+    
+    if (userId) {
+      await endSession(userId);
+    }
+
     await supabase.auth.signOut();
     res.clearCookie("refresh_token", {
       path: "/",
@@ -140,6 +149,7 @@ export const logout = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // POST /auth/refresh
 export const refresh = async (req, res) => {

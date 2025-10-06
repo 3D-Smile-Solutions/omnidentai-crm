@@ -1,9 +1,12 @@
-//src/components/Dashboard/hooks/useDashboard.js - Updated with WebSocket
+// src/components/Dashboard/hooks/useDashboard.js
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from 'react-router-dom';
 import { logout } from "../../../redux/slices/authSlice";
 import { fetchPatients } from "../../../redux/slices/patientSlice";
+import { useActivityLogger } from '../../Dashboard/hooks/useActivityLogger'; // ✅ FIXED IMPORT
+import { setCurrentSession } from '../../../redux/slices/activitySlice'; // ✅ NEW
+
 import { 
   fetchUnreadCounts, 
   setCurrentPatient, 
@@ -11,9 +14,9 @@ import {
   sendMessage,
   fetchMessagesWithPatient,
   markMessagesAsRead,
-  addMessage // Import for optimistic updates
+  addMessage
 } from "../../../redux/slices/messageSlice";
-import useWebSocket from '../../../components/Dashboard/hooks/useWebSocket'; // Import our WebSocket hook
+import useWebSocket from '../../../components/Dashboard/hooks/useWebSocket';
 
 export const useDashboard = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -25,6 +28,9 @@ export const useDashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
+  // ✅ PROPERLY USE ACTIVITY LOGGER
+  const { logActivity } = useActivityLogger();
+
   // Initialize WebSocket hook
   const {
     isConnected: isWebSocketConnected,
@@ -35,7 +41,8 @@ export const useDashboard = () => {
     stopTyping,
     markMessagesAsRead: markMessagesAsReadWS
   } = useWebSocket();
-  // Get data from Redux store (same as before)
+
+  // Get data from Redux store
   const { user: currentUser } = useSelector((state) => state.auth);
   const { list: patients, status: patientsStatus } = useSelector((state) => state.patients);
   const { 
@@ -46,7 +53,14 @@ export const useDashboard = () => {
     sendStatus: messageSendStatus 
   } = useSelector((state) => state.messages);
   
-  // Fetch patients and unread counts when component mounts (same as before)
+  // ✅ SET SESSION ID ON LOGIN
+  useEffect(() => {
+    if (currentUser?.sessionId) {
+      dispatch(setCurrentSession(currentUser.sessionId));
+    }
+  }, [dispatch, currentUser?.sessionId]);
+
+  // Fetch patients and unread counts when component mounts
   useEffect(() => {
     if (currentUser?.id) {
       dispatch(fetchPatients());
@@ -63,16 +77,11 @@ export const useDashboard = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // ==========================================
-  // WEBSOCKET INTEGRATION: PATIENT ROOM MANAGEMENT
-  // ==========================================
-
   // Join/leave patient conversation rooms when patient selection changes
   useEffect(() => {
     if (selectedPatient?.id && isWebSocketConnected) {
       joinPatientConversation(selectedPatient.id);
       
-      // Leave room when patient changes or component unmounts
       return () => {
         if (selectedPatient?.id) {
           leavePatientConversation(selectedPatient.id);
@@ -80,10 +89,6 @@ export const useDashboard = () => {
       };
     }
   }, [selectedPatient?.id, isWebSocketConnected, joinPatientConversation, leavePatientConversation]);
-
-  // ==========================================
-  // EXISTING HANDLERS (MOSTLY UNCHANGED)
-  // ==========================================
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -102,18 +107,19 @@ export const useDashboard = () => {
     navigate("/login");
   };
 
-  // Transform real patients to include message data (same as before)
+  // Transform real patients to include message data
   const transformedPatients = patients.map(patient => {
     const patientMessages = messagesByPatient[patient.id]?.messages || [];
     const unreadCount = unreadCounts[patient.id] || 0;
     
     return {
-    ...patient, // ✅ Spread all original fields (includes first_name, last_name, lastMessage, etc.)
-    unreadCount,
-    messages: patientMessages
-  };
+      ...patient,
+      unreadCount,
+      messages: patientMessages
+    };
   });
 
+  // ✅ LOG ACTIVITY WHEN SELECTING PATIENT
   const handleSelectPatient = (patient) => {
     // If there was a previous patient, leave their room
     if (selectedPatient?.id && isWebSocketConnected) {
@@ -124,7 +130,13 @@ export const useDashboard = () => {
     setSelectedPatient(patient);
     dispatch(setCurrentPatient(patient.id));
     
-    // Fetch messages for this patient if not already loaded (HTTP fallback)
+    // ✅ LOG THE ACTIVITY
+    logActivity('viewed_patient', { 
+      patientId: patient.id,
+      patientName: `${patient.first_name} ${patient.last_name}`
+    });
+    
+    // Fetch messages for this patient if not already loaded
     if (!messagesByPatient[patient.id] || messagesByPatient[patient.id].messages.length === 0) {
       dispatch(fetchMessagesWithPatient(patient.id));
     }
@@ -132,9 +144,9 @@ export const useDashboard = () => {
     // Mark messages as read
     if (unreadCounts[patient.id] > 0) {
       if (isWebSocketConnected) {
-        markMessagesAsReadWS(patient.id); // WebSocket method
+        markMessagesAsReadWS(patient.id);
       } else {
-        dispatch(markMessagesAsRead(patient.id)); // HTTP fallback
+        dispatch(markMessagesAsRead(patient.id));
       }
     }
 
@@ -144,43 +156,45 @@ export const useDashboard = () => {
     }
   };
 
-  // ==========================================
-  // ENHANCED MESSAGE SENDING WITH WEBSOCKET
-  // ==========================================
-
+  // ✅ LOG ACTIVITY WHEN SENDING MESSAGE
   const handleSendMessage = async (patientId, messageContent, channel = 'webchat') => {
     try {
       // Try WebSocket first for real-time delivery
       if (isWebSocketConnected) {
         console.log('📤 Sending message via WebSocket');
 
-        // Optimistic update: Add message to Redux immediately
+        // Optimistic update
         const optimisticMessage = {
-          id: `temp-${Date.now()}`, // Temporary ID
+          id: `temp-${Date.now()}`,
           message: messageContent,
           sender: 'dentist',
           channel: channel,
           timestamp: new Date().toISOString(),
-          isOptimistic: true // Flag to identify optimistic messages
+          isOptimistic: true
         };
 
-        // Add to Redux store immediately for instant UI feedback
         dispatch(addMessage({ 
           patientId, 
           message: optimisticMessage 
         }));
 
-        // Send via WebSocket
         const success = sendMessageViaWebSocket(patientId, messageContent, channel);
         
         if (!success) {
           throw new Error('WebSocket send failed');
         }
 
+        // ✅ LOG THE ACTIVITY
+        logActivity('sent_message', { 
+          patientId, 
+          messageLength: messageContent.length,
+          channel 
+        });
+
         console.log('✅ Message sent via WebSocket');
         
       } else {
-        // Fallback to HTTP if WebSocket is not connected
+        // Fallback to HTTP
         console.log('📤 WebSocket not connected, sending via HTTP');
         
         await dispatch(sendMessage({ 
@@ -189,13 +203,20 @@ export const useDashboard = () => {
           channelType: channel 
         })).unwrap();
         
+        // ✅ LOG THE ACTIVITY
+        logActivity('sent_message', { 
+          patientId, 
+          messageLength: messageContent.length,
+          channel 
+        });
+
         console.log('✅ Message sent via HTTP');
       }
 
     } catch (error) {
       console.error('❌ Failed to send message:', error);
       
-      // If WebSocket failed, try HTTP as fallback
+      // HTTP fallback
       if (isWebSocketConnected) {
         console.log('🔄 WebSocket failed, trying HTTP fallback...');
         try {
@@ -204,6 +225,14 @@ export const useDashboard = () => {
             content: messageContent, 
             channelType: channel 
           })).unwrap();
+          
+          logActivity('sent_message', { 
+            patientId, 
+            messageLength: messageContent.length,
+            channel,
+            fallback: true 
+          });
+
           console.log('✅ Message sent via HTTP fallback');
         } catch (httpError) {
           console.error('❌ HTTP fallback also failed:', httpError);
@@ -211,10 +240,6 @@ export const useDashboard = () => {
       }
     }
   };
-
-  // ==========================================
-  // TYPING INDICATORS (OPTIONAL FEATURE)
-  // ==========================================
 
   const handleStartTyping = (patientId) => {
     if (isWebSocketConnected) {
@@ -227,10 +252,6 @@ export const useDashboard = () => {
       stopTyping(patientId);
     }
   };
-
-  // ==========================================
-  // RETURN ALL DATA AND HANDLERS
-  // ==========================================
 
   return {
     // Existing state
@@ -252,15 +273,15 @@ export const useDashboard = () => {
     handleMenuOpen,
     handleMenuClose,
     handleLogout,
-    handleSendMessage, // Enhanced with WebSocket
+    handleSendMessage,
     setMobileOpen,
     
-    // New WebSocket-specific state and handlers
+    // WebSocket-specific
     isWebSocketConnected,
     handleStartTyping,
     handleStopTyping,
     
-    // Connection status for UI indicators
+    // Connection status
     connectionStatus: {
       websocket: isWebSocketConnected,
       loading: messagesFetchStatus === 'loading' || patientsStatus === 'loading',

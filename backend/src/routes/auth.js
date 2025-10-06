@@ -9,6 +9,7 @@ import {
   updateProfile,    // ADD THIS
   changePassword    // ADD THIS
 } from "../controllers/authController.js";
+import { getSessions, getSessionDetails } from "../controllers/sessionController.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";  // ADD THIS IMPORT
 
 const router = express.Router();
@@ -22,5 +23,7 @@ router.post("/refresh", refresh);
 // NEW: Settings routes (protected with authMiddleware)
 router.put("/update-profile", authMiddleware, updateProfile);
 router.put("/change-password", authMiddleware, changePassword);
-
+// session routes
+router.get("/sessions", authMiddleware, getSessions);
+router.get("/sessions/:sessionId", authMiddleware, getSessionDetails);
 export default router;

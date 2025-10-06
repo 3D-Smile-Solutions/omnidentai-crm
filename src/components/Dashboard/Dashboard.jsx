@@ -18,7 +18,7 @@ import Forms from './components/Forms/Forms';
 import Reports from './components/Reports/Reports';
 import PracticeEnhancer from './components/PracticeEnhancer/PracticeEnhancer';
 import Settings from './components/Settings/Settings';
-import SessionHistory from '../SessionHistory';
+import SessionHistory from './components/Settings/SessionHistory';
 import { useDashboard } from './hooks/useDashboard';
 import { DRAWER_WIDTH } from './utils/constants';
 
