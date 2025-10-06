@@ -4,7 +4,8 @@ import authReducer from "./slices/authSlice";
 import patientReducer from "./slices/patientSlice";
 import messageReducer from "./slices/messageSlice";
 import typingReducer from "./slices/typingSlice";
-import metricsReducer from "./slices/metricsSlice"; // NEW: Add this line
+import metricsReducer from "./slices/metricsSlice"; 
+import settingsReducer from "./slices/settingsSlice";
 
 const store = configureStore({
   reducer: {
@@ -12,7 +13,8 @@ const store = configureStore({
     patients: patientReducer,
     messages: messageReducer,
     typing: typingReducer,
-    metrics: metricsReducer, // NEW: Add this line
+    metrics: metricsReducer, 
+    settings: settingsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

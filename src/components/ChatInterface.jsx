@@ -526,9 +526,9 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
               >
                 <PhoneIcon />
               </IconButton>
-              <IconButton sx={{ color: 'rgba(11, 25, 41, 0.6)' }}>
+              {/* <IconButton sx={{ color: 'rgba(11, 25, 41, 0.6)' }}>
                 <VideoCallIcon />
-              </IconButton>
+              </IconButton> */}
             </>
           )}
           <IconButton 
