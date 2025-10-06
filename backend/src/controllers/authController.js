@@ -63,9 +63,10 @@ export const login = async (req, res) => {
       user: {
         ...data.user,
         first_name: profile?.first_name,
-        last_name: profile?.last_name
+        last_name: profile?.last_name,
+        sessionId: sessionId // ✅ ADD THIS - Return session ID to frontend
       },
-      sessionLogId: sessionId // Send to frontend for tracking
+      sessionLogId: sessionId // Keep this for backward compatibility
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

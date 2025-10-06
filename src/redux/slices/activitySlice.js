@@ -20,7 +20,8 @@ export const logActivity = createAsyncThunk(
       });
 
       if (!response.ok) {
-        throw new Error("Failed to log activity");
+        const error = await response.json();
+        throw new Error(error.message || "Failed to log activity");
       }
 
       const data = await response.json();
@@ -35,15 +36,25 @@ export const logActivity = createAsyncThunk(
 // Fetch session history
 export const fetchSessionHistory = createAsyncThunk(
   "activity/fetchSessionHistory",
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, getState }) => {
     try {
+      // ✅ CHECK IF USER IS AUTHENTICATED
+      const { auth } = getState();
+      if (!auth.user) {
+        throw new Error("Not authenticated");
+      }
+
       const response = await fetch(`${API_URL}/session-history`, {
         method: "GET",
         credentials: "include",
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch session history");
+        if (response.status === 401) {
+          throw new Error("Unauthorized - Please login again");
+        }
+        const error = await response.json();
+        throw new Error(error.message || "Failed to fetch session history");
       }
 
       const data = await response.json();
@@ -58,15 +69,21 @@ export const fetchSessionHistory = createAsyncThunk(
 // Logout from all devices
 export const logoutAllDevices = createAsyncThunk(
   "activity/logoutAllDevices",
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, getState }) => {
     try {
+      const { auth } = getState();
+      if (!auth.user) {
+        throw new Error("Not authenticated");
+      }
+
       const response = await fetch(`${API_URL}/logout-all`, {
         method: "POST",
         credentials: "include",
       });
 
       if (!response.ok) {
-        throw new Error("Failed to logout from all devices");
+        const error = await response.json();
+        throw new Error(error.message || "Failed to logout from all devices");
       }
 
       const data = await response.json();
@@ -81,15 +98,21 @@ export const logoutAllDevices = createAsyncThunk(
 // Logout from a specific session
 export const logoutSession = createAsyncThunk(
   "activity/logoutSession",
-  async (sessionId, { rejectWithValue }) => {
+  async (sessionId, { rejectWithValue, getState }) => {
     try {
+      const { auth } = getState();
+      if (!auth.user) {
+        throw new Error("Not authenticated");
+      }
+
       const response = await fetch(`${API_URL}/logout-session/${sessionId}`, {
         method: "POST",
         credentials: "include",
       });
 
       if (!response.ok) {
-        throw new Error("Failed to logout session");
+        const error = await response.json();
+        throw new Error(error.message || "Failed to logout session");
       }
 
       const data = await response.json();
@@ -125,7 +148,6 @@ const activitySlice = createSlice({
     },
     addRecentActivity: (state, action) => {
       state.recentActivities.unshift(action.payload);
-      // Keep only last 50 activities in memory
       if (state.recentActivities.length > 50) {
         state.recentActivities.pop();
       }
@@ -133,6 +155,8 @@ const activitySlice = createSlice({
     clearActivities: (state) => {
       state.sessions = [];
       state.recentActivities = [];
+      state.status = 'idle';
+      state.error = null;
     },
   },
   extraReducers: (builder) => {
@@ -156,10 +180,12 @@ const activitySlice = createSlice({
       // Fetch Session History
       .addCase(fetchSessionHistory.pending, (state) => {
         state.status = "loading";
+        state.error = null; // ✅ Clear previous errors
       })
       .addCase(fetchSessionHistory.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.sessions = action.payload;
+        state.error = null;
       })
       .addCase(fetchSessionHistory.rejected, (state, action) => {
         state.status = "failed";
@@ -172,7 +198,6 @@ const activitySlice = createSlice({
       })
       .addCase(logoutAllDevices.fulfilled, (state) => {
         state.logoutStatus = "succeeded";
-        // Mark all sessions as inactive
         state.sessions = state.sessions.map((session) => ({
           ...session,
           is_active: false,
@@ -189,7 +214,6 @@ const activitySlice = createSlice({
       })
       .addCase(logoutSession.fulfilled, (state, action) => {
         state.logoutStatus = "succeeded";
-        // Mark specific session as inactive
         const sessionIndex = state.sessions.findIndex(
           (s) => s.id === action.payload
         );

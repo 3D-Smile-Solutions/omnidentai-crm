@@ -47,6 +47,7 @@ const authSlice = createSlice({
   initialState: {
     user: null,
     session: null,
+    sessionId: null,
     signupStatus: "idle",
     loginStatus: "idle",
     fetchStatus: "idle",
@@ -78,6 +79,12 @@ const authSlice = createSlice({
         state.loginStatus = "succeeded";
         state.user = action.payload.user;
         state.session = action.payload.session;
+        //  Store sessionId from login response
+        if (action.payload.user?.sessionId) {
+          state.sessionId = action.payload.user.sessionId;
+        } else if (action.payload.sessionLogId) {
+          state.sessionId = action.payload.sessionLogId;
+        }
       })
       .addCase(login.rejected, (state, action) => {
         state.loginStatus = "failed";
@@ -99,6 +106,11 @@ const authSlice = createSlice({
           state.session = action.payload.session;
         }
         // If no session data in response, keep existing session intact
+
+        // now:Store sessionId if available in fetchMe response
+        if (action.payload.user?.sessionId) {
+          state.sessionId = action.payload.user.sessionId;
+        }
       })
       .addCase(fetchMe.rejected, (state, action) => {
         state.fetchStatus = "failed";
@@ -113,6 +125,7 @@ const authSlice = createSlice({
         state.logoutStatus = "succeeded";
         state.user = null;
         state.session = null;
+        state.sessionId = null; //  Clear sessionId on logout
       })
       .addCase(logout.rejected, (state, action) => {
         state.logoutStatus = "failed";
