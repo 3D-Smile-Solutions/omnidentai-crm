@@ -10,10 +10,9 @@ import { createMessage } from "./models/messageModel.js";
 import authRoutes from "./routes/auth.js";
 import patientRoutes from "./routes/patient.js";
 import messageRoutes from "./routes/message.js";
-import upload from './routes/upload.js';
 import metrics from './routes/metrics.js';
 import voiceCall from './routes/voice.js'
-import settings from './routes/settings.js'
+// import settings from './routes/settings.js'
 import practiceDocumentRoutes from './routes/practiceDocumentRoutes.js';
 dotenv.config();
 
@@ -41,7 +40,7 @@ app.use(cookieParser());
 app.use("/auth", authRoutes);
 app.use("/patients", patientRoutes);
 app.use("/messages", messageRoutes);
-app.use('/upload', upload);
+// app.use('/upload', upload);
 app.use('/api/metrics', metrics);
 app.use('/api/voice', voiceCall);+
 // app.use('/api/settings', settings);

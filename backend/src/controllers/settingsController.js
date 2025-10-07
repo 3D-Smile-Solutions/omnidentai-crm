@@ -25,7 +25,7 @@ export const updateProfile = async (req, res) => {
       license_number
     } = req.body;
 
-    console.log('📝 Updating profile for user:', userId);
+    // console.log('📝 Updating profile for user:', userId);
 
     const { data, error } = await supabase
       .from('client_profiles')
@@ -184,7 +184,7 @@ export const updateAppearance = async (req, res) => {
 
     const appearanceSettings = req.body;
 
-    console.log('🎨 Updating appearance settings for user:', userId);
+    // console.log('🎨 Updating appearance settings for user:', userId);
 
     const { data, error } = await supabase
       .from('client_profiles')

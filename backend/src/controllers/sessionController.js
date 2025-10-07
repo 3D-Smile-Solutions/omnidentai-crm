@@ -209,7 +209,7 @@ export const logoutAllDevices = async (req, res) => {
       throw error;
     }
 
-    console.log(`✅ Logged out from ${data?.length || 0} devices`);
+    // console.log(`✅ Logged out from ${data?.length || 0} devices`);
 
     res.json({
       success: true,
@@ -236,7 +236,7 @@ export const logoutSession = async (req, res) => {
     const userId = req.user?.id;
     const { sessionId } = req.params;
 
-    console.log('🚪 Logging out session:', sessionId);
+    // console.log('🚪 Logging out session:', sessionId);
 
     if (!sessionId) {
       return res.status(400).json({

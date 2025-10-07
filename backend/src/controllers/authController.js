@@ -64,7 +64,7 @@ export const login = async (req, res) => {
         ...data.user,
         first_name: profile?.first_name,
         last_name: profile?.last_name,
-        sessionId: sessionId // ✅ ADD THIS - Return session ID to frontend
+        sessionId: sessionId //  Return session ID to frontend
       },
       sessionLogId: sessionId // Keep this for backward compatibility
     });
@@ -170,7 +170,7 @@ export const refresh = async (req, res) => {
 };
 
 // ========================================
-// NEW: Settings endpoints
+// Settings endpoints
 // ========================================
 
 // PUT /auth/update-profile
@@ -183,7 +183,7 @@ export const updateProfile = async (req, res) => {
 
     const { first_name, last_name } = req.body;
 
-    console.log('📝 Updating profile for user:', userId);
+    // console.log('📝 Updating profile for user:', userId);
 
     const { data, error } = await supabase
       .from('client_profiles')
@@ -197,7 +197,7 @@ export const updateProfile = async (req, res) => {
       return res.status(400).json({ error: error.message });
     }
 
-    console.log('✅ Profile updated successfully');
+    // console.log('✅ Profile updated successfully');
     res.json({ 
       message: 'Profile updated successfully',
       user: data 
@@ -227,7 +227,7 @@ export const changePassword = async (req, res) => {
       return res.status(400).json({ error: 'Password must be at least 8 characters long' });
     }
 
-    console.log('🔐 Changing password for user:', userId);
+    // console.log('🔐 Changing password for user:', userId);
 
     // Update password using Supabase Admin API
     const { error } = await supabase.auth.admin.updateUserById(
@@ -240,7 +240,7 @@ export const changePassword = async (req, res) => {
       return res.status(400).json({ error: error.message });
     }
 
-    console.log('✅ Password changed successfully');
+    // console.log('✅ Password changed successfully');
     res.json({ message: 'Password changed successfully' });
 
   } catch (error) {

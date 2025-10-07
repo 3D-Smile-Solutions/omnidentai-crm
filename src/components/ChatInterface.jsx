@@ -1,4 +1,4 @@
-// frontend/src/components/ChatInterface.jsx - COMPLETE INTEGRATED VERSION
+// frontend/src/components/ChatInterface.jsx - UPDATED VERSION
 import React, { useState, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -32,7 +32,7 @@ import {
 } from '@mui/icons-material';
 import CustomCheckbox from './CustomCheckbox';
 import TypingIndicator from './Dashboard/TypingIndicator';
-import FileUploadModal from './Dashboard/components/FileUpload/FileUploadModal';
+import UnifiedUploadModal from './Dashboard/components/UploadModal/UnifiedUploadModal'; // CHANGED
 import PatientDetailsModal from './Dashboard/components/PatientDetails/PatientDetailsModal';
 import useWebSocket from './Dashboard/hooks/useWebSocket';
 import { useVoiceCall } from './Dashboard/hooks/useVoiceCall';
@@ -132,7 +132,6 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
       return;
     }
 
-    // Show confirmation dialog
     const confirmed = window.confirm(
       `Call ${patient.first_name} ${patient.last_name} at ${patient.phone}?`
     );
@@ -154,23 +153,23 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     setIsMuted(newMuteState);
   };
 
-  // File upload handler
-  const handleFileUploadComplete = (fileData) => {
-    console.log('✅ File uploaded:', fileData);
+  // UPDATED: File upload handler using new document structure
+  const handleFileUploadComplete = (document) => {
+    console.log('✅ File uploaded:', document);
     
     // Send file metadata as message
     const fileMessage = JSON.stringify({
       type: 'file',
-      filename: fileData.filename,
-      url: fileData.url,
-      mimeType: fileData.mimeType,
-      size: fileData.size
+      filename: document.filename,
+      url: document.url, // From signed URL in document
+      mimeType: document.mime_type,
+      size: document.file_size
     });
     
     onSendMessage(patient.id, fileMessage, 'webchat');
   };
 
-  // File message helpers
+  // File message helpers (unchanged)
   const isFileMessage = (messageText) => {
     try {
       const parsed = JSON.parse(messageText);
@@ -188,7 +187,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     }
   };
 
-  // Render file attachment
+  // Render file attachment (unchanged)
   const renderFileAttachment = (fileData) => {
     const isImage = fileData.mimeType?.startsWith('image/');
     
@@ -526,9 +525,6 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
               >
                 <PhoneIcon />
               </IconButton>
-              {/* <IconButton sx={{ color: 'rgba(11, 25, 41, 0.6)' }}>
-                <VideoCallIcon />
-              </IconButton> */}
             </>
           )}
           <IconButton 
@@ -540,7 +536,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
         </Box>
       </Paper>
 
-      {/* Messages Area */}
+      {/* Messages Area - SAME AS BEFORE */}
       <Box sx={{ 
         flex: 1, 
         overflow: 'auto',
@@ -699,7 +695,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
         <div ref={messagesEndRef} />
       </Box>
 
-      {/* Input Area */}
+      {/* Input Area - SAME AS BEFORE */}
       <Paper 
         elevation={0} 
         sx={{ 
@@ -802,22 +798,26 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
         </Box>
       </Paper>
 
-      {/* File Upload Modal */}
-      <FileUploadModal
+      {/* CHANGED: UnifiedUploadModal instead of FileUploadModal */}
+      <UnifiedUploadModal
         open={uploadModalOpen}
         onClose={() => setUploadModalOpen(false)}
         onUploadComplete={handleFileUploadComplete}
+        documentType="chat_attachment"
+        category="chat"
+        title="Upload Chat Attachment"
+        allowedTypes="all"
         patientId={patient.id}
       />
 
-      {/* Patient Details Modal */}
+      {/* Patient Details Modal - SAME */}
       <PatientDetailsModal
         open={detailsModalOpen}
         onClose={() => setDetailsModalOpen(false)}
         patient={patient}
       />
 
-      {/* Voice Call Dialog */}
+      {/* Voice Call Dialog - SAME AS BEFORE */}
       <Dialog
         open={callDialogOpen}
         onClose={() => !isCallInProgress && setCallDialogOpen(false)}

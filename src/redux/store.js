@@ -7,6 +7,7 @@ import typingReducer from "./slices/typingSlice";
 import metricsReducer from "./slices/metricsSlice"; 
 import settingsReducer from "./slices/settingsSlice";
 import activityReducer from './slices/activitySlice';
+import uploadsReducer from './slices/uploadsSlice';
 const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -16,6 +17,7 @@ const store = configureStore({
     metrics: metricsReducer, 
     settings: settingsReducer,
     activity: activityReducer,
+    uploads: uploadsReducer 
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

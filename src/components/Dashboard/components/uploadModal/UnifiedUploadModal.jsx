@@ -1,5 +1,6 @@
-// frontend/src/components/Dashboard/components/GenericDocumentUploadModal.jsx
-import React, { useState } from 'react';
+// frontend/src/components/Dashboard/components/UploadModal/UnifiedUploadModal.jsx
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -22,23 +23,33 @@ import {
   PictureAsPdf as PdfIcon,
   Description as DocIcon
 } from '@mui/icons-material';
+import { uploadDocument, resetUploadState } from '../../../../redux/slices/uploadsSlice';
 
-const GenericDocumentUploadModal = ({ 
+const UnifiedUploadModal = ({ 
   open, 
   onClose, 
   onUploadComplete,
-  documentType, // 'form', 'report', 'chat_attachment'
-  category, // 'patient_intake', 'financial_report', etc.
+  documentType, // 'chat_attachment', 'form', 'report'
+  category, // 'patient_intake', 'financial_report', 'chat', etc.
   title = 'Upload Document',
   allowedTypes = 'all', // 'all', 'images', 'documents', 'pdf'
-  patientId = null // Optional: for patient-specific documents
+  patientId = null
 }) => {
+  const dispatch = useDispatch();
+  const { uploading, uploadProgress, uploadError } = useSelector((state) => state.uploads);
+  
   const [selectedFile, setSelectedFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [error, setError] = useState(null);
   const [preview, setPreview] = useState(null);
   const [description, setDescription] = useState('');
+  const [localError, setLocalError] = useState(null);
+
+  // Reset on mount
+  useEffect(() => {
+    if (open) {
+      dispatch(resetUploadState());
+      setLocalError(null);
+    }
+  }, [open, dispatch]);
 
   const getAcceptedFileTypes = () => {
     switch (allowedTypes) {
@@ -81,18 +92,18 @@ const GenericDocumentUploadModal = ({
 
     const maxSize = 50 * 1024 * 1024;
     if (file.size > maxSize) {
-      setError('File size must be less than 50MB');
+      setLocalError('File size must be less than 50MB');
       return;
     }
 
     const allowedMimeTypes = getAllowedMimeTypes();
     if (!allowedMimeTypes.includes(file.type)) {
-      setError('Invalid file type for this upload');
+      setLocalError('Invalid file type for this upload');
       return;
     }
 
     setSelectedFile(file);
-    setError(null);
+    setLocalError(null);
 
     if (file.type.startsWith('image/')) {
       const reader = new FileReader();
@@ -108,83 +119,49 @@ const GenericDocumentUploadModal = ({
   const handleUpload = async () => {
     if (!selectedFile) return;
 
-    setUploading(true);
-    setError(null);
-    setUploadProgress(0);
-
     try {
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-      formData.append('documentType', documentType);
-      formData.append('category', category);
-      formData.append('description', description);
-      if (patientId) {
-        formData.append('patientId', patientId);
-      }
+      const result = await dispatch(uploadDocument({
+        file: selectedFile,
+        documentType,
+        category,
+        patientId,
+        description,
+        onProgress: (progress) => {
+          // Progress is handled by Redux state
+        }
+      })).unwrap();
 
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + 10;
-        });
-      }, 200);
-
-     const response = await fetch('http://localhost:5000/practice-documents/upload', {
-  method: 'POST',
-  credentials: 'include',
-  body: formData
-})
-
-      clearInterval(progressInterval);
-      setUploadProgress(100);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Upload failed');
-      }
-
-      const data = await response.json();
-      console.log('✅ Document uploaded successfully:', data);
-
+      console.log('✅ Upload successful:', result);
+      
       if (onUploadComplete) {
-        onUploadComplete(data.document);
+        onUploadComplete(result);
       }
 
+      // Small delay to show 100% progress
       setTimeout(() => {
         handleClose();
       }, 500);
 
-    } catch (err) {
-      console.error('❌ Upload error:', err);
-      setError(err.message || 'Failed to upload document');
-      setUploadProgress(0);
-    } finally {
-      setUploading(false);
+    } catch (error) {
+      console.error('❌ Upload failed:', error);
+      // Error is in Redux state
     }
   };
 
   const handleClose = () => {
     setSelectedFile(null);
     setPreview(null);
-    setUploadProgress(0);
-    setError(null);
     setDescription('');
+    setLocalError(null);
+    dispatch(resetUploadState());
     onClose();
   };
 
   const getFileIcon = (file) => {
     if (!file) return <FileIcon />;
-
-    if (file.type.startsWith('image/')) {
-      return <ImageIcon sx={{ color: '#4ECDC4' }} />;
-    } else if (file.type === 'application/pdf') {
-      return <PdfIcon sx={{ color: '#FF6B6B' }} />;
-    } else {
-      return <DocIcon sx={{ color: '#45B7D1' }} />;
-    }
+    if (file.type.startsWith('image/')) return <ImageIcon sx={{ color: '#4ECDC4' }} />;
+    if (file.type === 'application/pdf') return <PdfIcon sx={{ color: '#FF6B6B' }} />;
+    return <DocIcon sx={{ color: '#45B7D1' }} />;
   };
 
   const formatFileSize = (bytes) => {
@@ -194,6 +171,8 @@ const GenericDocumentUploadModal = ({
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
   };
+
+  const displayError = localError || uploadError;
 
   return (
     <Dialog 
@@ -218,15 +197,15 @@ const GenericDocumentUploadModal = ({
         <Typography variant="h6" sx={{ fontWeight: 600, color: '#0B1929' }}>
           {title}
         </Typography>
-        <IconButton onClick={handleClose} size="small">
+        <IconButton onClick={handleClose} size="small" disabled={uploading}>
           <CloseIcon />
         </IconButton>
       </DialogTitle>
 
       <DialogContent sx={{ pt: 3 }}>
-        {error && (
+        {displayError && (
           <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
+            {displayError}
           </Alert>
         )}
 
@@ -244,7 +223,7 @@ const GenericDocumentUploadModal = ({
                 backgroundColor: 'rgba(62, 228, 200, 0.05)'
               }
             }}
-            onClick={() => document.getElementById(`file-input-${documentType}-${category}`).click()}
+            onClick={() => document.getElementById(`unified-file-input-${documentType}-${category}`).click()}
           >
             <CloudUploadIcon sx={{ fontSize: 48, color: '#3EE4C8', mb: 2 }} />
             <Typography variant="body1" sx={{ mb: 1, fontWeight: 500 }}>
@@ -257,7 +236,7 @@ const GenericDocumentUploadModal = ({
               {allowedTypes === 'all' && 'Images, PDFs, Word, Excel (Max 50MB)'}
             </Typography>
             <input
-              id={`file-input-${documentType}-${category}`}
+              id={`unified-file-input-${documentType}-${category}`}
               type="file"
               accept={getAcceptedFileTypes()}
               onChange={handleFileSelect}
@@ -341,7 +320,10 @@ const GenericDocumentUploadModal = ({
               {!uploading && (
                 <IconButton 
                   size="small" 
-                  onClick={() => setSelectedFile(null)}
+                  onClick={() => {
+                    setSelectedFile(null);
+                    setPreview(null);
+                  }}
                   sx={{ color: 'rgba(11, 25, 41, 0.6)' }}
                 >
                   <CloseIcon fontSize="small" />
@@ -427,4 +409,4 @@ const GenericDocumentUploadModal = ({
   );
 };
 
-export default GenericDocumentUploadModal;
+export default UnifiedUploadModal;
