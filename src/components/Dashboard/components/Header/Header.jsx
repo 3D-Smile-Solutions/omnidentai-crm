@@ -5,13 +5,15 @@ import {
   Toolbar,
   Typography,
   IconButton,
-  Avatar
+  Avatar,
+  Box
 } from '@mui/material';
 import {
   Menu as MenuIcon
 } from '@mui/icons-material';
 import UserMenu from './UserMenu';
 import { DRAWER_WIDTH } from '../../utils/constants';
+import { useTheme } from '../../../../context/ThemeContext';
 
 const Header = ({ 
   currentUser, 
@@ -21,6 +23,8 @@ const Header = ({
   onMenuClose, 
   onLogout 
 }) => {
+  const { isDarkMode } = useTheme();
+
   const getDisplayName = () => {
     if (!currentUser) return 'Dentist';
     
@@ -58,30 +62,103 @@ const Header = ({
   return (
     <AppBar
       position="fixed"
+      elevation={0}
       sx={{
         width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` },
         ml: { sm: `${DRAWER_WIDTH}px` },
-        background: 'linear-gradient(90deg, #0B1929 0%, #1e3a5f 100%)',
-        boxShadow: '0 2px 8px rgba(11, 25, 41, 0.15)',
+        background: isDarkMode 
+          ? 'rgba(17, 24, 39, 0.25)'
+          : 'rgba(255, 255, 255, 0.25)',
+        backdropFilter: 'blur(20px)',
+        borderBottom: isDarkMode 
+          ? '1px solid rgba(100, 255, 218, 0.1)' 
+          : '1px solid rgba(62, 228, 200, 0.1)',
+        boxShadow: isDarkMode
+          ? '0 4px 20px rgba(0, 0, 0, 0.15)'
+          : '0 4px 20px rgba(0, 0, 0, 0.05)',
       }}
     >
-      <Toolbar>
+      <Toolbar sx={{ 
+        px: { xs: 2, sm: 3 },
+        py: 1,
+        minHeight: { xs: 64, sm: 70 },
+      }}>
         <IconButton
           color="inherit"
           edge="start"
           onClick={onDrawerToggle}
-          sx={{ mr: 2, display: { sm: 'none' } }}
+          sx={{ 
+            mr: 2, 
+            display: { sm: 'none' },
+            color: isDarkMode ? '#64ffda' : '#0B1929',
+            '&:hover': {
+              backgroundColor: isDarkMode 
+                ? 'rgba(100, 255, 218, 0.08)'
+                : 'rgba(62, 228, 200, 0.08)',
+            }
+          }}
         >
           <MenuIcon />
         </IconButton>
-        <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-          Welcome, {getDisplayName()}
-        </Typography>
-        <IconButton color="inherit" onClick={onMenuOpen}>
-          <Avatar sx={{ width: 32, height: 32 }}>
+
+        {/* Welcome Text */}
+        <Box sx={{ flexGrow: 1 }}>
+          <Typography 
+            variant="h6" 
+            component="div" 
+            sx={{ 
+              fontWeight: 600,
+              fontSize: '1.125rem',
+              background: isDarkMode
+                ? 'rgba(0, 255, 213, 0.84)'
+                : 'rgba(255, 255, 255, 0.8)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
+            Welcome, {getDisplayName()}
+          </Typography>
+        </Box>
+
+        {/* User Avatar Button */}
+        <IconButton 
+          onClick={onMenuOpen}
+          sx={{ 
+            p: 0.5,
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              transform: 'scale(1.05)',
+            }
+          }}
+        >
+          <Avatar 
+            sx={{ 
+              width: 40, 
+              height: 40,
+              background: isDarkMode
+                ? 'linear-gradient(135deg, #64ffda 0%, #a78bfa 100%)'
+                : 'linear-gradient(135deg, #3EE4C8 0%, #0B1929 100%)',
+              fontSize: '0.95rem',
+              fontWeight: 600,
+              border: '2px solid',
+              borderColor: isDarkMode 
+                ? 'rgba(100, 255, 218, 0.3)'
+                : 'rgba(62, 228, 200, 0.3)',
+              boxShadow: isDarkMode
+                ? '0 4px 12px rgba(100, 255, 218, 0.2)'
+                : '0 4px 12px rgba(62, 228, 200, 0.2)',
+              '&:hover': {
+                borderColor: isDarkMode 
+                  ? 'rgba(100, 255, 218, 0.5)'
+                  : 'rgba(62, 228, 200, 0.5)',
+              }
+            }}
+          >
             {getInitials()}
           </Avatar>
         </IconButton>
+
         <UserMenu 
           anchorEl={anchorEl}
           onClose={onMenuClose}

@@ -16,6 +16,7 @@
     "@testing-library/user-event": "^14.4.3",
     "@twilio/voice-sdk": "^2.16.0",
     "axios": "^1.12.2",
+    "ogl": "^1.0.11",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-redux": "^9.2.0",

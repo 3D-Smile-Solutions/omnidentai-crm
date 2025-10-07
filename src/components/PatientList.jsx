@@ -13,21 +13,25 @@ import {
   Paper
 } from '@mui/material';
 import { Search as SearchIcon } from '@mui/icons-material';
+import { useTheme } from '../context/ThemeContext';
 
 const PatientList = ({ patients = [], selectedPatient, onSelectPatient, isMobile }) => {
+  const { isDarkMode } = useTheme();
   const [query, setQuery] = useState('');
-useEffect(() => {
-  console.log('🔍 REDUX STATE CHECK:', {
-    patientsCount: patients.length,
-    firstPatient: patients[0] ? {
-      id: patients[0].id,
-      first_name: patients[0].first_name,
-      last_name: patients[0].last_name,
-      lastMessage: patients[0].lastMessage,
-      lastMessageTime: patients[0].lastMessageTime
-    } : 'No patients'
-  });
-}, [patients]);
+  
+  useEffect(() => {
+    console.log('🔍 REDUX STATE CHECK:', {
+      patientsCount: patients.length,
+      firstPatient: patients[0] ? {
+        id: patients[0].id,
+        first_name: patients[0].first_name,
+        last_name: patients[0].last_name,
+        lastMessage: patients[0].lastMessage,
+        lastMessageTime: patients[0].lastMessageTime
+      } : 'No patients'
+    });
+  }, [patients]);
+  
   const getInitials = (firstName = '', lastName = '') => {
     const a = (firstName || '').trim();
     const b = (lastName || '').trim();
@@ -38,7 +42,9 @@ useEffect(() => {
   };
 
   const getAvatarColor = (id = '') => {
-    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#F7B801', '#96CEB4', '#DDA77B', '#9B59B6', '#3498DB'];
+    const colors = isDarkMode
+      ? ['#64ffda', '#a78bfa', '#f472b6', '#60a5fa', '#34d399', '#fbbf24', '#f87171', '#a3e635']
+      : ['#3EE4C8', '#2BC4A8', '#62E4C8', '#45D4B8', '#4ECDC4', '#38C9B4', '#2BB4A4', '#1FA494'];
     let hash = 0;
     for (let i = 0; i < id.length; i++) {
       hash = id.charCodeAt(i) + ((hash << 5) - hash);
@@ -81,28 +87,91 @@ useEffect(() => {
       borderRight: 'none',
       display: 'flex',
       flexDirection: 'column',
-      background: 'linear-gradient(180deg, #fefefe 0%, #fafbfc 100%)',
-      borderRadius: isMobile ? '12px' : '12px 0 0 12px',
+      background: isDarkMode 
+        ? 'rgba(17, 24, 39, 0.25)'
+        : 'rgba(255, 255, 255, 0.25)',
+      backdropFilter: 'blur(20px)',
+      borderRadius: isMobile ? '16px' : '16px 0 0 16px',
       overflow: 'hidden',
-      boxShadow: isMobile ? '0 2px 12px rgba(0,0,0,0.08)' : '0 1px 3px rgba(0,0,0,0.05)'
+      border: isDarkMode 
+        ? '1px solid rgba(100, 255, 218, 0.1)' 
+        : '1px solid rgba(62, 228, 200, 0.1)',
+      position: 'relative',
     }}>
-      <Box sx={{ p: 2, borderBottom: '1px solid rgba(62, 228, 200, 0.15)' }}>
+      {/* Subtle gradient overlay */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: isDarkMode
+            ? 'linear-gradient(180deg, rgba(100, 255, 218, 0.02) 0%, rgba(167, 139, 250, 0.02) 100%)'
+            : 'linear-gradient(180deg, rgba(62, 228, 200, 0.03) 0%, rgba(43, 196, 168, 0.03) 100%)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+      
+      {/* Search Header */}
+      <Box sx={{ 
+        p: 2, 
+        borderBottom: isDarkMode 
+          ? '1px solid rgba(100, 255, 218, 0.1)' 
+          : '1px solid rgba(62, 228, 200, 0.1)',
+        position: 'relative',
+        zIndex: 1,
+        background: isDarkMode
+          ? 'rgba(17, 24, 39, 0.3)'
+          : 'rgba(255, 255, 255, 0.3)',
+        backdropFilter: 'blur(10px)',
+      }}>
         <Paper
           elevation={0}
           sx={{
             p: '2px 4px',
             display: 'flex',
             alignItems: 'center',
-            background: 'rgba(62, 228, 200, 0.05)',
-            border: '1px solid rgba(62, 228, 200, 0.2)',
-            borderRadius: 2
+            background: isDarkMode 
+              ? 'rgba(100, 255, 218, 0.05)' 
+              : 'rgba(62, 228, 200, 0.05)',
+            backdropFilter: 'blur(5px)',
+            border: isDarkMode 
+              ? '1px solid rgba(100, 255, 218, 0.15)' 
+              : '1px solid rgba(62, 228, 200, 0.2)',
+            borderRadius: '10px',
+            transition: 'all 0.25s ease',
+            '&:hover': {
+              background: isDarkMode 
+                ? 'rgba(100, 255, 218, 0.08)' 
+                : 'rgba(62, 228, 200, 0.08)',
+              border: isDarkMode 
+                ? '1px solid rgba(100, 255, 218, 0.2)' 
+                : '1px solid rgba(62, 228, 200, 0.25)',
+            }
           }}
         >
-          <IconButton sx={{ p: '10px' }} aria-label="search">
-            <SearchIcon sx={{ color: 'rgba(11, 25, 41, 0.6)' }} />
+          <IconButton sx={{ 
+            p: '10px',
+            color: isDarkMode ? '#64ffda' : '#3EE4C8',
+            '&:hover': {
+              backgroundColor: 'transparent',
+            }
+          }} aria-label="search">
+            <SearchIcon />
           </IconButton>
           <InputBase
-            sx={{ ml: 1, flex: 1, color: '#0B1929' }}
+            sx={{ 
+              ml: 1, 
+              flex: 1, 
+              color: isDarkMode ? 'rgba(255, 255, 255, 0.9)' : '#0B1929',
+              '& ::placeholder': {
+                color: isDarkMode 
+                  ? 'rgba(255, 255, 255, 0.5)' 
+                  : 'rgba(11, 25, 41, 0.5)',
+              }
+            }}
             placeholder="Search patients..."
             inputProps={{ 'aria-label': 'search patients' }}
             value={query}
@@ -111,16 +180,47 @@ useEffect(() => {
         </Paper>
       </Box>
 
+      {/* Patient List */}
       <List sx={{
         flexGrow: 1,
         overflow: 'auto',
-        '&::-webkit-scrollbar': { width: '6px' },
-        '&::-webkit-scrollbar-track': { background: 'rgba(62, 228, 200, 0.05)' },
-        '&::-webkit-scrollbar-thumb': { background: 'rgba(62, 228, 200, 0.3)', borderRadius: '3px' }
+        position: 'relative',
+        zIndex: 1,
+        '&::-webkit-scrollbar': { 
+          width: '6px' 
+        },
+        '&::-webkit-scrollbar-track': { 
+          background: isDarkMode 
+            ? 'rgba(100, 255, 218, 0.05)' 
+            : 'rgba(62, 228, 200, 0.05)' 
+        },
+        '&::-webkit-scrollbar-thumb': { 
+          background: isDarkMode 
+            ? 'rgba(100, 255, 218, 0.3)' 
+            : 'rgba(62, 228, 200, 0.3)', 
+          borderRadius: '3px',
+          '&:hover': {
+            background: isDarkMode 
+              ? 'rgba(100, 255, 218, 0.5)' 
+              : 'rgba(62, 228, 200, 0.5)',
+          }
+        }
       }}>
         {(filtered.length === 0) && (
-          <Box sx={{ p: 3 }}>
-            <Typography variant="body2" color="text.secondary">No patients found</Typography>
+          <Box sx={{ 
+            p: 3, 
+            textAlign: 'center' 
+          }}>
+            <Typography 
+              variant="body2" 
+              sx={{
+                color: isDarkMode 
+                  ? 'rgba(255, 255, 255, 0.5)' 
+                  : 'rgba(11, 25, 41, 0.6)'
+              }}
+            >
+              No patients found
+            </Typography>
           </Box>
         )}
 
@@ -146,14 +246,50 @@ useEffect(() => {
               key={patient.id || idx}
               onClick={() => onSelectPatient && onSelectPatient(patient)}
               sx={{
-                py: 2,
+                py: 1,
                 px: 2,
-                backgroundColor: isSelected ? 'rgba(62, 228, 200, 0.15)' : 'transparent',
-                borderLeft: isSelected ? '3px solid #3EE4C8' : '3px solid transparent',
-                transition: 'all 0.2s ease',
+                
+                borderRadius: '10px',
+                backgroundColor: isSelected 
+                  ? (isDarkMode 
+                    ? 'rgba(100, 255, 218, 0.12)' 
+                    : 'rgba(62, 228, 200, 0.15)')
+                  : 'transparent',
+                border: isSelected 
+                  ? (isDarkMode 
+                    ? '1px solid rgba(100, 255, 218, 0.2)' 
+                    : '1px solid rgba(62, 228, 200, 0.2)')
+                  : '1px solid transparent',
+                position: 'relative',
+                cursor: 'pointer',
+                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                
                 '&:hover': {
-                  backgroundColor: isSelected ? 'rgba(62, 228, 200, 0.2)' : 'rgba(62, 228, 200, 0.08)',
-                }
+                  backgroundColor: isSelected 
+                    ? (isDarkMode 
+                      ? 'rgba(100, 255, 218, 0.15)' 
+                      : 'rgba(62, 228, 200, 0.18)')
+                    : (isDarkMode 
+                      ? 'rgba(100, 255, 218, 0.05)' 
+                      : 'rgba(62, 228, 200, 0.08)'),
+                  border: isDarkMode 
+                    ? '1px solid rgba(100, 255, 218, 0.15)' 
+                    : '1px solid rgba(62, 228, 200, 0.15)',
+                },
+                
+                // Left accent bar for selected state
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  left: 0,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: '3px',
+                  height: isSelected ? '60%' : '0%',
+                  backgroundColor: isDarkMode ? '#64ffda' : '#3EE4C8',
+                  borderRadius: '0 2px 2px 0',
+                  transition: 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                },
               }}
             >
               <ListItemAvatar>
@@ -163,7 +299,16 @@ useEffect(() => {
                     width: 45,
                     height: 45,
                     fontSize: '1.1rem',
-                    fontWeight: 600
+                    fontWeight: 600,
+                    border: isDarkMode 
+                      ? '2px solid rgba(100, 255, 218, 0.15)' 
+                      : '2px solid rgba(62, 228, 200, 0.15)',
+                    boxShadow: isSelected 
+                      ? (isDarkMode
+                        ? '0 4px 12px rgba(100, 255, 218, 0.2)'
+                        : '0 4px 12px rgba(62, 228, 200, 0.25)')
+                      : 'none',
+                    transition: 'all 0.25s ease',
                   }}
                 >
                   {getInitials(firstName, lastName)}
@@ -172,18 +317,51 @@ useEffect(() => {
 
               <ListItemText
                 primary={
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#0B1929' }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between' 
+                  }}>
+                    <Typography 
+                      variant="subtitle2" 
+                      sx={{ 
+                        fontWeight: 600, 
+                        color: isSelected 
+                          ? (isDarkMode ? '#64ffda' : '#0B1929')
+                          : (isDarkMode 
+                            ? 'rgba(255, 255, 255, 0.85)' 
+                            : '#0B1929'),
+                        letterSpacing: '0.15px',
+                      }}
+                    >
                       {firstName} {lastName}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'rgba(11, 25, 41, 0.5)', fontSize: '0.7rem' }}>
+                    <Typography 
+                      variant="caption" 
+                      sx={{ 
+                        color: isDarkMode 
+                          ? 'rgba(255, 255, 255, 0.4)' 
+                          : 'rgba(11, 25, 41, 0.5)', 
+                        fontSize: '0.7rem' 
+                      }}
+                    >
                       {getTimeAgo(lastTimestamp)}
                     </Typography>
                   </Box>
                 }
                 secondary={
                   <>
-                    <Typography component="span" variant="body2" sx={{ color: 'rgba(11, 25, 41, 0.7)', display: 'block' }}>
+                    <Typography 
+                      component="span" 
+                      variant="body2" 
+                      sx={{ 
+                        color: isDarkMode 
+                          ? 'rgba(255, 255, 255, 0.6)' 
+                          : 'rgba(11, 25, 41, 0.7)', 
+                        display: 'block',
+                        fontSize: '0.875rem',
+                      }}
+                    >
                       {truncateMessage(lastMessage)}
                     </Typography>
                     {unreadCount > 0 && (
@@ -194,11 +372,14 @@ useEffect(() => {
                         sx={{
                           mt: 1,
                           height: 20,
-                          backgroundColor: '#3EE4C8',
-                          color: '#0B1929',
+                          backgroundColor: isDarkMode ? '#64ffda' : '#3EE4C8',
+                          color: isDarkMode ? '#0B1929' : '#ffffff',
                           fontWeight: 600,
                           fontSize: '0.7rem',
-                          display: 'inline-flex'
+                          display: 'inline-flex',
+                          boxShadow: isDarkMode
+                            ? '0 2px 8px rgba(100, 255, 218, 0.3)'
+                            : '0 2px 8px rgba(62, 228, 200, 0.4)',
                         }}
                       />
                     )}

@@ -1,4 +1,4 @@
-// frontend/src/components/ChatInterface.jsx - UPDATED VERSION
+// frontend/src/components/ChatInterface.jsx - GLASSMORPHIC VERSION
 import React, { useState, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -32,12 +32,14 @@ import {
 } from '@mui/icons-material';
 import CustomCheckbox from './CustomCheckbox';
 import TypingIndicator from './Dashboard/TypingIndicator';
-import UnifiedUploadModal from './Dashboard/components/UploadModal/UnifiedUploadModal'; // CHANGED
+import UnifiedUploadModal from './Dashboard/components/UploadModal/UnifiedUploadModal';
 import PatientDetailsModal from './Dashboard/components/PatientDetails/PatientDetailsModal';
 import useWebSocket from './Dashboard/hooks/useWebSocket';
 import { useVoiceCall } from './Dashboard/hooks/useVoiceCall';
+import { useTheme } from '../context/ThemeContext';
 
 const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
+  const { isDarkMode } = useTheme();
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -153,7 +155,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     setIsMuted(newMuteState);
   };
 
-  // UPDATED: File upload handler using new document structure
+  // File upload handler using new document structure
   const handleFileUploadComplete = (document) => {
     console.log('✅ File uploaded:', document);
     
@@ -161,7 +163,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     const fileMessage = JSON.stringify({
       type: 'file',
       filename: document.filename,
-      url: document.url, // From signed URL in document
+      url: document.url,
       mimeType: document.mime_type,
       size: document.file_size
     });
@@ -169,7 +171,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     onSendMessage(patient.id, fileMessage, 'webchat');
   };
 
-  // File message helpers (unchanged)
+  // File message helpers
   const isFileMessage = (messageText) => {
     try {
       const parsed = JSON.parse(messageText);
@@ -187,7 +189,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     }
   };
 
-  // Render file attachment (unchanged)
+  // Render file attachment with glassmorphic styling
   const renderFileAttachment = (fileData) => {
     const isImage = fileData.mimeType?.startsWith('image/');
     
@@ -215,9 +217,14 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
       <Box
         sx={{
           maxWidth: 300,
-          borderRadius: 2,
+          borderRadius: '10px',
           overflow: 'hidden',
-          backgroundColor: 'rgba(255,255,255,0.1)'
+          backgroundColor: isDarkMode 
+            ? 'rgba(100, 255, 218, 0.05)'
+            : 'rgba(62, 228, 200, 0.08)',
+          border: isDarkMode 
+            ? '1px solid rgba(100, 255, 218, 0.1)'
+            : '1px solid rgba(62, 228, 200, 0.1)',
         }}
       >
         {isImage ? (
@@ -244,7 +251,10 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
               <Box 
                 sx={{ 
                   p: 1, 
-                  backgroundColor: 'rgba(0,0,0,0.3)',
+                  backgroundColor: isDarkMode 
+                    ? 'rgba(17, 24, 39, 0.5)'
+                    : 'rgba(0, 0, 0, 0.3)',
+                  backdropFilter: 'blur(10px)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between'
@@ -253,7 +263,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
                 <Typography
                   variant="caption"
                   sx={{
-                    color: '#fff',
+                    color: isDarkMode ? '#64ffda' : '#fff',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
@@ -264,7 +274,10 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
                 </Typography>
                 <IconButton 
                   size="small" 
-                  sx={{ color: '#fff', ml: 1 }}
+                  sx={{ 
+                    color: isDarkMode ? '#64ffda' : '#fff', 
+                    ml: 1 
+                  }}
                   onClick={handleDownload}
                 >
                   <DownloadIcon fontSize="small" />
@@ -279,15 +292,21 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
               alignItems: 'center',
               gap: 1,
               p: 1.5,
-              backgroundColor: 'rgba(255,255,255,0.2)',
+              backgroundColor: isDarkMode 
+                ? 'rgba(100, 255, 218, 0.08)'
+                : 'rgba(62, 228, 200, 0.1)',
+              backdropFilter: 'blur(5px)',
             }}
           >
-            <FileIcon sx={{ fontSize: 40, color: '#fff' }} />
+            <FileIcon sx={{ 
+              fontSize: 40, 
+              color: isDarkMode ? '#64ffda' : '#3EE4C8' 
+            }} />
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography
                 variant="body2"
                 sx={{
-                  color: '#fff',
+                  color: isDarkMode ? '#64ffda' : '#0B1929',
                   fontWeight: 500,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -296,13 +315,17 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
               >
                 {fileData.filename}
               </Typography>
-              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+              <Typography variant="caption" sx={{ 
+                color: isDarkMode 
+                  ? 'rgba(255, 255, 255, 0.5)'
+                  : 'rgba(11, 25, 41, 0.6)' 
+              }}>
                 {formatFileSize(fileData.size)}
               </Typography>
             </Box>
             <IconButton 
               size="small" 
-              sx={{ color: '#fff' }}
+              sx={{ color: isDarkMode ? '#64ffda' : '#3EE4C8' }}
               onClick={handleDownload}
             >
               <DownloadIcon />
@@ -332,7 +355,9 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
   };
 
   const getAvatarColor = (id) => {
-    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#F7B801', '#96CEB4', '#DDA77B', '#9B59B6', '#3498DB'];
+    const colors = isDarkMode
+      ? ['#64ffda', '#a78bfa', '#f472b6', '#60a5fa', '#34d399', '#fbbf24', '#f87171', '#a3e635']
+      : ['#3EE4C8', '#2BC4A8', '#62E4C8', '#45D4B8', '#4ECDC4', '#38C9B4', '#2BB4A4', '#1FA494'];
     return colors[id % colors.length];
   };
 
@@ -388,6 +413,13 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     return 'An error occurred';
   };
 
+  const handleLocalChannelChange = (channel, checked) => {
+    setLocalSelectedChannels(prev => ({
+      ...prev,
+      [channel]: checked
+    }));
+  };
+
   if (!patient) {
     return (
       <Box sx={{ 
@@ -396,14 +428,34 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
         flexDirection: 'column',
         alignItems: 'center', 
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #fafbfc 0%, #f0f7f5 100%)',
-        borderRadius: isMobile ? '12px' : '0 12px 12px 0',
+        background: isDarkMode 
+          ? 'rgba(17, 24, 39, 0.25)'
+          : 'rgba(255, 255, 255, 0.25)',
+        backdropFilter: 'blur(20px)',
+        borderRadius: isMobile ? '16px' : '0 16px 16px 0',
         position: 'relative',
         overflow: 'hidden',
         height: '100%',
         minHeight: '100%',
-        boxShadow: isMobile ? '0 2px 12px rgba(0,0,0,0.08)' : 'none'
+        border: isDarkMode 
+          ? '1px solid rgba(100, 255, 218, 0.1)' 
+          : '1px solid rgba(62, 228, 200, 0.1)',
       }}>
+        {/* Gradient overlay */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: isDarkMode
+              ? 'linear-gradient(135deg, rgba(100, 255, 218, 0.02) 0%, rgba(167, 139, 250, 0.02) 100%)'
+              : 'linear-gradient(135deg, rgba(62, 228, 200, 0.03) 0%, rgba(43, 196, 168, 0.03) 100%)',
+            pointerEvents: 'none',
+          }}
+        />
+        
         <Box sx={{ 
           textAlign: 'center',
           zIndex: 1,
@@ -413,15 +465,21 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
             width: 80,
             height: 80,
             borderRadius: '50%',
-            backgroundColor: 'rgba(62, 228, 200, 0.15)',
+            backgroundColor: isDarkMode 
+              ? 'rgba(100, 255, 218, 0.1)' 
+              : 'rgba(62, 228, 200, 0.15)',
+            backdropFilter: 'blur(10px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            margin: '0 auto 24px'
+            margin: '0 auto 24px',
+            border: isDarkMode 
+              ? '1px solid rgba(100, 255, 218, 0.2)' 
+              : '1px solid rgba(62, 228, 200, 0.2)',
           }}>
             <ChatBubbleOutlineIcon sx={{ 
               fontSize: 40, 
-              color: '#3EE4C8',
+              color: isDarkMode ? '#64ffda' : '#3EE4C8',
               opacity: 0.9
             }} />
           </Box>
@@ -429,7 +487,9 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
           <Typography 
             variant="h5" 
             sx={{ 
-              color: 'rgba(11, 25, 41, 0.4)',
+              color: isDarkMode 
+                ? 'rgba(255, 255, 255, 0.4)'
+                : 'rgba(11, 25, 41, 0.4)',
               fontWeight: 600,
               mb: 1,
               letterSpacing: '-0.02em'
@@ -441,7 +501,9 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
           <Typography 
             variant="body2" 
             sx={{ 
-              color: 'rgba(11, 25, 41, 0.35)',
+              color: isDarkMode 
+                ? 'rgba(255, 255, 255, 0.35)'
+                : 'rgba(11, 25, 41, 0.35)',
               maxWidth: 300,
               margin: '0 auto',
               lineHeight: 1.6
@@ -454,13 +516,6 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     );
   }
 
-  const handleLocalChannelChange = (channel, checked) => {
-    setLocalSelectedChannels(prev => ({
-      ...prev,
-      [channel]: checked
-    }));
-  };
-
   const safeCurrentMessages = Array.isArray(currentMessages) ? currentMessages : [];
   const filteredMessages = safeCurrentMessages.filter(msg => localSelectedChannels[msg.channel]);
   const groupedMessages = groupMessagesByDate(filteredMessages);
@@ -472,11 +527,33 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
       flexDirection: 'column',
       height: '100%',
       minHeight: isMobile ? 'calc(100vh - 200px)' : '100%',
-      background: 'linear-gradient(135deg, #fafbfc 0%, #f0f7f5 100%)',
-      borderRadius: isMobile ? '12px' : '0 12px 12px 0',
+      background: isDarkMode 
+        ? 'rgba(17, 24, 39, 0.25)'
+        : 'rgba(255, 255, 255, 0.25)',
+      backdropFilter: 'blur(20px)',
+      borderRadius: isMobile ? '16px' : '0 16px 16px 0',
       overflow: 'hidden',
-      boxShadow: isMobile ? '0 2px 12px rgba(0,0,0,0.08)' : '0 1px 3px rgba(0,0,0,0.05)'
+      border: isDarkMode 
+        ? '1px solid rgba(100, 255, 218, 0.1)' 
+        : '1px solid rgba(62, 228, 200, 0.1)',
+      position: 'relative',
     }}>
+      {/* Gradient overlay */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: isDarkMode
+            ? 'linear-gradient(135deg, rgba(100, 255, 218, 0.02) 0%, rgba(167, 139, 250, 0.02) 100%)'
+            : 'linear-gradient(135deg, rgba(62, 228, 200, 0.03) 0%, rgba(43, 196, 168, 0.03) 100%)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+
       {/* Header */}
       <Paper 
         elevation={0} 
@@ -485,8 +562,15 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'space-between',
-          borderBottom: '1px solid rgba(62, 228, 200, 0.15)',
-          background: 'white'
+          borderBottom: isDarkMode 
+            ? '1px solid rgba(100, 255, 218, 0.1)' 
+            : '1px solid rgba(62, 228, 200, 0.1)',
+          background: isDarkMode 
+            ? 'rgba(17, 24, 39, 0.3)'
+            : 'rgba(255, 255, 255, 0.3)',
+          backdropFilter: 'blur(10px)',
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
@@ -496,62 +580,113 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
               width: isMobile ? 36 : 40,
               height: isMobile ? 36 : 40,
               mr: isMobile ? 1.5 : 2,
-              fontSize: isMobile ? '0.9rem' : '1rem'
+              fontSize: isMobile ? '0.9rem' : '1rem',
+              border: isDarkMode 
+                ? '2px solid rgba(100, 255, 218, 0.2)' 
+                : '2px solid rgba(62, 228, 200, 0.2)',
             }}
           >
             {getInitials(patient.first_name || patient.firstName, patient.last_name || patient.lastName)}
           </Avatar>
           <Box sx={{ flex: 1 }}>
-            <Typography variant={isMobile ? "body2" : "subtitle1"} sx={{ fontWeight: 600, color: '#0B1929' }}>
+            <Typography 
+              variant={isMobile ? "body2" : "subtitle1"} 
+              sx={{ 
+                fontWeight: 600, 
+                color: isDarkMode ? '#64ffda' : '#0B1929' 
+              }}
+            >
               {patient.first_name || patient.firstName} {patient.last_name || patient.lastName}
             </Typography>
-            <Typography variant="caption" sx={{ color: 'rgba(11, 25, 41, 0.6)', fontSize: isMobile ? '0.7rem' : '0.75rem' }}>
+            <Typography 
+              variant="caption" 
+              sx={{ 
+                color: isDarkMode 
+                  ? 'rgba(255, 255, 255, 0.5)' 
+                  : 'rgba(11, 25, 41, 0.6)', 
+                fontSize: isMobile ? '0.7rem' : '0.75rem' 
+              }}
+            >
               Patient ID: {patient.id.substring(0, 8)}...
             </Typography>
           </Box>
         </Box>
         <Box sx={{ display: 'flex', gap: isMobile ? 0 : 1 }}>
-  <IconButton 
-    sx={{ 
-      color: isCallInProgress ? '#3EE4C8' : 'rgba(11, 25, 41, 0.6)',
-      '&:hover': { color: '#3EE4C8' },
-      '&:disabled': { color: 'rgba(11, 25, 41, 0.3)' }
-    }}
-    onClick={handlePhoneClick}
-    disabled={!isReady || !patient?.phone}
-    title={!isReady ? 'Voice calling initializing...' : !patient?.phone ? 'No phone number' : 'Call patient'}
-  >
-    <PhoneIcon />
-  </IconButton>
+          <IconButton 
+            sx={{ 
+              color: isCallInProgress 
+                ? '#64ffda' 
+                : (isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)'),
+              backgroundColor: isDarkMode 
+                ? 'rgba(100, 255, 218, 0.05)' 
+                : 'rgba(62, 228, 200, 0.08)',
+              '&:hover': { 
+                color: isDarkMode ? '#64ffda' : '#3EE4C8',
+                backgroundColor: isDarkMode 
+                  ? 'rgba(100, 255, 218, 0.1)' 
+                  : 'rgba(62, 228, 200, 0.15)',
+              },
+              '&:disabled': { 
+                color: isDarkMode 
+                  ? 'rgba(255, 255, 255, 0.3)' 
+                  : 'rgba(11, 25, 41, 0.3)' 
+              },
+              transition: 'all 0.25s ease',
+            }}
+            onClick={handlePhoneClick}
+            disabled={!isReady || !patient?.phone}
+            title={!isReady ? 'Voice calling initializing...' : !patient?.phone ? 'No phone number' : 'Call patient'}
+          >
+            <PhoneIcon />
+          </IconButton>
 
-  <IconButton 
-    sx={{ color: 'rgba(11, 25, 41, 0.6)' }}
-    onClick={() => setDetailsModalOpen(true)}
-  >
-    <MoreVertIcon />
-  </IconButton>
-</Box>
-
+          <IconButton 
+            sx={{ 
+              color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)',
+              backgroundColor: isDarkMode 
+                ? 'rgba(100, 255, 218, 0.05)' 
+                : 'rgba(62, 228, 200, 0.08)',
+              '&:hover': { 
+                backgroundColor: isDarkMode 
+                  ? 'rgba(100, 255, 218, 0.1)' 
+                  : 'rgba(62, 228, 200, 0.15)',
+                color: isDarkMode ? '#64ffda' : '#3EE4C8',
+              },
+              transition: 'all 0.25s ease',
+            }}
+            onClick={() => setDetailsModalOpen(true)}
+          >
+            <MoreVertIcon />
+          </IconButton>
+        </Box>
       </Paper>
 
-      {/* Messages Area - SAME AS BEFORE */}
+      {/* Messages Area */}
       <Box sx={{ 
         flex: 1, 
         overflow: 'auto',
         p: 2,
         display: 'flex',
         flexDirection: 'column',
+        position: 'relative',
+        zIndex: 1,
         '&::-webkit-scrollbar': {
           width: '6px',
         },
         '&::-webkit-scrollbar-track': {
-          background: 'rgba(62, 228, 200, 0.05)',
+          background: isDarkMode 
+            ? 'rgba(100, 255, 218, 0.05)' 
+            : 'rgba(62, 228, 200, 0.05)',
         },
         '&::-webkit-scrollbar-thumb': {
-          background: 'rgba(62, 228, 200, 0.3)',
+          background: isDarkMode 
+            ? 'rgba(100, 255, 218, 0.3)' 
+            : 'rgba(62, 228, 200, 0.3)',
           borderRadius: '3px',
           '&:hover': {
-            background: 'rgba(62, 228, 200, 0.5)',
+            background: isDarkMode 
+              ? 'rgba(100, 255, 218, 0.5)' 
+              : 'rgba(62, 228, 200, 0.5)',
           },
         },
       }}>
@@ -562,12 +697,21 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
             alignItems: 'center',
             flex: 1
           }}>
-            <CircularProgress sx={{ color: '#3EE4C8' }} />
+            <CircularProgress sx={{ color: isDarkMode ? '#64ffda' : '#3EE4C8' }} />
           </Box>
         )}
 
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert 
+            severity="error" 
+            sx={{ 
+              mb: 2,
+              backgroundColor: isDarkMode 
+                ? 'rgba(248, 113, 113, 0.1)' 
+                : 'rgba(239, 68, 68, 0.1)',
+              color: isDarkMode ? '#f87171' : '#dc2626',
+            }}
+          >
             {renderError(error)}
           </Alert>
         )}
@@ -585,9 +729,14 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
                   label={item.date} 
                   size="small" 
                   sx={{ 
-                    backgroundColor: 'rgba(62, 228, 200, 0.1)',
-                    color: 'rgba(11, 25, 41, 0.7)',
-                    fontSize: '0.75rem'
+                    backgroundColor: isDarkMode 
+                      ? 'rgba(100, 255, 218, 0.1)' 
+                      : 'rgba(62, 228, 200, 0.1)',
+                    color: isDarkMode 
+                      ? 'rgba(255, 255, 255, 0.7)' 
+                      : 'rgba(11, 25, 41, 0.7)',
+                    fontSize: '0.75rem',
+                    backdropFilter: 'blur(5px)',
                   }}
                 />
               </Box>
@@ -620,7 +769,10 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
                       width: 32,
                       height: 32,
                       mr: 1,
-                      fontSize: '0.9rem'
+                      fontSize: '0.9rem',
+                      border: isDarkMode 
+                        ? '1px solid rgba(100, 255, 218, 0.2)' 
+                        : '1px solid rgba(62, 228, 200, 0.2)',
                     }}
                   >
                     {getInitials(patient.first_name || patient.firstName, patient.last_name || patient.lastName)}
@@ -631,9 +783,24 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
                     elevation={0}
                     sx={{
                       p: isFile ? 0.5 : 1.5,
-                      backgroundColor: isStaff ? '#3EE4C8' : 'white',
-                      color: isStaff ? '#0B1929' : '#0B1929',
-                      border: isStaff ? 'none' : '1px solid rgba(62, 228, 200, 0.2)',
+                      backgroundColor: isStaff 
+                        ? (isDarkMode 
+                          ? 'rgba(100, 255, 218, 0.15)' 
+                          : 'rgba(62, 228, 200, 0.2)')
+                        : (isDarkMode 
+                          ? 'rgba(17, 24, 39, 0.4)' 
+                          : 'rgba(255, 255, 255, 0.6)'),
+                      backdropFilter: 'blur(10px)',
+                      color: isStaff 
+                        ? (isDarkMode ? '#ffffff' : '#0B1929')
+                        : (isDarkMode ? 'rgba(255, 255, 255, 0.9)' : '#0B1929'),
+                      border: isStaff 
+                        ? (isDarkMode 
+                          ? '1px solid rgba(100, 255, 218, 0.2)' 
+                          : '1px solid rgba(62, 228, 200, 0.25)')
+                        : (isDarkMode 
+                          ? '1px solid rgba(100, 255, 218, 0.1)' 
+                          : '1px solid rgba(62, 228, 200, 0.15)'),
                       borderRadius: 2,
                       borderTopLeftRadius: isStaff ? 16 : 4,
                       borderTopRightRadius: isStaff ? 4 : 16,
@@ -658,7 +825,9 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
                     <Typography 
                       variant="caption" 
                       sx={{ 
-                        color: 'rgba(11, 25, 41, 0.5)',
+                        color: isDarkMode 
+                          ? 'rgba(255, 255, 255, 0.5)' 
+                          : 'rgba(11, 25, 41, 0.5)',
                         fontSize: '0.7rem',
                       }}
                     >
@@ -670,12 +839,22 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
                       sx={{ 
                         height: 16,
                         fontSize: '0.65rem',
-                        backgroundColor: item.channel === 'sms' ? 'rgba(46, 125, 50, 0.1)' : 
-                                        item.channel === 'call' ? 'rgba(33, 150, 243, 0.1)' : 
-                                        'rgba(156, 39, 176, 0.1)',
-                        color: item.channel === 'sms' ? '#2E7D32' : 
-                               item.channel === 'call' ? '#1976D2' : 
-                               '#7B1FA2',
+                        backgroundColor: item.channel === 'sms' 
+                          ? (isDarkMode 
+                            ? 'rgba(52, 211, 153, 0.15)' 
+                            : 'rgba(46, 125, 50, 0.1)')
+                          : item.channel === 'call' 
+                            ? (isDarkMode 
+                              ? 'rgba(96, 165, 250, 0.15)' 
+                              : 'rgba(33, 150, 243, 0.1)')
+                            : (isDarkMode 
+                              ? 'rgba(167, 139, 250, 0.15)' 
+                              : 'rgba(156, 39, 176, 0.1)'),
+                        color: item.channel === 'sms' 
+                          ? (isDarkMode ? '#34d399' : '#2E7D32')
+                          : item.channel === 'call' 
+                            ? (isDarkMode ? '#60a5fa' : '#1976D2')
+                            : (isDarkMode ? '#a78bfa' : '#7B1FA2'),
                         '& .MuiChip-label': {
                           px: 0.5
                         }
@@ -693,13 +872,20 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
         <div ref={messagesEndRef} />
       </Box>
 
-      {/* Input Area - SAME AS BEFORE */}
+      {/* Input Area */}
       <Paper 
         elevation={0} 
         sx={{ 
           p: isMobile ? 1.5 : 2, 
-          borderTop: '1px solid rgba(62, 228, 200, 0.15)',
-          background: 'white'
+          borderTop: isDarkMode 
+            ? '1px solid rgba(100, 255, 218, 0.1)' 
+            : '1px solid rgba(62, 228, 200, 0.1)',
+          background: isDarkMode 
+            ? 'rgba(17, 24, 39, 0.3)'
+            : 'rgba(255, 255, 255, 0.3)',
+          backdropFilter: 'blur(10px)',
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         <Box sx={{ 
@@ -710,7 +896,9 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
           flexWrap: isMobile ? 'wrap' : 'nowrap'
         }}>
           <Typography variant="caption" sx={{ 
-            color: 'rgba(11, 25, 41, 0.6)', 
+            color: isDarkMode 
+              ? 'rgba(255, 255, 255, 0.6)' 
+              : 'rgba(11, 25, 41, 0.6)', 
             fontWeight: 600,
             fontSize: isMobile ? '0.65rem' : '0.75rem'
           }}>
@@ -737,17 +925,24 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
           alignItems: 'flex-end',
           gap: isMobile ? 0.5 : 1,
           p: isMobile ? 0.75 : 1,
-          border: '1px solid rgba(62, 228, 200, 0.2)',
-          borderRadius: 2,
-          backgroundColor: 'rgba(62, 228, 200, 0.03)'
+          border: isDarkMode 
+            ? '1px solid rgba(100, 255, 218, 0.15)' 
+            : '1px solid rgba(62, 228, 200, 0.2)',
+          borderRadius: '10px',
+          backgroundColor: isDarkMode 
+            ? 'rgba(100, 255, 218, 0.03)' 
+            : 'rgba(62, 228, 200, 0.03)',
+          backdropFilter: 'blur(5px)',
         }}>
           <IconButton 
             size={isMobile ? "small" : "medium"}
             onClick={() => setUploadModalOpen(true)}
             sx={{ 
-              color: 'rgba(11, 25, 41, 0.6)',
+              color: isDarkMode 
+                ? 'rgba(255, 255, 255, 0.6)' 
+                : 'rgba(11, 25, 41, 0.6)',
               '&:hover': {
-                color: '#3EE4C8'
+                color: isDarkMode ? '#64ffda' : '#3EE4C8'
               }
             }}
             aria-label="attach file"
@@ -757,10 +952,12 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
           <InputBase
             sx={{ 
               flex: 1,
-              color: '#0B1929',
+              color: isDarkMode ? 'rgba(255, 255, 255, 0.9)' : '#0B1929',
               fontSize: isMobile ? '0.875rem' : '1rem',
               '& ::placeholder': {
-                color: 'rgba(11, 25, 41, 0.5)',
+                color: isDarkMode 
+                  ? 'rgba(255, 255, 255, 0.5)' 
+                  : 'rgba(11, 25, 41, 0.5)',
                 fontSize: isMobile ? '0.875rem' : '1rem'
               }
             }}
@@ -777,18 +974,28 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
             onClick={handleSendMessage}
             disabled={!message.trim() || sendStatus === 'loading'}
             sx={{ 
-              color: message.trim() && sendStatus !== 'loading' ? '#3EE4C8' : 'rgba(11, 25, 41, 0.3)',
+              color: message.trim() && sendStatus !== 'loading' 
+                ? (isDarkMode ? '#64ffda' : '#3EE4C8')
+                : (isDarkMode 
+                  ? 'rgba(255, 255, 255, 0.3)' 
+                  : 'rgba(11, 25, 41, 0.3)'),
               '&:hover': {
-                color: message.trim() && sendStatus !== 'loading' ? '#2BC4A8' : 'rgba(11, 25, 41, 0.3)'
+                color: message.trim() && sendStatus !== 'loading' 
+                  ? (isDarkMode ? '#64ffda' : '#2BC4A8')
+                  : (isDarkMode 
+                    ? 'rgba(255, 255, 255, 0.3)' 
+                    : 'rgba(11, 25, 41, 0.3)')
               },
               '&.Mui-disabled': {
-                color: 'rgba(11, 25, 41, 0.3)'
+                color: isDarkMode 
+                  ? 'rgba(255, 255, 255, 0.3)' 
+                  : 'rgba(11, 25, 41, 0.3)'
               }
             }}
             aria-label="send message"
           >
             {sendStatus === 'loading' ? (
-              <CircularProgress size={20} sx={{ color: '#3EE4C8' }} />
+              <CircularProgress size={20} sx={{ color: isDarkMode ? '#64ffda' : '#3EE4C8' }} />
             ) : (
               <SendIcon fontSize={isMobile ? "small" : "medium"} />
             )}
@@ -796,7 +1003,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
         </Box>
       </Paper>
 
-      {/* CHANGED: UnifiedUploadModal instead of FileUploadModal */}
+      {/* UnifiedUploadModal */}
       <UnifiedUploadModal
         open={uploadModalOpen}
         onClose={() => setUploadModalOpen(false)}
@@ -808,14 +1015,14 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
         patientId={patient.id}
       />
 
-      {/* Patient Details Modal - SAME */}
+      {/* Patient Details Modal */}
       <PatientDetailsModal
         open={detailsModalOpen}
         onClose={() => setDetailsModalOpen(false)}
         patient={patient}
       />
 
-      {/* Voice Call Dialog - SAME AS BEFORE */}
+      {/* Voice Call Dialog */}
       <Dialog
         open={callDialogOpen}
         onClose={() => !isCallInProgress && setCallDialogOpen(false)}

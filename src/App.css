@@ -1,3 +1,18 @@
+body {
+  margin: 0;
+  padding: 0;
+  transition: background-color 0.3s ease;
+}
+
+/* These classes will be applied based on theme */
+.dark-theme {
+  background-color: #0a0b0d;
+}
+
+.light-theme {
+  background-color: #fafbfc;
+}
+
 .App {
   text-align: center;
 }
@@ -28,4 +43,36 @@
 
 .small {
   font-size: 0.75rem;
+}
+
+/* Glassmorphism and animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition: background-color 0.3s ease, 
+              border-color 0.3s ease, 
+              box-shadow 0.3s ease;
+}
+
+/* Remove default outlines and add custom focus styles */
+*:focus-visible {
+  outline: 2px solid rgba(100, 255, 218, 0.5);
+  outline-offset: 2px;
 }
