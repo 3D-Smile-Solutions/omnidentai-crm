@@ -511,29 +511,27 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
           </Box>
         </Box>
         <Box sx={{ display: 'flex', gap: isMobile ? 0 : 1 }}>
-          {!isMobile && (
-            <>
-              <IconButton 
-                sx={{ 
-                  color: isCallInProgress ? '#3EE4C8' : 'rgba(11, 25, 41, 0.6)',
-                  '&:hover': { color: '#3EE4C8' },
-                  '&:disabled': { color: 'rgba(11, 25, 41, 0.3)' }
-                }}
-                onClick={handlePhoneClick}
-                disabled={!isReady || !patient?.phone}
-                title={!isReady ? 'Voice calling initializing...' : !patient?.phone ? 'No phone number' : 'Call patient'}
-              >
-                <PhoneIcon />
-              </IconButton>
-            </>
-          )}
-          <IconButton 
-            sx={{ color: 'rgba(11, 25, 41, 0.6)' }}
-            onClick={() => setDetailsModalOpen(true)}
-          >
-            <MoreVertIcon />
-          </IconButton>
-        </Box>
+  <IconButton 
+    sx={{ 
+      color: isCallInProgress ? '#3EE4C8' : 'rgba(11, 25, 41, 0.6)',
+      '&:hover': { color: '#3EE4C8' },
+      '&:disabled': { color: 'rgba(11, 25, 41, 0.3)' }
+    }}
+    onClick={handlePhoneClick}
+    disabled={!isReady || !patient?.phone}
+    title={!isReady ? 'Voice calling initializing...' : !patient?.phone ? 'No phone number' : 'Call patient'}
+  >
+    <PhoneIcon />
+  </IconButton>
+
+  <IconButton 
+    sx={{ color: 'rgba(11, 25, 41, 0.6)' }}
+    onClick={() => setDetailsModalOpen(true)}
+  >
+    <MoreVertIcon />
+  </IconButton>
+</Box>
+
       </Paper>
 
       {/* Messages Area - SAME AS BEFORE */}
