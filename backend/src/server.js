@@ -12,6 +12,7 @@ import patientRoutes from "./routes/patient.js";
 import messageRoutes from "./routes/message.js";
 import metrics from './routes/metrics.js';
 import voiceCall from './routes/voice.js'
+import smsRoutes from './routes/sms.js';
 // import settings from './routes/settings.js'
 import practiceDocumentRoutes from './routes/practiceDocumentRoutes.js';
 dotenv.config();
@@ -42,7 +43,8 @@ app.use("/patients", patientRoutes);
 app.use("/messages", messageRoutes);
 // app.use('/upload', upload);
 app.use('/api/metrics', metrics);
-app.use('/api/voice', voiceCall);+
+app.use('/api/voice', voiceCall);
+app.use('/api/sms', smsRoutes);
 // app.use('/api/settings', settings);
 app.use('/practice-documents', practiceDocumentRoutes);
 app.get("/", (req, res) => {
@@ -113,72 +115,85 @@ io.on('connection', (socket) => {
   // ==========================================
 
   // Handle sending messages via WebSocket
-  socket.on('send_message', async (data) => {
-    try {
-      const { patientId, content, channelType = 'webchat' } = data;
 
-      console.log(`📤 Message from ${socket.userEmail} to patient ${patientId}: ${content}`);
+socket.on('send_message', async (data) => {
+  try {
+    const { patientId, content, channelType = 'webchat' } = data; // ✅ Support channelType
 
-      // Validate input
-      if (!patientId || !content?.trim()) {
-        socket.emit('message_error', { error: 'Patient ID and message content are required' });
-        return;
-      }
+    console.log(`📤 Message from ${socket.userEmail} to patient ${patientId} via ${channelType}: ${content}`);
 
-      // Get patient's contact_id (same logic as your HTTP endpoint)
-      const { data: patient, error: patientError } = await supabase
-        .from("user_profiles")
-        .select("contact_id, first_name, last_name")
-        .eq("id", patientId)
-        .eq("dentist_id", socket.userId)
-        .single();
-
-      if (patientError || !patient) {
-        socket.emit('message_error', { error: 'Patient not found or unauthorized' });
-        return;
-      }
-
-      if (!patient.contact_id) {
-        socket.emit('message_error', { error: 'Patient has no contact ID' });
-        return;
-      }
-
-      // Create message in database (reusing your existing function)
-      const messageData = {
-        contactId: patient.contact_id,
-        content: content.trim(),
-        senderType: 'client',
-        channelType
-      };
-
-      const newMessage = await createMessage(messageData);
-
-      // Transform for frontend (same as your HTTP controller)
-      const transformedMessage = {
-        id: newMessage.id,
-        message: newMessage.message,
-        sender: 'dentist',
-        channel: newMessage.channel,
-        timestamp: newMessage.created_at,
-        patientId: patientId
-      };
-
-      // Broadcast to all users in this patient's conversation room
-     socket.to(`patient_${patientId}`).emit('new_message', transformedMessage);
-
-      // Send success confirmation to sender
-      socket.emit('message_sent', transformedMessage);
-
-      console.log(`✅ Message sent successfully to patient ${patientId}`);
-
-    } catch (error) {
-      console.error('❌ Error sending message via WebSocket:', error);
-      socket.emit('message_error', { 
-        error: 'Failed to send message',
-        details: error.message 
-      });
+    // Validate input
+    if (!patientId || !content?.trim()) {
+      socket.emit('message_error', { error: 'Patient ID and message content are required' });
+      return;
     }
-  });
+
+    // ✅ VALIDATE CHANNEL TYPE
+    if (!['webchat', 'sms'].includes(channelType)) {
+      socket.emit('message_error', { error: 'Invalid channel type' });
+      return;
+    }
+
+    // Get patient's contact_id
+    const { data: patient, error: patientError } = await supabase
+      .from("user_profiles")
+      .select("contact_id, first_name, last_name, phone") // ✅ Also get phone
+      .eq("id", patientId)
+      .eq("dentist_id", socket.userId)
+      .single();
+
+    if (patientError || !patient) {
+      socket.emit('message_error', { error: 'Patient not found or unauthorized' });
+      return;
+    }
+
+    if (!patient.contact_id) {
+      socket.emit('message_error', { error: 'Patient has no contact ID' });
+      return;
+    }
+
+    // ✅ IF SMS, VALIDATE PHONE
+    if (channelType === 'sms' && !patient.phone) {
+      socket.emit('message_error', { error: 'Patient has no phone number for SMS' });
+      return;
+    }
+
+    // Create message in database
+    const messageData = {
+      contactId: patient.contact_id,
+      content: content.trim(),
+      senderType: 'client',
+      channelType // ✅ 'webchat' or 'sms'
+    };
+
+    const newMessage = await createMessage(messageData);
+
+    // Transform for frontend
+    const transformedMessage = {
+      id: newMessage.id,
+      message: newMessage.message,
+      sender: 'dentist',
+      channel: newMessage.channel, // ✅ 'webchat' or 'sms'
+      timestamp: newMessage.created_at,
+      patientId: patientId
+    };
+
+    // Broadcast to all users in this patient's conversation room
+    socket.to(`patient_${patientId}`).emit('new_message', transformedMessage);
+
+    // Send success confirmation to sender
+    socket.emit('message_sent', transformedMessage);
+
+    console.log(`✅ ${channelType.toUpperCase()} message sent successfully to patient ${patientId}`);
+
+  } catch (error) {
+    console.error('❌ Error sending message via WebSocket:', error);
+    socket.emit('message_error', { 
+      error: 'Failed to send message',
+      details: error.message 
+    });
+  }
+});
 
   // ==========================================
   // TYPING INDICATORS (OPTIONAL)

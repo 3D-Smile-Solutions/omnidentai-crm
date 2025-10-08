@@ -100,7 +100,7 @@ export async function createMessage(messageData) {
       contact_id: messageData.contactId,
       message: messageData.content,
       sender: 'client', 
-      channel: 'webchat',
+      channel: messageData.channelType || 'webchat', // ✅ FIXED: Now uses channelType parameter
       // FIXED: Match chat widget session_id format
       session_id: `${messageData.contactId}_session_${Date.now()}`,
       created_at: new Date().toISOString(),

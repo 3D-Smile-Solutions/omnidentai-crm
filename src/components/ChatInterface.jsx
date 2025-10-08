@@ -1,4 +1,4 @@
-// frontend/src/components/ChatInterface.jsx - FIXED WITH DEBUG
+// frontend/src/components/ChatInterface.jsx - COMPLETE FIXED VERSION
 import React, { useState, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -16,7 +16,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button
+  Button,
+  TextField
 } from '@mui/material';
 import {
   AttachFile as AttachFileIcon,
@@ -28,7 +29,8 @@ import {
   InsertDriveFile as FileIcon,
   GetApp as DownloadIcon,
   Mic as MicIcon,
-  MicOff as MicOffIcon
+  MicOff as MicOffIcon,
+  Sms as SmsIcon
 } from '@mui/icons-material';
 import CustomCheckbox from './CustomCheckbox';
 import TypingIndicator from './Dashboard/TypingIndicator';
@@ -36,8 +38,11 @@ import UnifiedUploadModal from './Dashboard/components/UploadModal/UnifiedUpload
 import PatientDetailsModal from './Dashboard/components/PatientDetails/PatientDetailsModal';
 import useWebSocket from './Dashboard/hooks/useWebSocket';
 import { useVoiceCall } from './Dashboard/hooks/useVoiceCall';
+import { useSMS } from './Dashboard/hooks/useSMS';
 import { useTheme } from '../context/ThemeContext';
-console.log('🔥 ChatInterface.jsx LOADED - WITH DEBUG VERSION');
+
+console.log('🔥 ChatInterface.jsx LOADED - FIXED VERSION');
+
 const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
   const { isDarkMode } = useTheme();
   const [message, setMessage] = useState('');
@@ -46,15 +51,25 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [callDialogOpen, setCallDialogOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  
+  // ✅ SMS STATE
+  const [showSMSDialog, setShowSMSDialog] = useState(false);
+  const [smsContent, setSmsContent] = useState('');
+  const [smsSuccess, setSmsSuccess] = useState(false);
+  
   const [localSelectedChannels, setLocalSelectedChannels] = useState({
     sms: true,
     call: true,
     webchat: true
   });
+  
   const messagesEndRef = useRef(null);
   const currentUser = useSelector((state) => state.auth.user);
   const { startTyping, stopTyping } = useWebSocket();
   
+  // ✅ SMS HOOK
+  const { sendSMS, isSending: isSendingSMS, error: smsError } = useSMS();
+
   // Voice call hook
   const {
     isReady,
@@ -126,80 +141,118 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     }
   };
 
-  // Voice call handlers with extensive debugging
- const handlePhoneClick = () => {
-  console.log('═══════════════════════════════════════');
-  console.log('📞 PHONE ICON CLICKED');
-  console.log('═══════════════════════════════════════');
-  console.log('Patient:', patient);
-  console.log('Patient ID:', patient?.id);
-  console.log('Patient Name:', patient?.first_name, patient?.last_name);
-  console.log('Patient Phone:', patient?.phone);
-  console.log('Current User (Dentist):', currentUser); // ✅ LOG DENTIST
-  console.log('Dentist ID:', currentUser?.id); // ✅ LOG DENTIST ID
-  console.log('isReady:', isReady);
-  console.log('isCallInProgress:', isCallInProgress);
-  console.log('makeCall type:', typeof makeCall);
-  console.log('makeCall exists:', !!makeCall);
-  console.log('═══════════════════════════════════════');
-  
-  if (!patient) {
-    console.log('❌ No patient selected');
-    alert('No patient selected');
-    return;
-  }
-  
-  if (!patient.phone) {
-    console.log('❌ Patient has no phone number');
-    alert('This patient has no phone number on file.');
-    return;
-  }
-
-  if (!currentUser?.id) {
-    console.log('❌ No current user/dentist ID');
-    alert('Authentication error. Please refresh the page.');
-    return;
-  }
-
-  if (!isReady) {
-    console.log('❌ Voice device not ready');
-    alert('Voice calling is not ready. Please refresh the page.');
-    return;
-  }
-
-  if (isCallInProgress) {
-    console.log('📞 Call already in progress, opening dialog');
-    setCallDialogOpen(true);
-    return;
-  }
-
-  const confirmed = window.confirm(
-    `Call ${patient.first_name} ${patient.last_name} at ${patient.phone}?`
-  );
-
-  console.log('User confirmation:', confirmed);
-
-  if (confirmed) {
-    console.log('✅ User confirmed - Attempting to make call...');
-    console.log('Calling makeCall with:', {
-      patientId: patient.id,
-      patientPhone: patient.phone,
-      dentistId: currentUser.id // ✅ PASSING DENTIST ID
-    });
-    
-    try {
-      // ✅ PASS DENTIST ID AS THIRD PARAMETER
-      const result = makeCall(patient.id, patient.phone, currentUser.id);
-      console.log('✅ makeCall executed, result:', result);
-      setCallDialogOpen(true);
-    } catch (err) {
-      console.error('❌ Error calling makeCall:', err);
-      alert(`Error making call: ${err.message}`);
+  // ✅ FIXED: SMS Handler (uses 'patient' not 'selectedPatient')
+  const handleSMSClick = () => {
+    if (!patient?.phone) {
+      alert('This patient has no phone number');
+      return;
     }
-  } else {
-    console.log('❌ User cancelled call');
-  }
-};
+    setShowSMSDialog(true);
+    setSmsContent('');
+    setSmsSuccess(false);
+  };
+
+  // ✅ FIXED: Send SMS Handler (uses 'patient' not 'selectedPatient')
+  const handleSendSMS = async () => {
+    if (!smsContent.trim() || !patient?.id) {
+      console.warn('Cannot send SMS: missing content or patient ID');
+      return;
+    }
+    
+    console.log('📱 Sending SMS to patient:', patient.id);
+    
+    const result = await sendSMS(patient.id, smsContent);
+    
+    if (result.success) {
+      console.log('✅ SMS sent successfully');
+      setSmsSuccess(true);
+      
+      // Close dialog after 1.5 seconds
+      setTimeout(() => {
+        setShowSMSDialog(false);
+        setSmsContent('');
+        setSmsSuccess(false);
+      }, 1500);
+      
+    } else {
+      console.error('❌ Failed to send SMS:', result.error);
+      // Error will show in dialog via smsError
+    }
+  };
+
+  // Voice call handlers with extensive debugging
+  const handlePhoneClick = () => {
+    console.log('═══════════════════════════════════════');
+    console.log('📞 PHONE ICON CLICKED');
+    console.log('═══════════════════════════════════════');
+    console.log('Patient:', patient);
+    console.log('Patient ID:', patient?.id);
+    console.log('Patient Name:', patient?.first_name, patient?.last_name);
+    console.log('Patient Phone:', patient?.phone);
+    console.log('Current User (Dentist):', currentUser);
+    console.log('Dentist ID:', currentUser?.id);
+    console.log('isReady:', isReady);
+    console.log('isCallInProgress:', isCallInProgress);
+    console.log('makeCall type:', typeof makeCall);
+    console.log('makeCall exists:', !!makeCall);
+    console.log('═══════════════════════════════════════');
+    
+    if (!patient) {
+      console.log('❌ No patient selected');
+      alert('No patient selected');
+      return;
+    }
+    
+    if (!patient.phone) {
+      console.log('❌ Patient has no phone number');
+      alert('This patient has no phone number on file.');
+      return;
+    }
+
+    if (!currentUser?.id) {
+      console.log('❌ No current user/dentist ID');
+      alert('Authentication error. Please refresh the page.');
+      return;
+    }
+
+    if (!isReady) {
+      console.log('❌ Voice device not ready');
+      alert('Voice calling is not ready. Please refresh the page.');
+      return;
+    }
+
+    if (isCallInProgress) {
+      console.log('📞 Call already in progress, opening dialog');
+      setCallDialogOpen(true);
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Call ${patient.first_name} ${patient.last_name} at ${patient.phone}?`
+    );
+
+    console.log('User confirmation:', confirmed);
+
+    if (confirmed) {
+      console.log('✅ User confirmed - Attempting to make call...');
+      console.log('Calling makeCall with:', {
+        patientId: patient.id,
+        patientPhone: patient.phone,
+        dentistId: currentUser.id
+      });
+      
+      try {
+        const result = makeCall(patient.id, patient.phone, currentUser.id);
+        console.log('✅ makeCall executed, result:', result);
+        setCallDialogOpen(true);
+      } catch (err) {
+        console.error('❌ Error calling makeCall:', err);
+        alert(`Error making call: ${err.message}`);
+      }
+    } else {
+      console.log('❌ User cancelled call');
+    }
+  };
 
   const handleEndCall = () => {
     console.log('📴 Ending call...');
@@ -667,23 +720,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
           </Box>
         </Box>
         <Box sx={{ display: 'flex', gap: isMobile ? 0 : 1 }}>
-           {/* 🔥 TEMPORARY TEST BUTTON - Remove after testing */}
-  <Button 
-    variant="contained" 
-    size="small"
-    sx={{ fontSize: '0.7rem', minWidth: 'auto', px: 1 }}
-    onClick={() => {
-      console.log('🔥🔥🔥 TEST BUTTON CLICKED 🔥🔥🔥');
-      console.log('Patient:', patient);
-      console.log('isReady:', isReady);
-      console.log('isCallInProgress:', isCallInProgress);
-      console.log('makeCall type:', typeof makeCall);
-      console.log('makeCall exists:', !!makeCall);
-      alert('Test button works! Check console for details.');
-    }}
-  >
-    TEST
-  </Button>
+          {/* Phone Call Button */}
           <IconButton 
             sx={{ 
               color: isCallInProgress 
@@ -715,6 +752,33 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
             <PhoneIcon />
           </IconButton>
 
+          {/* ✅ SMS BUTTON - FIXED */}
+          <IconButton 
+            onClick={handleSMSClick}
+            disabled={!patient?.phone}
+            title={patient?.phone ? "Send SMS" : "No phone number"}
+            sx={{ 
+              color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)',
+              backgroundColor: isDarkMode 
+                ? 'rgba(100, 255, 218, 0.05)' 
+                : 'rgba(62, 228, 200, 0.08)',
+              '&:hover': { 
+                backgroundColor: isDarkMode 
+                  ? 'rgba(100, 255, 218, 0.1)' 
+                  : 'rgba(62, 228, 200, 0.15)',
+                color: isDarkMode ? '#64ffda' : '#3EE4C8',
+              },
+              '&:disabled': { 
+                color: isDarkMode 
+                  ? 'rgba(255, 255, 255, 0.3)' 
+                  : 'rgba(11, 25, 41, 0.3)' 
+              },
+              transition: 'all 0.25s ease',
+            }}
+          >
+            <SmsIcon />
+          </IconButton>
+
           <IconButton 
             sx={{ 
               color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)',
@@ -736,7 +800,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
         </Box>
       </Paper>
 
-      {/* Messages Area - keeping it short for brevity, rest stays the same */}
+      {/* Messages Area */}
       <Box sx={{ 
         flex: 1, 
         overflow: 'auto',
@@ -1204,6 +1268,159 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
             disabled={!isCallInProgress}
           >
             {isCallInProgress ? 'End Call' : 'Cancel'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ✅ SMS DIALOG - FIXED */}
+      <Dialog 
+        open={showSMSDialog} 
+        onClose={() => !isSendingSMS && setShowSMSDialog(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            background: isDarkMode 
+              ? 'rgba(17, 24, 39, 0.95)'
+              : 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            border: isDarkMode 
+              ? '1px solid rgba(100, 255, 218, 0.1)' 
+              : '1px solid rgba(62, 228, 200, 0.1)',
+          }
+        }}
+      >
+        <DialogTitle sx={{ color: isDarkMode ? '#64ffda' : '#0B1929' }}>
+          Send SMS to {patient?.first_name} {patient?.last_name}
+        </DialogTitle>
+        
+        <DialogContent>
+          {patient?.phone && (
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                mb: 2, 
+                color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)',
+                fontSize: '0.875rem' 
+              }}
+            >
+              To: {patient.phone}
+            </Typography>
+          )}
+          
+          <TextField
+            autoFocus
+            multiline
+            rows={4}
+            fullWidth
+            label="Message"
+            value={smsContent}
+            onChange={(e) => setSmsContent(e.target.value)}
+            disabled={isSendingSMS || smsSuccess}
+            placeholder="Type your SMS message..."
+            inputProps={{ maxLength: 1600 }}
+            helperText={`${smsContent.length}/1600 characters`}
+            variant="outlined"
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                color: isDarkMode ? '#ffffff' : '#0B1929',
+                '& fieldset': {
+                  borderColor: isDarkMode 
+                    ? 'rgba(100, 255, 218, 0.2)' 
+                    : 'rgba(62, 228, 200, 0.2)',
+                },
+                '&:hover fieldset': {
+                  borderColor: isDarkMode ? '#64ffda' : '#3EE4C8',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: isDarkMode ? '#64ffda' : '#3EE4C8',
+                },
+              },
+              '& .MuiInputLabel-root': {
+                color: isDarkMode 
+                  ? 'rgba(255, 255, 255, 0.6)' 
+                  : 'rgba(11, 25, 41, 0.6)',
+              },
+              '& .MuiFormHelperText-root': {
+                color: isDarkMode 
+                  ? 'rgba(255, 255, 255, 0.5)' 
+                  : 'rgba(11, 25, 41, 0.5)',
+              },
+            }}
+          />
+          
+          {smsError && (
+            <Alert 
+              severity="error" 
+              sx={{ 
+                mt: 2,
+                backgroundColor: isDarkMode 
+                  ? 'rgba(248, 113, 113, 0.1)' 
+                  : 'rgba(239, 68, 68, 0.1)',
+                color: isDarkMode ? '#f87171' : '#dc2626',
+              }}
+            >
+              {smsError}
+            </Alert>
+          )}
+          
+          {smsSuccess && (
+            <Alert 
+              severity="success" 
+              sx={{ 
+                mt: 2,
+                backgroundColor: isDarkMode 
+                  ? 'rgba(52, 211, 153, 0.1)' 
+                  : 'rgba(76, 175, 80, 0.1)',
+                color: isDarkMode ? '#34d399' : '#388E3C',
+              }}
+            >
+              ✅ SMS sent successfully!
+            </Alert>
+          )}
+        </DialogContent>
+        
+        <DialogActions sx={{ p: 2 }}>
+          <Button 
+            onClick={() => setShowSMSDialog(false)}
+            disabled={isSendingSMS}
+            sx={{
+              color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)',
+            }}
+          >
+            Cancel
+          </Button>
+          
+          <Button
+            onClick={handleSendSMS}
+            variant="contained"
+            disabled={!smsContent.trim() || isSendingSMS || smsSuccess}
+            startIcon={
+              isSendingSMS ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : smsSuccess ? (
+                '✅'
+              ) : (
+                <SmsIcon />
+              )
+            }
+            sx={{
+              backgroundColor: isDarkMode ? '#64ffda' : '#3EE4C8',
+              color: isDarkMode ? '#0B1929' : '#ffffff',
+              '&:hover': {
+                backgroundColor: isDarkMode ? '#52d4c2' : '#2BC4A8',
+              },
+              '&:disabled': {
+                backgroundColor: isDarkMode 
+                  ? 'rgba(100, 255, 218, 0.3)' 
+                  : 'rgba(62, 228, 200, 0.3)',
+                color: isDarkMode 
+                  ? 'rgba(11, 25, 41, 0.5)' 
+                  : 'rgba(255, 255, 255, 0.5)',
+              },
+            }}
+          >
+            {isSendingSMS ? 'Sending...' : smsSuccess ? 'Sent!' : 'Send SMS'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -123,10 +123,12 @@ export async function getAllMessages(req, res) {
 }
 
 // POST /messages - Send a new message
+// backend/controllers/messageController.js
+
 export async function sendMessage(req, res) {
   try {
     const dentistId = req.user?.id;
-    const { patientId, content, channelType = 'webchat' } = req.body;
+    const { patientId, content, channelType = 'webchat' } = req.body; // ✅ channelType can be 'webchat' or 'sms'
 
     console.log("Send message request:", { dentistId, patientId, content, channelType });
 
@@ -138,10 +140,15 @@ export async function sendMessage(req, res) {
       return res.status(400).json({ error: "Patient ID and message content are required" });
     }
 
+    // ✅ VALIDATE CHANNEL TYPE
+    if (!['webchat', 'sms'].includes(channelType)) {
+      return res.status(400).json({ error: "Invalid channel type. Must be 'webchat' or 'sms'" });
+    }
+
     // Get patient's contact_id
     const { data: patient, error: patientError } = await supabase
       .from("user_profiles")
-      .select("contact_id")
+      .select("contact_id, phone") // ✅ Also get phone for SMS validation
       .eq("id", patientId)
       .eq("dentist_id", dentistId)
       .single();
@@ -156,13 +163,18 @@ export async function sendMessage(req, res) {
       return res.status(400).json({ error: "Patient has no contact ID" });
     }
 
+    // ✅ IF SMS, VALIDATE PHONE NUMBER
+    if (channelType === 'sms' && !patient.phone) {
+      return res.status(400).json({ error: "Patient has no phone number for SMS" });
+    }
+
     console.log("Found patient contact_id:", patient.contact_id);
 
     const messageData = {
       contactId: patient.contact_id,
       content: content.trim(),
       senderType: 'client', 
-      channelType
+      channelType // ✅ Pass channel type ('webchat' or 'sms')
     };
 
     console.log("Creating message:", messageData);
@@ -176,7 +188,7 @@ export async function sendMessage(req, res) {
       id: newMessage.id,
       message: newMessage.message,
       sender: 'dentist',
-      channel: newMessage.channel,
+      channel: newMessage.channel, // ✅ Will be 'webchat' or 'sms'
       timestamp: newMessage.created_at
     };
 
@@ -192,6 +204,7 @@ export async function sendMessage(req, res) {
     res.status(500).json({ error: "Failed to send message" });
   }
 }
+
 
 // GET /messages/unread-counts - Get unread message counts
 export async function getUnreadMessageCounts(req, res) {

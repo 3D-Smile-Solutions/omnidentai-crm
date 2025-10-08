@@ -1,4 +1,4 @@
-// frontend/src/components/Dashboard/hooks/useVoiceCall.js - CORRECTED WITH DENTIST ID
+// frontend/src/components/Dashboard/hooks/useVoiceCall.js - FIXED CLEANUP
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Device } from '@twilio/voice-sdk';
 import api from '../../../api/axiosInstance';
@@ -12,10 +12,9 @@ export const useVoiceCall = () => {
   const [callDuration, setCallDuration] = useState(0);
   
   const durationIntervalRef = useRef(null);
+  const deviceRef = useRef(null); // ✅ NEW: Track device instance
 
   useEffect(() => {
-    let twilioDevice = null;
-
     const initializeDevice = async () => {
       try {
         console.log('📞 Initializing Twilio Device...');
@@ -25,7 +24,7 @@ export const useVoiceCall = () => {
 
         console.log('✅ Got token from backend');
 
-        twilioDevice = new Device(token, {
+        const twilioDevice = new Device(token, {
           logLevel: 'debug',
           codecPreferences: ['opus', 'pcmu'],
           edge: 'ashburn'
@@ -49,7 +48,10 @@ export const useVoiceCall = () => {
         });
 
         await twilioDevice.register();
+        
+        // ✅ Store device in both state and ref
         setDevice(twilioDevice);
+        deviceRef.current = twilioDevice;
 
       } catch (err) {
         console.error('❌ Failed to initialize Twilio Device:', err);
@@ -60,16 +62,42 @@ export const useVoiceCall = () => {
 
     initializeDevice();
 
+    // ✅ FIXED CLEANUP - Check device state before unregistering
     return () => {
+      console.log('🧹 Cleaning up Twilio Device...');
+      
+      // Clear duration interval
       if (durationIntervalRef.current) {
         clearInterval(durationIntervalRef.current);
+        durationIntervalRef.current = null;
       }
-      if (twilioDevice) {
-        twilioDevice.unregister();
-        twilioDevice.destroy();
+
+      // Cleanup device safely
+      if (deviceRef.current) {
+        const currentDevice = deviceRef.current;
+        
+        // Only unregister if device is registered
+        if (currentDevice.state === 'registered') {
+          console.log('📴 Unregistering device...');
+          currentDevice.unregister()
+            .then(() => console.log('✅ Device unregistered successfully'))
+            .catch((err) => console.warn('⚠️ Error unregistering device:', err.message));
+        } else {
+          console.log('ℹ️ Device not registered, skipping unregister');
+        }
+        
+        // Destroy device
+        try {
+          currentDevice.destroy();
+          console.log('✅ Device destroyed');
+        } catch (err) {
+          console.warn('⚠️ Error destroying device:', err.message);
+        }
+        
+        deviceRef.current = null;
       }
     };
-  }, []);
+  }, []); // ✅ Empty dependency array - only run once
 
   const handleIncomingCall = (call) => {
     setCurrentCall(call);
@@ -119,7 +147,7 @@ export const useVoiceCall = () => {
     }
   }, []);
 
-  // ✅ UPDATED: Accept dentistId as third parameter
+  // ✅ Accept dentistId as third parameter
   const makeCall = useCallback(async (patientId, patientPhone, dentistId) => {
     if (!device || !isReady) {
       setError('Device not ready. Please refresh the page.');
@@ -131,7 +159,7 @@ export const useVoiceCall = () => {
       console.log('📞 Initiating call...');
       console.log('Patient ID:', patientId);
       console.log('Patient Phone:', patientPhone);
-      console.log('Dentist ID:', dentistId); // ✅ NEW
+      console.log('Dentist ID:', dentistId);
       console.log('═══════════════════════════════════════');
       
       setError(null);
@@ -142,7 +170,7 @@ export const useVoiceCall = () => {
         params: {
           To: patientPhone,
           PatientId: patientId,
-          DentistId: dentistId  // ✅ ADDED
+          DentistId: dentistId
         }
       });
 
