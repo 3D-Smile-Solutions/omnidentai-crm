@@ -1,4 +1,4 @@
-// frontend/src/components/Dashboard/hooks/useVoiceCall.js - CORRECTED
+// frontend/src/components/Dashboard/hooks/useVoiceCall.js - CORRECTED WITH DENTIST ID
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Device } from '@twilio/voice-sdk';
 import api from '../../../api/axiosInstance';
@@ -45,7 +45,6 @@ export const useVoiceCall = () => {
 
         twilioDevice.on('incoming', (call) => {
           console.log('📞 Incoming call:', call);
-          // Handle incoming calls if needed
           handleIncomingCall(call);
         });
 
@@ -75,15 +74,11 @@ export const useVoiceCall = () => {
   const handleIncomingCall = (call) => {
     setCurrentCall(call);
     setIsCallInProgress(true);
-    
-    // Auto-accept incoming calls (optional)
     call.accept();
-    
     setupCallHandlers(call);
   };
 
   const setupCallHandlers = (call) => {
-    // Start duration timer
     durationIntervalRef.current = setInterval(() => {
       setCallDuration(prev => prev + 1);
     }, 1000);
@@ -124,27 +119,30 @@ export const useVoiceCall = () => {
     }
   }, []);
 
-  // CORRECTED: Browser-initiated call
-  const makeCall = useCallback(async (patientId, patientPhone) => {
+  // ✅ UPDATED: Accept dentistId as third parameter
+  const makeCall = useCallback(async (patientId, patientPhone, dentistId) => {
     if (!device || !isReady) {
       setError('Device not ready. Please refresh the page.');
       return;
     }
 
     try {
+      console.log('═══════════════════════════════════════');
       console.log('📞 Initiating call...');
       console.log('Patient ID:', patientId);
       console.log('Patient Phone:', patientPhone);
+      console.log('Dentist ID:', dentistId); // ✅ NEW
+      console.log('═══════════════════════════════════════');
       
       setError(null);
       setCallDuration(0);
 
-      // Connect directly through Twilio Device SDK
-      // The params are sent to your TwiML app
+      // ✅ Pass DentistId to Twilio
       const call = await device.connect({
         params: {
           To: patientPhone,
-          PatientId: patientId
+          PatientId: patientId,
+          DentistId: dentistId  // ✅ ADDED
         }
       });
 

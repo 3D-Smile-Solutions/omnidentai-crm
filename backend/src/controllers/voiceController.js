@@ -37,12 +37,12 @@ export async function generateToken(req, res) {
 
     // Create access token - MUST use API Key, not Account SID
     const token = new AccessToken(
-      accountSid,                          // Account SID
-      process.env.TWILIO_API_KEY,          // API Key (NOT accountSid)
-      process.env.TWILIO_API_SECRET,       // API Secret (NOT authToken)
+      accountSid,
+      process.env.TWILIO_API_KEY,
+      process.env.TWILIO_API_SECRET,
       { 
         identity: dentistId,
-        ttl: 3600                          // 1 hour
+        ttl: 3600
       }
     );
 
@@ -69,7 +69,7 @@ export async function generateToken(req, res) {
 }
 
 /**
- * Initiate outbound call to patient
+ * Initiate outbound call to patient (used for server-initiated calls)
  * POST /api/voice/make-call
  * Body: { patientId: string }
  */
@@ -84,7 +84,7 @@ export async function makeCall(req, res) {
 
     console.log('📞 Initiating call from dentist:', dentistId, 'to patient:', patientId);
 
-    // Fetch patient phone number from database
+    // Fetch patient phone number
     const { data: patient, error: patientError } = await supabase
       .from('user_profiles')
       .select('phone, first_name, last_name')
@@ -100,35 +100,56 @@ export async function makeCall(req, res) {
       return res.status(400).json({ error: 'Patient has no phone number' });
     }
 
-    // Format phone number (ensure E.164 format: +1234567890)
-    let toNumber = patient.phone.replace(/\D/g, ''); // Remove non-digits
+    // Format phone number (ensure E.164 format)
+    let toNumber = patient.phone.trim();
     if (!toNumber.startsWith('+')) {
-      toNumber = '+1' + toNumber; // Assume US/Canada if no country code
+      toNumber = toNumber.replace(/\D/g, '');
+      if (toNumber.startsWith('92')) {
+        toNumber = '+' + toNumber;
+      } else if (toNumber.length === 10) {
+        toNumber = '+1' + toNumber;
+      } else {
+        return res.status(400).json({ error: 'Invalid phone number format. Use E.164 format (+12135551234)' });
+      }
     }
+
+    console.log('📞 Calling:', toNumber);
 
     // Make the call using Twilio
     const call = await client.calls.create({
       from: twilioPhoneNumber,
       to: toNumber,
-      url: `${process.env.BACKEND_URL}/api/voice/twiml/outbound?dentistId=${dentistId}&patientId=${patientId}`,
+      url: `${process.env.BACKEND_URL}/api/voice/twiml/outbound?DentistId=${dentistId}&PatientId=${patientId}`,
       statusCallback: `${process.env.BACKEND_URL}/api/voice/status`,
       statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed'],
-      record: false, // Set to true to record calls
-      timeout: 30 // Timeout after 30 seconds
+      statusCallbackMethod: 'POST',
+      record: false,
+      timeout: 30
     });
 
     console.log('✅ Call initiated:', call.sid);
 
     // Log call to database
-    await supabase.from('call_logs').insert({
-      client_id: dentistId,
-      patient_id: patientId,
-      direction: 'outbound',
-      from_number: twilioPhoneNumber,
-      to_number: toNumber,
-      status: 'initiated',
-      call_sid: call.sid
-    });
+    const { data: callLog, error: logError } = await supabase
+      .from('call_logs')
+      .insert({
+        client_id: dentistId,
+        patient_id: patientId,
+        direction: 'outbound',
+        from_number: twilioPhoneNumber,
+        to_number: toNumber,
+        status: 'initiated',
+        call_sid: call.sid,
+        call_purpose: 'outbound_call',
+      })
+      .select()
+      .single();
+
+    if (logError) {
+      console.error('⚠️ Failed to log call:', logError);
+    } else {
+      console.log('✅ Call logged to database:', callLog.id);
+    }
 
     res.json({
       success: true,
@@ -149,21 +170,84 @@ export async function makeCall(req, res) {
 }
 
 /**
- * Generate TwiML for outbound call
+ * Generate TwiML for outbound call (browser-initiated calls)
  * GET /api/voice/twiml/outbound
+ * ⚠️ THIS IS WHERE BROWSER CALLS ARE LOGGED
  */
 export function generateOutboundTwiML(req, res) {
-  const { To, patientId } = req.query;
+  const { To, PatientId, DentistId } = req.query;
   
+  console.log('═══════════════════════════════════════');
   console.log('📱 Generating TwiML for call to:', To);
+  console.log('PatientId:', PatientId);
+  console.log('DentistId:', DentistId);
+  console.log('All query params:', JSON.stringify(req.query, null, 2));
+  console.log('═══════════════════════════════════════');
   
+  // ✅ LOG THE CALL TO DATABASE (async, non-blocking)
+  (async () => {
+    try {
+      console.log('🔄 Attempting to log call to database...');
+      
+      // Extract Call SID from Twilio headers
+      const callSid = req.headers['x-twilio-callsid'] || 
+                      req.query.CallSid || 
+                      `WEB_${Date.now()}`;
+      
+      console.log('📞 Call SID:', callSid);
+      console.log('📞 Using DentistId:', DentistId);
+      console.log('📞 Using PatientId:', PatientId);
+      
+      if (!DentistId || !PatientId) {
+        console.error('❌ Missing DentistId or PatientId!');
+        console.error('Available query params:', Object.keys(req.query));
+        return;
+      }
+      
+      const insertData = {
+        client_id: DentistId,
+        patient_id: PatientId,
+        direction: 'outbound',
+        from_number: twilioPhoneNumber,
+        to_number: To,
+        status: 'initiated',
+        call_sid: callSid,
+        call_purpose: 'outbound_call',
+      };
+      
+      console.log('📊 Insert data:', JSON.stringify(insertData, null, 2));
+      
+      const { data: callLog, error: logError } = await supabase
+        .from('call_logs')
+        .insert(insertData)
+        .select()
+        .single();
+      
+      if (logError) {
+        console.error('❌ Failed to log call to database!');
+        console.error('Error code:', logError.code);
+        console.error('Error message:', logError.message);
+        console.error('Error details:', JSON.stringify(logError, null, 2));
+      } else {
+        console.log('✅ Call logged to database successfully!');
+        console.log('Call log ID:', callLog.id);
+        console.log('Call log data:', JSON.stringify(callLog, null, 2));
+      }
+    } catch (err) {
+      console.error('❌ Exception while logging call:');
+      console.error('Error name:', err.name);
+      console.error('Error message:', err.message);
+      console.error('Error stack:', err.stack);
+    }
+  })();
+  
+  // Generate TwiML response
   const twiml = new VoiceResponse();
   
-  // Simply dial the number
   const dial = twiml.dial({
     callerId: twilioPhoneNumber,
     timeout: 30,
-    record: 'do-not-record'
+    record: 'do-not-record',
   });
   
   dial.number(To);
@@ -185,12 +269,9 @@ export function handleIncoming(req, res) {
     voice: 'alice'
   }, 'Thank you for calling. Please hold while we connect you to your dental office.');
   
-  // Play hold music
   twiml.play({
     loop: 5
   }, 'http://com.twilio.sounds.music.s3.amazonaws.com/ClockworkWaltz.mp3');
-  
-  // You can add logic here to route to specific dentist
   
   res.type('text/xml');
   res.send(twiml.toString());
@@ -206,12 +287,12 @@ export async function handleCallStatus(req, res) {
       CallSid,
       CallStatus,
       CallDuration,
-      RecordingUrl
+      RecordingUrl,
+      RecordingSid
     } = req.body;
 
     console.log('📊 Call status update:', { CallSid, CallStatus, CallDuration });
 
-    // Update call log in database
     const updateData = {
       status: CallStatus.toLowerCase(),
       updated_at: new Date().toISOString()
@@ -219,21 +300,25 @@ export async function handleCallStatus(req, res) {
 
     if (CallDuration) {
       updateData.duration = parseInt(CallDuration);
+      updateData.completed_at = new Date().toISOString();
     }
 
     if (RecordingUrl) {
       updateData.recording_url = RecordingUrl;
+      updateData.recording_sid = RecordingSid;
     }
 
-    await supabase
+    const { error } = await supabase
       .from('call_logs')
       .update(updateData)
       .eq('call_sid', CallSid);
 
-    console.log('✅ Call log updated:', CallSid);
+    if (error) {
+      console.error('❌ Failed to update call log:', error);
+      return res.sendStatus(500);
+    }
 
-    // TODO: Emit WebSocket event to update UI in real-time
-    // io.to(dentistId).emit('call_status_update', { callSid: CallSid, status: CallStatus });
+    console.log('✅ Call log updated:', CallSid);
 
     res.sendStatus(200);
   } catch (error) {
@@ -267,6 +352,13 @@ export async function getCallHistory(req, res) {
 
     if (error) {
       throw error;
+    }
+
+    // Log that these records were accessed (HIPAA audit)
+    if (calls && calls.length > 0) {
+      for (const call of calls) {
+        await supabase.rpc('log_call_view', { call_log_id_param: call.id });
+      }
     }
 
     res.json({

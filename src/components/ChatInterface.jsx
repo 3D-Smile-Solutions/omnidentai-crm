@@ -52,7 +52,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     webchat: true
   });
   const messagesEndRef = useRef(null);
-  
+  const currentUser = useSelector((state) => state.auth.user);
   const { startTyping, stopTyping } = useWebSocket();
   
   // Voice call hook
@@ -127,70 +127,79 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
   };
 
   // Voice call handlers with extensive debugging
-  const handlePhoneClick = () => {
-    console.log('═══════════════════════════════════════');
-    console.log('📞 PHONE ICON CLICKED');
-    console.log('═══════════════════════════════════════');
-    console.log('Patient:', patient);
-    console.log('Patient ID:', patient?.id);
-    console.log('Patient Name:', patient?.first_name, patient?.last_name);
-    console.log('Patient Phone:', patient?.phone);
-    console.log('isReady:', isReady);
-    console.log('isCallInProgress:', isCallInProgress);
-    console.log('makeCall type:', typeof makeCall);
-    console.log('makeCall exists:', !!makeCall);
-    console.log('═══════════════════════════════════════');
-    
-    if (!patient) {
-      console.log('❌ No patient selected');
-      alert('No patient selected');
-      return;
-    }
-    
-    if (!patient.phone) {
-      console.log('❌ Patient has no phone number');
-      alert('This patient has no phone number on file.');
-      return;
-    }
+ const handlePhoneClick = () => {
+  console.log('═══════════════════════════════════════');
+  console.log('📞 PHONE ICON CLICKED');
+  console.log('═══════════════════════════════════════');
+  console.log('Patient:', patient);
+  console.log('Patient ID:', patient?.id);
+  console.log('Patient Name:', patient?.first_name, patient?.last_name);
+  console.log('Patient Phone:', patient?.phone);
+  console.log('Current User (Dentist):', currentUser); // ✅ LOG DENTIST
+  console.log('Dentist ID:', currentUser?.id); // ✅ LOG DENTIST ID
+  console.log('isReady:', isReady);
+  console.log('isCallInProgress:', isCallInProgress);
+  console.log('makeCall type:', typeof makeCall);
+  console.log('makeCall exists:', !!makeCall);
+  console.log('═══════════════════════════════════════');
+  
+  if (!patient) {
+    console.log('❌ No patient selected');
+    alert('No patient selected');
+    return;
+  }
+  
+  if (!patient.phone) {
+    console.log('❌ Patient has no phone number');
+    alert('This patient has no phone number on file.');
+    return;
+  }
 
-    if (!isReady) {
-      console.log('❌ Voice device not ready');
-      alert('Voice calling is not ready. Please refresh the page.');
-      return;
-    }
+  if (!currentUser?.id) {
+    console.log('❌ No current user/dentist ID');
+    alert('Authentication error. Please refresh the page.');
+    return;
+  }
 
-    if (isCallInProgress) {
-      console.log('📞 Call already in progress, opening dialog');
+  if (!isReady) {
+    console.log('❌ Voice device not ready');
+    alert('Voice calling is not ready. Please refresh the page.');
+    return;
+  }
+
+  if (isCallInProgress) {
+    console.log('📞 Call already in progress, opening dialog');
+    setCallDialogOpen(true);
+    return;
+  }
+
+  const confirmed = window.confirm(
+    `Call ${patient.first_name} ${patient.last_name} at ${patient.phone}?`
+  );
+
+  console.log('User confirmation:', confirmed);
+
+  if (confirmed) {
+    console.log('✅ User confirmed - Attempting to make call...');
+    console.log('Calling makeCall with:', {
+      patientId: patient.id,
+      patientPhone: patient.phone,
+      dentistId: currentUser.id // ✅ PASSING DENTIST ID
+    });
+    
+    try {
+      // ✅ PASS DENTIST ID AS THIRD PARAMETER
+      const result = makeCall(patient.id, patient.phone, currentUser.id);
+      console.log('✅ makeCall executed, result:', result);
       setCallDialogOpen(true);
-      return;
+    } catch (err) {
+      console.error('❌ Error calling makeCall:', err);
+      alert(`Error making call: ${err.message}`);
     }
-
-    // Show confirmation dialog
-    const confirmed = window.confirm(
-      `Call ${patient.first_name} ${patient.last_name} at ${patient.phone}?`
-    );
-
-    console.log('User confirmation:', confirmed);
-
-    if (confirmed) {
-      console.log('✅ User confirmed - Attempting to make call...');
-      console.log('Calling makeCall with:', {
-        patientId: patient.id,
-        patientPhone: patient.phone
-      });
-      
-      try {
-        const result = makeCall(patient.id, patient.phone);
-        console.log('✅ makeCall executed, result:', result);
-        setCallDialogOpen(true);
-      } catch (err) {
-        console.error('❌ Error calling makeCall:', err);
-        alert(`Error making call: ${err.message}`);
-      }
-    } else {
-      console.log('❌ User cancelled call');
-    }
-  };
+  } else {
+    console.log('❌ User cancelled call');
+  }
+};
 
   const handleEndCall = () => {
     console.log('📴 Ending call...');
