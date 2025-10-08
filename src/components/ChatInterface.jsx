@@ -37,7 +37,7 @@ import PatientDetailsModal from './Dashboard/components/PatientDetails/PatientDe
 import useWebSocket from './Dashboard/hooks/useWebSocket';
 import { useVoiceCall } from './Dashboard/hooks/useVoiceCall';
 import { useTheme } from '../context/ThemeContext';
-
+console.log('🔥 ChatInterface.jsx LOADED - WITH DEBUG VERSION');
 const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
   const { isDarkMode } = useTheme();
   const [message, setMessage] = useState('');
@@ -658,6 +658,23 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
           </Box>
         </Box>
         <Box sx={{ display: 'flex', gap: isMobile ? 0 : 1 }}>
+           {/* 🔥 TEMPORARY TEST BUTTON - Remove after testing */}
+  <Button 
+    variant="contained" 
+    size="small"
+    sx={{ fontSize: '0.7rem', minWidth: 'auto', px: 1 }}
+    onClick={() => {
+      console.log('🔥🔥🔥 TEST BUTTON CLICKED 🔥🔥🔥');
+      console.log('Patient:', patient);
+      console.log('isReady:', isReady);
+      console.log('isCallInProgress:', isCallInProgress);
+      console.log('makeCall type:', typeof makeCall);
+      console.log('makeCall exists:', !!makeCall);
+      alert('Test button works! Check console for details.');
+    }}
+  >
+    TEST
+  </Button>
           <IconButton 
             sx={{ 
               color: isCallInProgress 

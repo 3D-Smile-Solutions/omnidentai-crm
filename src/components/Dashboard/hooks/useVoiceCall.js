@@ -1,4 +1,4 @@
-// frontend/src/components/Dashboard/hooks/useVoiceCall.js - FINAL
+// frontend/src/components/Dashboard/hooks/useVoiceCall.js - CORRECTED
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Device } from '@twilio/voice-sdk';
 import api from '../../../api/axiosInstance';
@@ -23,6 +23,8 @@ export const useVoiceCall = () => {
         const response = await api.get('/api/voice/token');
         const { token } = response.data;
 
+        console.log('✅ Got token from backend');
+
         twilioDevice = new Device(token, {
           logLevel: 'debug',
           codecPreferences: ['opus', 'pcmu'],
@@ -43,8 +45,8 @@ export const useVoiceCall = () => {
 
         twilioDevice.on('incoming', (call) => {
           console.log('📞 Incoming call:', call);
-          setCurrentCall(call);
-          setIsCallInProgress(true);
+          // Handle incoming calls if needed
+          handleIncomingCall(call);
         });
 
         await twilioDevice.register();
@@ -70,74 +72,47 @@ export const useVoiceCall = () => {
     };
   }, []);
 
-  const makeCall = useCallback(async (patientId, patientPhone) => {
-    if (!device || !isReady) {
-      setError('Device not ready. Please refresh the page.');
-      return;
-    }
+  const handleIncomingCall = (call) => {
+    setCurrentCall(call);
+    setIsCallInProgress(true);
+    
+    // Auto-accept incoming calls (optional)
+    call.accept();
+    
+    setupCallHandlers(call);
+  };
 
-    try {
-      console.log('📞 Initiating call to patient:', patientId);
-      setError(null);
-      setCallDuration(0);
+  const setupCallHandlers = (call) => {
+    // Start duration timer
+    durationIntervalRef.current = setInterval(() => {
+      setCallDuration(prev => prev + 1);
+    }, 1000);
 
-      // First, tell backend to initiate the call
-      const response = await api.post('/api/voice/make-call', { patientId });
-      console.log('✅ Backend call initiated:', response.data);
+    call.on('accept', () => {
+      console.log('✅ Call accepted/connected');
+    });
 
-      // The call will come to us as an "incoming" call from the device
-      // OR we need to connect directly if using client SDK
-      
-      // For direct browser-to-phone calling:
-      const call = await device.connect({
-        params: {
-          To: patientPhone,
-          patientId: patientId
-        }
-      });
-
-      console.log('📞 Call connecting...');
-      setCurrentCall(call);
-      setIsCallInProgress(true);
-
-      // Start duration timer
-      durationIntervalRef.current = setInterval(() => {
-        setCallDuration(prev => prev + 1);
-      }, 1000);
-
-      // Call event handlers
-      call.on('accept', () => {
-        console.log('✅ Call accepted/connected');
-      });
-
-      call.on('disconnect', () => {
-        console.log('📴 Call disconnected');
-        handleCallEnd();
-      });
-
-      call.on('cancel', () => {
-        console.log('❌ Call cancelled');
-        handleCallEnd();
-      });
-
-      call.on('reject', () => {
-        console.log('❌ Call rejected');
-        handleCallEnd();
-      });
-
-      call.on('error', (callError) => {
-        console.error('❌ Call error:', callError);
-        setError(callError?.message || 'Call error occurred');
-        handleCallEnd();
-      });
-
-      return call;
-    } catch (err) {
-      console.error('❌ Error making call:', err);
-      setError(err.response?.data?.error || err?.message || 'Failed to make call');
+    call.on('disconnect', () => {
+      console.log('📴 Call disconnected');
       handleCallEnd();
-    }
-  }, [device, isReady]);
+    });
+
+    call.on('cancel', () => {
+      console.log('❌ Call cancelled');
+      handleCallEnd();
+    });
+
+    call.on('reject', () => {
+      console.log('❌ Call rejected');
+      handleCallEnd();
+    });
+
+    call.on('error', (callError) => {
+      console.error('❌ Call error:', callError);
+      setError(callError?.message || 'Call error occurred');
+      handleCallEnd();
+    });
+  };
 
   const handleCallEnd = useCallback(() => {
     setIsCallInProgress(false);
@@ -148,6 +123,44 @@ export const useVoiceCall = () => {
       durationIntervalRef.current = null;
     }
   }, []);
+
+  // CORRECTED: Browser-initiated call
+  const makeCall = useCallback(async (patientId, patientPhone) => {
+    if (!device || !isReady) {
+      setError('Device not ready. Please refresh the page.');
+      return;
+    }
+
+    try {
+      console.log('📞 Initiating call...');
+      console.log('Patient ID:', patientId);
+      console.log('Patient Phone:', patientPhone);
+      
+      setError(null);
+      setCallDuration(0);
+
+      // Connect directly through Twilio Device SDK
+      // The params are sent to your TwiML app
+      const call = await device.connect({
+        params: {
+          To: patientPhone,
+          PatientId: patientId
+        }
+      });
+
+      console.log('✅ Call connecting via device.connect()');
+      setCurrentCall(call);
+      setIsCallInProgress(true);
+
+      setupCallHandlers(call);
+
+      return call;
+    } catch (err) {
+      console.error('❌ Error making call:', err);
+      setError(err?.message || 'Failed to make call');
+      handleCallEnd();
+    }
+  }, [device, isReady, handleCallEnd]);
 
   const endCall = useCallback(() => {
     if (currentCall) {
