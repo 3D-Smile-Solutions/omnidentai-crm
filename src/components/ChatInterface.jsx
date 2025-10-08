@@ -1,4 +1,4 @@
-// frontend/src/components/ChatInterface.jsx - GLASSMORPHIC VERSION
+// frontend/src/components/ChatInterface.jsx - FIXED WITH DEBUG
 import React, { useState, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -66,6 +66,17 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     endCall,
     toggleMute
   } = useVoiceCall();
+
+  // Debug: Log voice call state changes
+  useEffect(() => {
+    console.log('📞 Voice Call State:', {
+      isReady,
+      isCallInProgress,
+      hasCurrentCall: !!currentCall,
+      callError,
+      callDuration
+    });
+  }, [isReady, isCallInProgress, currentCall, callError, callDuration]);
   
   const { 
     currentMessages, 
@@ -115,51 +126,90 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     }
   };
 
-  // Voice call handlers
+  // Voice call handlers with extensive debugging
   const handlePhoneClick = () => {
-    if (!patient) return;
+    console.log('═══════════════════════════════════════');
+    console.log('📞 PHONE ICON CLICKED');
+    console.log('═══════════════════════════════════════');
+    console.log('Patient:', patient);
+    console.log('Patient ID:', patient?.id);
+    console.log('Patient Name:', patient?.first_name, patient?.last_name);
+    console.log('Patient Phone:', patient?.phone);
+    console.log('isReady:', isReady);
+    console.log('isCallInProgress:', isCallInProgress);
+    console.log('makeCall type:', typeof makeCall);
+    console.log('makeCall exists:', !!makeCall);
+    console.log('═══════════════════════════════════════');
+    
+    if (!patient) {
+      console.log('❌ No patient selected');
+      alert('No patient selected');
+      return;
+    }
     
     if (!patient.phone) {
+      console.log('❌ Patient has no phone number');
       alert('This patient has no phone number on file.');
       return;
     }
 
     if (!isReady) {
+      console.log('❌ Voice device not ready');
       alert('Voice calling is not ready. Please refresh the page.');
       return;
     }
 
     if (isCallInProgress) {
+      console.log('📞 Call already in progress, opening dialog');
       setCallDialogOpen(true);
       return;
     }
 
+    // Show confirmation dialog
     const confirmed = window.confirm(
       `Call ${patient.first_name} ${patient.last_name} at ${patient.phone}?`
     );
 
+    console.log('User confirmation:', confirmed);
+
     if (confirmed) {
-      makeCall(patient.id, patient.phone);
-      setCallDialogOpen(true);
+      console.log('✅ User confirmed - Attempting to make call...');
+      console.log('Calling makeCall with:', {
+        patientId: patient.id,
+        patientPhone: patient.phone
+      });
+      
+      try {
+        const result = makeCall(patient.id, patient.phone);
+        console.log('✅ makeCall executed, result:', result);
+        setCallDialogOpen(true);
+      } catch (err) {
+        console.error('❌ Error calling makeCall:', err);
+        alert(`Error making call: ${err.message}`);
+      }
+    } else {
+      console.log('❌ User cancelled call');
     }
   };
 
   const handleEndCall = () => {
+    console.log('📴 Ending call...');
     endCall();
     setCallDialogOpen(false);
     setIsMuted(false);
   };
 
   const handleToggleMute = () => {
+    console.log('🔇 Toggling mute...');
     const newMuteState = toggleMute();
     setIsMuted(newMuteState);
+    console.log('New mute state:', newMuteState);
   };
 
   // File upload handler using new document structure
   const handleFileUploadComplete = (document) => {
     console.log('✅ File uploaded:', document);
     
-    // Send file metadata as message
     const fileMessage = JSON.stringify({
       type: 'file',
       filename: document.filename,
@@ -171,7 +221,6 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     onSendMessage(patient.id, fileMessage, 'webchat');
   };
 
-  // File message helpers
   const isFileMessage = (messageText) => {
     try {
       const parsed = JSON.parse(messageText);
@@ -189,7 +238,6 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     }
   };
 
-  // Render file attachment with glassmorphic styling
   const renderFileAttachment = (fileData) => {
     const isImage = fileData.mimeType?.startsWith('image/');
     
@@ -441,7 +489,6 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
           ? '1px solid rgba(100, 255, 218, 0.1)' 
           : '1px solid rgba(62, 228, 200, 0.1)',
       }}>
-        {/* Gradient overlay */}
         <Box
           sx={{
             position: 'absolute',
@@ -538,7 +585,6 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
         : '1px solid rgba(62, 228, 200, 0.1)',
       position: 'relative',
     }}>
-      {/* Gradient overlay */}
       <Box
         sx={{
           position: 'absolute',
@@ -633,7 +679,10 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
               },
               transition: 'all 0.25s ease',
             }}
-            onClick={handlePhoneClick}
+            onClick={() => {
+              console.log('🔘 Phone IconButton clicked directly');
+              handlePhoneClick();
+            }}
             disabled={!isReady || !patient?.phone}
             title={!isReady ? 'Voice calling initializing...' : !patient?.phone ? 'No phone number' : 'Call patient'}
           >
@@ -661,7 +710,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
         </Box>
       </Paper>
 
-      {/* Messages Area */}
+      {/* Messages Area - keeping it short for brevity, rest stays the same */}
       <Box sx={{ 
         flex: 1, 
         overflow: 'auto',
@@ -1028,8 +1077,19 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
         onClose={() => !isCallInProgress && setCallDialogOpen(false)}
         maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            background: isDarkMode 
+              ? 'rgba(17, 24, 39, 0.95)'
+              : 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            border: isDarkMode 
+              ? '1px solid rgba(100, 255, 218, 0.1)' 
+              : '1px solid rgba(62, 228, 200, 0.1)',
+          }
+        }}
       >
-        <DialogTitle>
+        <DialogTitle sx={{ color: isDarkMode ? '#64ffda' : '#0B1929' }}>
           {isCallInProgress ? 'Call in Progress' : 'Calling...'}
         </DialogTitle>
         <DialogContent>
@@ -1040,24 +1100,45 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
                 width: 80,
                 height: 80,
                 margin: '0 auto 16px',
-                fontSize: '2rem'
+                fontSize: '2rem',
+                border: isDarkMode 
+                  ? '2px solid rgba(100, 255, 218, 0.2)' 
+                  : '2px solid rgba(62, 228, 200, 0.2)',
               }}
             >
               {getInitials(patient?.first_name || '', patient?.last_name || '')}
             </Avatar>
-            <Typography variant="h6" gutterBottom>
+            <Typography 
+              variant="h6" 
+              gutterBottom
+              sx={{ color: isDarkMode ? '#ffffff' : '#0B1929' }}
+            >
               {patient?.first_name} {patient?.last_name}
             </Typography>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
+            <Typography 
+              variant="body2" 
+              color="text.secondary" 
+              gutterBottom
+              sx={{ color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)' }}
+            >
               {patient?.phone}
             </Typography>
             
             {isCallInProgress && (
               <Box sx={{ mt: 3 }}>
-                <Typography variant="h4" sx={{ color: '#3EE4C8', fontWeight: 600 }}>
+                <Typography 
+                  variant="h4" 
+                  sx={{ 
+                    color: isDarkMode ? '#64ffda' : '#3EE4C8', 
+                    fontWeight: 600 
+                  }}
+                >
                   {callDuration}
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
+                <Typography 
+                  variant="caption" 
+                  sx={{ color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(11, 25, 41, 0.5)' }}
+                >
                   Duration
                 </Typography>
               </Box>
@@ -1077,11 +1158,13 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
               startIcon={isMuted ? <MicOffIcon /> : <MicIcon />}
               onClick={handleToggleMute}
               sx={{ 
-                borderColor: '#3EE4C8',
-                color: isMuted ? '#FF6B6B' : '#3EE4C8',
+                borderColor: isDarkMode ? '#64ffda' : '#3EE4C8',
+                color: isMuted ? '#FF6B6B' : (isDarkMode ? '#64ffda' : '#3EE4C8'),
                 '&:hover': { 
-                  borderColor: '#2BC4A8', 
-                  backgroundColor: 'rgba(62, 228, 200, 0.1)' 
+                  borderColor: isDarkMode ? '#64ffda' : '#2BC4A8', 
+                  backgroundColor: isDarkMode 
+                    ? 'rgba(100, 255, 218, 0.1)' 
+                    : 'rgba(62, 228, 200, 0.1)' 
                 }
               }}
             >

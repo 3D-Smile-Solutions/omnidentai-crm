@@ -15,21 +15,21 @@ export const fetchPatients = createAsyncThunk(
         ? { headers: { Authorization: `Bearer ${token}` } }
         : { withCredentials: true };
 
-      console.log('🔍 Fetching patients from API...');
+      // console.log('🔍 Fetching patients from API...');
       const res = await axios.get(`${API_URL}/patients`, config);
       
-      console.log('📦 Raw API response:', res.data);
-      console.log('📦 Patients array:', res.data.patients);
+      // console.log('📦 Raw API response:', res.data);
+      // console.log('📦 Patients array:', res.data.patients);
       
       if (res.data.patients && res.data.patients.length > 0) {
-        console.log('📦 First patient from API:', {
-          id: res.data.patients[0].id,
-          first_name: res.data.patients[0].first_name,
-          last_name: res.data.patients[0].last_name,
-          lastMessage: res.data.patients[0].lastMessage,
-          lastMessageTime: res.data.patients[0].lastMessageTime,
-          allKeys: Object.keys(res.data.patients[0])
-        });
+        // console.log('📦 First patient from API:', {
+        //   id: res.data.patients[0].id,
+        //   first_name: res.data.patients[0].first_name,
+        //   last_name: res.data.patients[0].last_name,
+        //   lastMessage: res.data.patients[0].lastMessage,
+        //   lastMessageTime: res.data.patients[0].lastMessageTime,
+        //   allKeys: Object.keys(res.data.patients[0])
+        // });
       }
       
       return res.data.patients;
@@ -51,11 +51,11 @@ const patientSlice = createSlice({
     updatePatientLastMessage: (state, action) => {
       const { patientId, lastMessage, lastMessageTime, lastMessageChannel } = action.payload;
       
-      console.log('🔄 updatePatientLastMessage called:', {
-        patientId,
-        lastMessage: lastMessage?.substring(0, 30),
-        lastMessageTime
-      });
+      // console.log('🔄 updatePatientLastMessage called:', {
+      //   patientId,
+      //   lastMessage: lastMessage?.substring(0, 30),
+      //   lastMessageTime
+      // });
       
       const patient = state.list.find(p => p.id === patientId);
       
@@ -66,7 +66,7 @@ const patientSlice = createSlice({
           patient.lastMessageChannel = lastMessageChannel;
         }
         
-        console.log(`✅ Updated last message for patient ${patientId}`);
+        // console.log(`✅ Updated last message for patient ${patientId}`);
       } else {
         console.warn(`⚠️ Patient ${patientId} not found in list`);
       }
@@ -81,17 +81,17 @@ const patientSlice = createSlice({
       })
       .addCase(fetchPatients.fulfilled, (state, action) => {
         console.log('✅ fetchPatients.fulfilled');
-        console.log('📦 Payload received in reducer:', action.payload);
+        // console.log('📦 Payload received in reducer:', action.payload);
         
         if (action.payload && action.payload.length > 0) {
-          console.log('📦 First patient in reducer:', {
-            id: action.payload[0].id,
-            first_name: action.payload[0].first_name,
-            last_name: action.payload[0].last_name,
-            lastMessage: action.payload[0].lastMessage,
-            lastMessageTime: action.payload[0].lastMessageTime,
-            allKeys: Object.keys(action.payload[0])
-          });
+          // console.log('📦 First patient in reducer:', {
+          //   id: action.payload[0].id,
+          //   first_name: action.payload[0].first_name,
+          //   last_name: action.payload[0].last_name,
+          //   lastMessage: action.payload[0].lastMessage,
+          //   lastMessageTime: action.payload[0].lastMessageTime,
+          //   allKeys: Object.keys(action.payload[0])
+          // });
         }
         
         state.status = "succeeded";

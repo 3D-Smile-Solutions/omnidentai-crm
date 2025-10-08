@@ -18,15 +18,15 @@ const Overview = ({ isMobile }) => {
   // DEBUG: Log the entire metrics state
   useEffect(() => {
     console.log('🔍 METRICS STATE DEBUG:');
-    console.log('Summary:', summary);
-    console.log('Charts:', charts);
-    console.log('Charts keys:', Object.keys(charts));
-    console.log('Loading:', loading);
-    console.log('Error:', error);
+    // console.log('Summary:', summary);
+    // console.log('Charts:', charts);
+    // console.log('Charts keys:', Object.keys(charts));
+    // console.log('Loading:', loading);
+    // console.log('Error:', error);
     
     // Check each chart array
     Object.keys(charts).forEach(key => {
-      console.log(`📊 ${key}:`, charts[key]);
+      // console.log(`📊 ${key}:`, charts[key]);
     });
   }, [summary, charts, loading, error]);
 
