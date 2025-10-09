@@ -263,7 +263,8 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
       filename: document.filename,
       url: document.url,
       mimeType: document.mime_type,
-      size: document.file_size
+      size: document.file_size,
+      documentId: document.id
     });
     
     onSendMessage(patient.id, fileMessage, 'webchat');
