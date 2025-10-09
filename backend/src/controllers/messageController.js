@@ -19,7 +19,7 @@ export async function getMessagesWithPatient(req, res) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    // First, get the patient to find their contact_id
+    // Get the patient to find their contact_id
     const { data: patient, error: patientError } = await supabase
       .from("user_profiles")
       .select("contact_id")
@@ -34,7 +34,7 @@ export async function getMessagesWithPatient(req, res) {
 
     if (!patient.contact_id) {
       console.log("Patient has no contact_id:", patient);
-      return res.json({ messages: [] }); // Return empty messages if no contact_id
+      return res.json({ messages: [] });
     }
 
     console.log("Found patient with contact_id:", patient.contact_id);
@@ -43,14 +43,35 @@ export async function getMessagesWithPatient(req, res) {
     
     console.log("Fetched messages:", messages.length);
 
-    // 🔧 FIX: Changed handleInputChange to messages.map
-    const transformedMessages = messages.map(msg => ({
-      id: msg.id,
-      message: msg.message,
-      sender: msg.sender === 'client' ? 'dentist' : 'patient', 
-      channel: msg.channel,
-      timestamp: msg.created_at
-    }));
+    // ✅ FIXED: Properly map ALL sender types
+    const transformedMessages = messages.map(msg => {
+      let senderType;
+      
+      // Map database sender values to frontend format
+      switch(msg.sender) {
+        case 'client':
+          senderType = 'dentist';
+          break;
+        case 'user':
+          senderType = 'patient';
+          break;
+        case 'bot':
+          senderType = 'bot'; // ✅ FIXED: Keep bot as bot
+          break;
+        default:
+          senderType = msg.sender; // Keep original if unknown
+      }
+      
+      return {
+        id: msg.id,
+        message: msg.message,
+        sender: senderType,
+        channel: msg.channel,
+        timestamp: msg.created_at
+      };
+    });
+
+    console.log(`✅ Transformed ${transformedMessages.length} messages`);
 
     res.json({ messages: transformedMessages });
   } catch (err) {
@@ -93,7 +114,7 @@ export async function getAllMessages(req, res) {
       acc[contactId].messages.push({
         id: msg.id,
         message: msg.message,
-        sender: msg.sender === 'client' ? 'dentist' : 'patient',
+        sender: msg.sender === 'client' ? 'dentist' : msg.sender === 'bot' ? 'bot' : 'patient', // ✅ FIXED
         channel: msg.channel,
         timestamp: msg.created_at
       });

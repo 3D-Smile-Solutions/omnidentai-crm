@@ -1,4 +1,4 @@
-// frontend/src/components/ChatInterface.jsx - COMPLETE FIXED VERSION
+// frontend/src/components/ChatInterface.jsx - FIXED BOT MESSAGE ALIGNMENT
 import React, { useState, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -41,7 +41,7 @@ import { useVoiceCall } from './Dashboard/hooks/useVoiceCall';
 import { useSMS } from './Dashboard/hooks/useSMS';
 import { useTheme } from '../context/ThemeContext';
 
-console.log('🔥 ChatInterface.jsx LOADED - FIXED VERSION');
+console.log('🔥 ChatInterface.jsx LOADED - FIXED BOT ALIGNMENT VERSION');
 
 const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
   const { isDarkMode } = useTheme();
@@ -52,7 +52,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
   const [callDialogOpen, setCallDialogOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   
-  // ✅ SMS STATE
+  // SMS STATE
   const [showSMSDialog, setShowSMSDialog] = useState(false);
   const [smsContent, setSmsContent] = useState('');
   const [smsSuccess, setSmsSuccess] = useState(false);
@@ -67,7 +67,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
   const currentUser = useSelector((state) => state.auth.user);
   const { startTyping, stopTyping } = useWebSocket();
   
-  // ✅ SMS HOOK
+  // SMS HOOK
   const { sendSMS, isSending: isSendingSMS, error: smsError } = useSMS();
 
   // Voice call hook
@@ -82,7 +82,6 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     toggleMute
   } = useVoiceCall();
 
-  // Debug: Log voice call state changes
   useEffect(() => {
     console.log('📞 Voice Call State:', {
       isReady,
@@ -141,7 +140,6 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     }
   };
 
-  // ✅ FIXED: SMS Handler (uses 'patient' not 'selectedPatient')
   const handleSMSClick = () => {
     if (!patient?.phone) {
       alert('This patient has no phone number');
@@ -152,7 +150,6 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     setSmsSuccess(false);
   };
 
-  // ✅ FIXED: Send SMS Handler (uses 'patient' not 'selectedPatient')
   const handleSendSMS = async () => {
     if (!smsContent.trim() || !patient?.id) {
       console.warn('Cannot send SMS: missing content or patient ID');
@@ -167,7 +164,6 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
       console.log('✅ SMS sent successfully');
       setSmsSuccess(true);
       
-      // Close dialog after 1.5 seconds
       setTimeout(() => {
         setShowSMSDialog(false);
         setSmsContent('');
@@ -176,11 +172,9 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
       
     } else {
       console.error('❌ Failed to send SMS:', result.error);
-      // Error will show in dialog via smsError
     }
   };
 
-  // Voice call handlers with extensive debugging
   const handlePhoneClick = () => {
     console.log('═══════════════════════════════════════');
     console.log('📞 PHONE ICON CLICKED');
@@ -193,8 +187,6 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     console.log('Dentist ID:', currentUser?.id);
     console.log('isReady:', isReady);
     console.log('isCallInProgress:', isCallInProgress);
-    console.log('makeCall type:', typeof makeCall);
-    console.log('makeCall exists:', !!makeCall);
     console.log('═══════════════════════════════════════');
     
     if (!patient) {
@@ -235,11 +227,6 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
 
     if (confirmed) {
       console.log('✅ User confirmed - Attempting to make call...');
-      console.log('Calling makeCall with:', {
-        patientId: patient.id,
-        patientPhone: patient.phone,
-        dentistId: currentUser.id
-      });
       
       try {
         const result = makeCall(patient.id, patient.phone, currentUser.id);
@@ -268,7 +255,6 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     console.log('New mute state:', newMuteState);
   };
 
-  // File upload handler using new document structure
   const handleFileUploadComplete = (document) => {
     console.log('✅ File uploaded:', document);
     
@@ -530,6 +516,49 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     }));
   };
 
+  // ✅ FIXED: Determine if message should appear on RIGHT side
+  // Bot messages AND dentist messages go on the right
+  const isOwnMessage = (sender) => {
+    return sender === 'dentist' || sender === 'bot';
+  };
+
+  // ✅ NEW: Get background color based on sender
+  const getMessageBackgroundColor = (sender) => {
+    if (sender === 'dentist') {
+      // Dentist messages - Teal
+      return isDarkMode 
+        ? 'rgba(100, 255, 218, 0.15)' 
+        : 'rgba(62, 228, 200, 0.2)';
+    } else if (sender === 'bot') {
+      // Bot messages - Blue
+      return isDarkMode 
+        ? 'rgba(96, 165, 250, 0.15)' 
+        : 'rgba(33, 150, 243, 0.15)';
+    } else {
+      // Patient messages - Gray
+      return isDarkMode 
+        ? 'rgba(17, 24, 39, 0.4)' 
+        : 'rgba(255, 255, 255, 0.6)';
+    }
+  };
+
+  // ✅ NEW: Get border color based on sender
+  const getMessageBorderColor = (sender) => {
+    if (sender === 'dentist') {
+      return isDarkMode 
+        ? '1px solid rgba(100, 255, 218, 0.2)' 
+        : '1px solid rgba(62, 228, 200, 0.25)';
+    } else if (sender === 'bot') {
+      return isDarkMode 
+        ? '1px solid rgba(96, 165, 250, 0.2)' 
+        : '1px solid rgba(33, 150, 243, 0.25)';
+    } else {
+      return isDarkMode 
+        ? '1px solid rgba(100, 255, 218, 0.1)' 
+        : '1px solid rgba(62, 228, 200, 0.15)';
+    }
+  };
+
   if (!patient) {
     return (
       <Box sx={{ 
@@ -742,17 +771,14 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
               },
               transition: 'all 0.25s ease',
             }}
-            onClick={() => {
-              console.log('🔘 Phone IconButton clicked directly');
-              handlePhoneClick();
-            }}
+            onClick={handlePhoneClick}
             disabled={!isReady || !patient?.phone}
             title={!isReady ? 'Voice calling initializing...' : !patient?.phone ? 'No phone number' : 'Call patient'}
           >
             <PhoneIcon />
           </IconButton>
 
-          {/* ✅ SMS BUTTON - FIXED */}
+          {/* SMS Button */}
           <IconButton 
             onClick={handleSMSClick}
             disabled={!patient?.phone}
@@ -882,7 +908,8 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
             );
           }
 
-          const isStaff = item.sender === 'dentist';
+          // ✅ FIXED: Check if message is from bot OR dentist for positioning
+          const isStaff = isOwnMessage(item.sender);
           const isFile = isFileMessage(item.message);
           const fileData = isFile ? parseFileMessage(item.message) : null;
 
@@ -922,29 +949,34 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
                     elevation={0}
                     sx={{
                       p: isFile ? 0.5 : 1.5,
-                      backgroundColor: isStaff 
-                        ? (isDarkMode 
-                          ? 'rgba(100, 255, 218, 0.15)' 
-                          : 'rgba(62, 228, 200, 0.2)')
-                        : (isDarkMode 
-                          ? 'rgba(17, 24, 39, 0.4)' 
-                          : 'rgba(255, 255, 255, 0.6)'),
+                      backgroundColor: getMessageBackgroundColor(item.sender),
                       backdropFilter: 'blur(10px)',
                       color: isStaff 
                         ? (isDarkMode ? '#ffffff' : '#0B1929')
                         : (isDarkMode ? 'rgba(255, 255, 255, 0.9)' : '#0B1929'),
-                      border: isStaff 
-                        ? (isDarkMode 
-                          ? '1px solid rgba(100, 255, 218, 0.2)' 
-                          : '1px solid rgba(62, 228, 200, 0.25)')
-                        : (isDarkMode 
-                          ? '1px solid rgba(100, 255, 218, 0.1)' 
-                          : '1px solid rgba(62, 228, 200, 0.15)'),
+                      border: getMessageBorderColor(item.sender),
                       borderRadius: 2,
                       borderTopLeftRadius: isStaff ? 16 : 4,
                       borderTopRightRadius: isStaff ? 4 : 16,
                     }}
                   >
+                    {/* ✅ NEW: Bot label */}
+                    {item.sender === 'bot' && (
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          display: 'block',
+                          fontSize: '0.7rem',
+                          fontWeight: 600,
+                          mb: 0.5,
+                          color: isDarkMode ? '#60a5fa' : '#1976D2',
+                          opacity: 0.9
+                        }}
+                      >
+                        🤖 AI Assistant
+                      </Typography>
+                    )}
+
                     {isFile && fileData ? (
                       renderFileAttachment(fileData)
                     ) : (
@@ -972,8 +1004,13 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
                     >
                       {formatTime(item.timestamp)}
                     </Typography>
+                    {/* ✅ ENHANCED: Channel badge with icons */}
                     <Chip 
-                      label={item.channel} 
+                      label={
+                        item.channel === 'sms' ? '📱 SMS' : 
+                        item.channel === 'call' ? '📞 Call' : 
+                        '💬 Chat'
+                      }
                       size="small" 
                       sx={{ 
                         height: 16,
@@ -1272,7 +1309,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
         </DialogActions>
       </Dialog>
 
-      {/* ✅ SMS DIALOG - FIXED */}
+      {/* SMS Dialog */}
       <Dialog 
         open={showSMSDialog} 
         onClose={() => !isSendingSMS && setShowSMSDialog(false)}
