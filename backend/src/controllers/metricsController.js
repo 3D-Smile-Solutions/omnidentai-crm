@@ -256,3 +256,190 @@ export async function getOverviewMetrics(req, res) {
     res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 }
+/**
+ * Get patient distribution map data
+ * GET /api/metrics/patient-map
+ */
+export async function getPatientMapData(req, res) {
+  try {
+    const dentistId = req.user?.id;
+    
+    if (!dentistId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    console.log('🗺️ Fetching patient map data for dentist:', dentistId);
+
+    // Get patients with location data
+    const { data: patients, error: patientsError } = await supabase
+      .from('user_profiles')
+      .select('id, contact_id, latitude, longitude, zip_code')
+      .eq('dentist_id', dentistId)
+      .not('latitude', 'is', null)
+      .not('longitude', 'is', null);
+
+    if (patientsError) {
+      console.error('❌ Error fetching patients:', patientsError);
+      throw patientsError;
+    }
+
+    if (!patients || patients.length === 0) {
+      return res.json({
+        locations: [],
+        procedure_summary: [],
+        total_patients: 0,
+        total_states: 0,
+        center: { lat: 39.8283, lng: -98.5795 },
+        zoom: 4
+      });
+    }
+
+    // Get conversation metrics for these patients
+    const contactIds = patients.map(p => p.contact_id).filter(Boolean);
+    
+    const { data: metrics, error: metricsError } = await supabase
+      .from('conversation_metrics')
+      .select('contact_id, procedures_discussed, procedure_primary')
+      .in('contact_id', contactIds);
+
+    if (metricsError) {
+      console.error('❌ Error fetching metrics:', metricsError);
+    }
+
+    // Build map: contact_id -> procedures
+    const procedureMap = {};
+    (metrics || []).forEach(m => {
+      if (!procedureMap[m.contact_id]) {
+        procedureMap[m.contact_id] = [];
+      }
+      
+      // Add primary procedure
+      if (m.procedure_primary) {
+        procedureMap[m.contact_id].push(m.procedure_primary);
+      }
+      
+      // Add discussed procedures
+      if (Array.isArray(m.procedures_discussed)) {
+        procedureMap[m.contact_id].push(...m.procedures_discussed);
+      }
+    });
+
+    // Normalize procedure names
+    const normalizeProcedure = (proc) => {
+      const lower = proc.toLowerCase().trim();
+      if (lower.includes('clean')) return 'Cleanings';
+      if (lower.includes('fill')) return 'Fillings';
+      if (lower.includes('crown')) return 'Crowns';
+      if (lower.includes('root canal')) return 'Root Canals';
+      if (lower.includes('implant')) return 'Implants';
+      if (lower.includes('whiten')) return 'Whitening';
+      if (lower.includes('ortho') || lower.includes('brace')) return 'Orthodontics';
+      if (lower.includes('extract')) return 'Extractions';
+      if (lower.includes('denture')) return 'Dentures';
+      return 'Other';
+    };
+
+    // Group patients by location (rounded lat/lng for clustering)
+    const locationGroups = {};
+    
+    patients.forEach(patient => {
+      const lat = parseFloat(patient.latitude);
+      const lng = parseFloat(patient.longitude);
+      
+      if (isNaN(lat) || isNaN(lng)) return;
+
+      // Round coordinates to 2 decimal places for grouping nearby patients
+      const roundedLat = Math.round(lat * 100) / 100;
+      const roundedLng = Math.round(lng * 100) / 100;
+      const locationKey = `${roundedLat},${roundedLng}`;
+
+      if (!locationGroups[locationKey]) {
+        locationGroups[locationKey] = {
+          lat: roundedLat,
+          lng: roundedLng,
+          zip_code: patient.zip_code,
+          patients: [],
+          procedures: {}
+        };
+      }
+
+      locationGroups[locationKey].patients.push(patient.id);
+
+      // Count procedures for this location
+      const patientProcedures = procedureMap[patient.contact_id] || [];
+      patientProcedures.forEach(proc => {
+        const normalized = normalizeProcedure(proc);
+        locationGroups[locationKey].procedures[normalized] = 
+          (locationGroups[locationKey].procedures[normalized] || 0) + 1;
+      });
+    });
+
+    // Convert to array and add top procedure
+    const locations = Object.values(locationGroups).map((loc, index) => {
+      const procedureEntries = Object.entries(loc.procedures);
+      const topProcedure = procedureEntries.length > 0
+        ? procedureEntries.reduce((a, b) => a[1] > b[1] ? a : b)[0]
+        : 'Other';
+
+      return {
+        id: index,
+        lat: loc.lat,
+        lng: loc.lng,
+        zip_code: loc.zip_code,
+        city: '', // Could enhance with reverse geocoding
+        state: '', // Could enhance with reverse geocoding
+        patient_count: loc.patients.length,
+        top_procedure: topProcedure,
+        procedure_breakdown: loc.procedures
+      };
+    });
+
+    // Calculate procedure summary
+    const procedureTotals = {};
+    locations.forEach(loc => {
+      Object.entries(loc.procedure_breakdown).forEach(([proc, count]) => {
+        procedureTotals[proc] = (procedureTotals[proc] || 0) + count;
+      });
+    });
+
+    const procedure_summary = Object.entries(procedureTotals)
+      .map(([procedure, count]) => ({ procedure, count }))
+      .sort((a, b) => b.count - a.count);
+
+    // Calculate center and zoom based on patient distribution
+    const avgLat = locations.reduce((sum, loc) => sum + loc.lat, 0) / locations.length;
+    const avgLng = locations.reduce((sum, loc) => sum + loc.lng, 0) / locations.length;
+
+    // Calculate unique states (rough estimate based on ZIP codes)
+    const uniqueZipPrefixes = new Set(
+      locations.map(loc => loc.zip_code?.substring(0, 3)).filter(Boolean)
+    );
+
+    const response = {
+      locations,
+      procedure_summary,
+      total_patients: patients.length,
+      total_states: Math.max(1, Math.floor(uniqueZipPrefixes.size / 10)), // Rough estimate
+      center: {
+        lat: avgLat || 39.8283,
+        lng: avgLng || -98.5795
+      },
+      zoom: locations.length > 50 ? 4 : 6
+    };
+
+    console.log('✅ Map data prepared:', {
+      locations: response.locations.length,
+      procedures: response.procedure_summary.length,
+      total_patients: response.total_patients
+    });
+
+    res.json(response);
+
+  } catch (error) {
+    console.error('❌ Error fetching patient map data:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch patient map data',
+      details: error.message 
+    });
+  }
+}

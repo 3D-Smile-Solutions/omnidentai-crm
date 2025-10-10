@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Box, Paper, Typography, CircularProgress } from '@mui/material';
+import axios from 'axios';
+
+const API_URL = 'http://localhost:5000';
 
 // Global flag to track script loading
 let isScriptLoading = false;
@@ -10,159 +13,35 @@ const GoogleMapComponent = ({ isMobile }) => {
   const mapInstanceRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
   const [mapError, setMapError] = useState(null);
+  const [mapData, setMapData] = useState(null);
+  const [dataLoading, setDataLoading] = useState(true);
   
   // Google Maps API key from environment variable
   const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 
-  // Sample patient locations across US states with zipcodes
-  const locations = [
-    // California
-    { 
-      position: { lat: 34.0522, lng: -118.2437 }, 
-      title: 'Los Angeles',
-      state: 'CA',
-      zipcode: '90012',
-      patients: 145,
-      type: 'Cleanings',
-      color: '#3EE4C8'
-    },
-    { 
-      position: { lat: 37.7749, lng: -122.4194 }, 
-      title: 'San Francisco',
-      state: 'CA',
-      zipcode: '94102',
-      patients: 98,
-      type: 'Implants',
-      color: '#9C27B0'
-    },
-    // New York
-    { 
-      position: { lat: 40.7128, lng: -74.0060 }, 
-      title: 'New York City',
-      state: 'NY',
-      zipcode: '10001',
-      patients: 225,
-      type: 'Cleanings',
-      color: '#3EE4C8'
-    },
-    { 
-      position: { lat: 42.8864, lng: -78.8784 }, 
-      title: 'Buffalo',
-      state: 'NY',
-      zipcode: '14201',
-      patients: 67,
-      type: 'Crowns',
-      color: '#FFA726'
-    },
-    // Texas
-    { 
-      position: { lat: 29.7604, lng: -95.3698 }, 
-      title: 'Houston',
-      state: 'TX',
-      zipcode: '77002',
-      patients: 189,
-      type: 'Fillings',
-      color: '#45B7D1'
-    },
-    { 
-      position: { lat: 32.7767, lng: -96.7970 }, 
-      title: 'Dallas',
-      state: 'TX',
-      zipcode: '75201',
-      patients: 156,
-      type: 'Root Canals',
-      color: '#FF7043'
-    },
-    // Florida
-    { 
-      position: { lat: 25.7617, lng: -80.1918 }, 
-      title: 'Miami',
-      state: 'FL',
-      zipcode: '33101',
-      patients: 134,
-      type: 'Cleanings',
-      color: '#3EE4C8'
-    },
-    { 
-      position: { lat: 28.5383, lng: -81.3792 }, 
-      title: 'Orlando',
-      state: 'FL',
-      zipcode: '32801',
-      patients: 92,
-      type: 'Crowns',
-      color: '#FFA726'
-    },
-    // Illinois
-    { 
-      position: { lat: 41.8781, lng: -87.6298 }, 
-      title: 'Chicago',
-      state: 'IL',
-      zipcode: '60601',
-      patients: 178,
-      type: 'Implants',
-      color: '#9C27B0'
-    },
-    // Washington
-    { 
-      position: { lat: 47.6062, lng: -122.3321 }, 
-      title: 'Seattle',
-      state: 'WA',
-      zipcode: '98101',
-      patients: 112,
-      type: 'Fillings',
-      color: '#45B7D1'
-    },
-    // Arizona
-    { 
-      position: { lat: 33.4484, lng: -112.0740 }, 
-      title: 'Phoenix',
-      state: 'AZ',
-      zipcode: '85001',
-      patients: 145,
-      type: 'Root Canals',
-      color: '#FF7043'
-    },
-    // Colorado
-    { 
-      position: { lat: 39.7392, lng: -104.9903 }, 
-      title: 'Denver',
-      state: 'CO',
-      zipcode: '80202',
-      patients: 87,
-      type: 'Cleanings',
-      color: '#3EE4C8'
-    },
-    // Georgia
-    { 
-      position: { lat: 33.7490, lng: -84.3880 }, 
-      title: 'Atlanta',
-      state: 'GA',
-      zipcode: '30303',
-      patients: 167,
-      type: 'Crowns',
-      color: '#FFA726'
-    },
-    // Massachusetts
-    { 
-      position: { lat: 42.3601, lng: -71.0589 }, 
-      title: 'Boston',
-      state: 'MA',
-      zipcode: '02108',
-      patients: 103,
-      type: 'Implants',
-      color: '#9C27B0'
-    },
-    // Nevada
-    { 
-      position: { lat: 36.1699, lng: -115.1398 }, 
-      title: 'Las Vegas',
-      state: 'NV',
-      zipcode: '89101',
-      patients: 121,
-      type: 'Fillings',
-      color: '#45B7D1'
+  // ✅ FETCH REAL DATA FROM BACKEND
+  useEffect(() => {
+    fetchMapData();
+  }, []);
+
+  const fetchMapData = async () => {
+    try {
+      setDataLoading(true);
+      console.log('🗺️ Fetching patient map data...');
+      
+      const response = await axios.get(`${API_URL}/api/metrics/patient-map`, {
+        withCredentials: true
+      });
+
+      console.log('✅ Map data received:', response.data);
+      setMapData(response.data);
+      setDataLoading(false);
+    } catch (err) {
+      console.error('❌ Error fetching map data:', err);
+      setMapError(err.response?.data?.error || 'Failed to load map data');
+      setDataLoading(false);
     }
-  ];
+  };
 
   const initializeMap = useCallback(async () => {
     try {
@@ -174,6 +53,11 @@ const GoogleMapComponent = ({ isMobile }) => {
       if (!API_KEY) {
         setMapError('Google Maps API key not configured');
         setIsLoading(false);
+        return;
+      }
+
+      // Wait for map data to be loaded
+      if (!mapData) {
         return;
       }
 
@@ -192,10 +76,14 @@ const GoogleMapComponent = ({ isMobile }) => {
       const { Map } = await google.maps.importLibrary("maps");
       const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
 
-      // Create the map - centered on US
+      // ✅ Use center from backend data or default to US center
+      const mapCenter = mapData.center || { lat: 39.8283, lng: -98.5795 };
+      const mapZoom = mapData.zoom || (isMobile ? 2.8 : 3.7);
+
+      // Create the map
       const map = new Map(mapContainerRef.current, {
-        center: { lat: 39.8283, lng: -98.5795 }, // Center of US
-        zoom: isMobile ? 2.8 : 3.7, // Zoom out to see entire US
+        center: mapCenter,
+        zoom: mapZoom,
         mapId: 'DEMO_MAP_ID', // Required for Advanced Markers
         mapTypeControl: true,
         streetViewControl: false,
@@ -204,22 +92,22 @@ const GoogleMapComponent = ({ isMobile }) => {
 
       mapInstanceRef.current = map;
 
-      // Add markers to the map
-      locations.forEach((location) => {
+      // ✅ Add markers from REAL backend data
+      mapData.locations.forEach((location) => {
         // Create a pin element with custom color
         const pinElement = new PinElement({
-          background: location.color,
+          background: getProcedureColor(location.top_procedure),
           borderColor: '#FFFFFF',
           glyphColor: '#FFFFFF',
-          glyph: location.patients.toString(),
+          glyph: location.patient_count.toString(),
           scale: isMobile ? 0.85 : 1.0
         });
 
         // Create the advanced marker
         const marker = new AdvancedMarkerElement({
           map: map,
-          position: location.position,
-          title: `${location.title}, ${location.state} - ${location.zipcode}`,
+          position: { lat: location.lat, lng: location.lng },
+          title: `${location.city || 'Location'}, ${location.state || ''} - ${location.zip_code}`,
           content: pinElement.element,
         });
 
@@ -227,10 +115,12 @@ const GoogleMapComponent = ({ isMobile }) => {
         const infoWindow = new google.maps.InfoWindow({
           content: `
             <div style="padding: 10px; min-width: 180px;">
-              <h4 style="margin: 0 0 8px 0; color: #0B1929;">${location.title}, ${location.state}</h4>
-              <p style="margin: 4px 0; color: #333; font-weight: 600;">ZIP: ${location.zipcode}</p>
-              <p style="margin: 4px 0; color: #666;">Procedure: ${location.type}</p>
-              <p style="margin: 4px 0; color: #666;">Patients: ${location.patients}</p>
+              <h4 style="margin: 0 0 8px 0; color: #0B1929;">
+                ${location.city || 'Location'}, ${location.state || ''}
+              </h4>
+              <p style="margin: 4px 0; color: #333; font-weight: 600;">ZIP: ${location.zip_code}</p>
+              <p style="margin: 4px 0; color: #666;">Top Procedure: ${location.top_procedure}</p>
+              <p style="margin: 4px 0; color: #666;">Patients: ${location.patient_count}</p>
             </div>
           `
         });
@@ -256,7 +146,24 @@ const GoogleMapComponent = ({ isMobile }) => {
       setMapError(error.message);
       setIsLoading(false);
     }
-  }, [isMobile]);
+  }, [isMobile, mapData]);
+
+  // ✅ Helper function to get procedure colors
+  const getProcedureColor = (procedure) => {
+    const colorMap = {
+      'Cleanings': '#3EE4C8',
+      'Fillings': '#45B7D1',
+      'Crowns': '#FFA726',
+      'Root Canals': '#FF7043',
+      'Implants': '#9C27B0',
+      'Whitening': '#34d399',
+      'Orthodontics': '#f472b6',
+      'Extractions': '#fb923c',
+      'Dentures': '#94a3b8',
+      'Other': '#64748b'
+    };
+    return colorMap[procedure] || '#64748b';
+  };
 
   const loadGoogleMapsScript = useCallback(() => {
     // Check if API key is configured
@@ -316,8 +223,10 @@ const GoogleMapComponent = ({ isMobile }) => {
   }, [initializeMap]);
 
   useEffect(() => {
-    loadGoogleMapsScript();
-  }, [loadGoogleMapsScript]);
+    if (mapData && !dataLoading) {
+      loadGoogleMapsScript();
+    }
+  }, [loadGoogleMapsScript, mapData, dataLoading]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -325,6 +234,47 @@ const GoogleMapComponent = ({ isMobile }) => {
       mapInstanceRef.current = null;
     };
   }, []);
+
+  // Show loading while fetching data
+  if (dataLoading) {
+    return (
+      <Paper elevation={0} sx={{ 
+        p: 3,
+        mt: 3,
+        background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
+        border: '1px solid rgba(62, 228, 200, 0.2)'
+      }}>
+        <Box sx={{ 
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: 400
+        }}>
+          <CircularProgress sx={{ color: '#3EE4C8' }} />
+        </Box>
+      </Paper>
+    );
+  }
+
+  // Show message if no data
+  if (!mapData || mapData.locations.length === 0) {
+    return (
+      <Paper elevation={0} sx={{ 
+        p: 3,
+        mt: 3,
+        background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
+        border: '1px solid rgba(62, 228, 200, 0.2)',
+        textAlign: 'center'
+      }}>
+        <Typography variant="h6" sx={{ mb: 1, color: 'rgba(11, 25, 41, 0.4)' }}>
+          No Patient Location Data
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'rgba(11, 25, 41, 0.3)' }}>
+          Patient locations will appear here once latitude/longitude data is available
+        </Typography>
+      </Paper>
+    );
+  }
 
   return (
     <Paper elevation={0} sx={{ 
@@ -341,28 +291,21 @@ const GoogleMapComponent = ({ isMobile }) => {
         Click on markers to see patient details
       </Typography>
       
-      {/* Legend */}
+      {/* ✅ DYNAMIC Legend from real data */}
       <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#3EE4C8' }} />
-          <Typography variant="caption" component="span">Cleanings</Typography>
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#45B7D1' }} />
-          <Typography variant="caption" component="span">Fillings</Typography>
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#FFA726' }} />
-          <Typography variant="caption" component="span">Crowns</Typography>
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#FF7043' }} />
-          <Typography variant="caption" component="span">Root Canals</Typography>
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#9C27B0' }} />
-          <Typography variant="caption" component="span">Implants</Typography>
-        </Box>
+        {mapData.procedure_summary.map((proc) => (
+          <Box key={proc.procedure} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Box sx={{ 
+              width: 12, 
+              height: 12, 
+              borderRadius: '50%', 
+              bgcolor: getProcedureColor(proc.procedure) 
+            }} />
+            <Typography variant="caption" component="span">
+              {proc.procedure} ({proc.count})
+            </Typography>
+          </Box>
+        ))}
       </Box>
 
       {/* Map Container */}
@@ -410,16 +353,20 @@ const GoogleMapComponent = ({ isMobile }) => {
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            textAlign: 'center'
+            textAlign: 'center',
+            p: 2
           }}>
-            <Typography variant="body2" color="error">
+            <Typography variant="body2" color="error" sx={{ mb: 1 }}>
               {mapError}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Make sure VITE_GOOGLE_MAPS_API_KEY is set in your .env file
             </Typography>
           </Box>
         )}
       </Box>
 
-      {/* Summary Stats */}
+      {/* ✅ DYNAMIC Summary Stats from real data */}
       <Box sx={{ 
         mt: 3, 
         p: 2, 
@@ -434,7 +381,7 @@ const GoogleMapComponent = ({ isMobile }) => {
             Total States
           </Typography>
           <Typography variant="h6" sx={{ color: '#0B1929', fontWeight: 600 }}>
-            12
+            {mapData.total_states}
           </Typography>
           <Typography variant="caption" component="div" sx={{ color: '#3EE4C8' }}>
             Active states
@@ -445,7 +392,7 @@ const GoogleMapComponent = ({ isMobile }) => {
             Total Patients
           </Typography>
           <Typography variant="h6" sx={{ color: '#0B1929', fontWeight: 600 }}>
-            1,897
+            {mapData.total_patients.toLocaleString()}
           </Typography>
           <Typography variant="caption" component="div" sx={{ color: '#3EE4C8' }}>
             Nationwide
@@ -459,7 +406,7 @@ const GoogleMapComponent = ({ isMobile }) => {
             United States
           </Typography>
           <Typography variant="caption" component="div" sx={{ color: '#3EE4C8' }}>
-            15 locations
+            {mapData.locations.length} locations
           </Typography>
         </Box>
       </Box>

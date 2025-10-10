@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchOverviewMetrics } from '../../../../redux/slices/metricsSlice';
 import OverviewMetrics from './OverviewMetrics';
 import OverviewCharts from './OverviewCharts';
+import GoogleMapComponent from '../../../GoogleMapComponent';
 
 const Overview = ({ isMobile }) => {
   const dispatch = useDispatch();
@@ -61,6 +62,7 @@ const Overview = ({ isMobile }) => {
       </Typography>
       <OverviewMetrics />
       <OverviewCharts isMobile={isMobile} />
+      <GoogleMapComponent/>
     </>
   );
 };

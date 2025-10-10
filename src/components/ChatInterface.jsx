@@ -974,7 +974,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
                           opacity: 0.9
                         }}
                       >
-                        🤖 AI Assistant
+                        OmniDent AI
                       </Typography>
                     )}
 
@@ -1008,9 +1008,9 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
                     {/* ✅ ENHANCED: Channel badge with icons */}
                     <Chip 
                       label={
-                        item.channel === 'sms' ? '📱 SMS' : 
-                        item.channel === 'call' ? '📞 Call' : 
-                        '💬 Chat'
+                        item.channel === 'sms' ? 'SMS' : 
+                        item.channel === 'call' ? 'Call' : 
+                        'Webchat'
                       }
                       size="small" 
                       sx={{ 
