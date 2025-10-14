@@ -7,7 +7,16 @@ import {
   Slider,
   Button,
   Alert,
-  Divider
+  Divider,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Switch,
+  FormGroup,
+  FormControlLabel,
+  Card,
+  CardContent
 } from '@mui/material';
 import {
   LightMode as LightModeIcon,
@@ -15,23 +24,37 @@ import {
   Brightness4 as AutoModeIcon,
   FormatSize as FontSizeIcon,
   ViewModule as CompactIcon,
-  ViewStream as ComfortableIcon
+  ViewStream as ComfortableIcon,
+  Palette as PaletteIcon,
+  Brightness7 as BrightnessIcon
 } from '@mui/icons-material';
+import { useTheme } from '../../../../context/ThemeContext';
 
-const AppearanceOption = ({ icon: Icon, title, description, selected, onClick }) => (
+const AppearanceOption = ({ icon: Icon, title, description, selected, onClick, isDarkMode }) => (
   <Paper
     onClick={onClick}
     elevation={0}
     sx={{
       p: 2.5,
       cursor: 'pointer',
+      background: isDarkMode 
+        ? 'rgba(17, 24, 39, 0.25)'
+        : 'rgba(255, 255, 255, 0.25)',
+      backdropFilter: 'blur(20px)',
       border: '2px solid',
-      borderColor: selected ? '#3EE4C8' : 'divider',
-      borderRadius: 2,
-      transition: 'all 0.2s',
+      borderColor: selected 
+        ? (isDarkMode ? '#64ffda' : '#3EE4C8')
+        : (isDarkMode ? 'rgba(100, 255, 218, 0.1)' : 'rgba(62, 228, 200, 0.1)'),
+      borderRadius: '12px',
+      transition: 'all 0.25s ease',
       '&:hover': {
-        borderColor: selected ? '#3EE4C8' : 'rgba(62, 228, 200, 0.5)',
-        boxShadow: selected ? '0 4px 12px rgba(62, 228, 200, 0.2)' : '0 2px 8px rgba(62, 228, 200, 0.1)'
+        borderColor: selected 
+          ? (isDarkMode ? '#64ffda' : '#3EE4C8')
+          : (isDarkMode ? 'rgba(100, 255, 218, 0.3)' : 'rgba(62, 228, 200, 0.3)'),
+        transform: 'translateY(-2px)',
+        boxShadow: isDarkMode
+          ? '0 8px 32px rgba(100, 255, 218, 0.15)'
+          : '0 8px 32px rgba(62, 228, 200, 0.15)'
       }
     }}
   >
@@ -39,29 +62,49 @@ const AppearanceOption = ({ icon: Icon, title, description, selected, onClick })
       <Box
         sx={{
           p: 1,
-          borderRadius: 1,
-          bgcolor: selected ? 'rgba(62, 228, 200, 0.1)' : 'rgba(0, 0, 0, 0.04)',
-          color: selected ? '#3EE4C8' : 'text.secondary',
-          mr: 1.5
+          borderRadius: '8px',
+          backgroundColor: selected 
+            ? (isDarkMode ? 'rgba(100, 255, 218, 0.1)' : 'rgba(62, 228, 200, 0.1)')
+            : (isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)'),
+          color: selected 
+            ? (isDarkMode ? '#64ffda' : '#3EE4C8')
+            : (isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)'),
+          mr: 1.5,
+          border: '1px solid',
+          borderColor: selected
+            ? (isDarkMode ? 'rgba(100, 255, 218, 0.2)' : 'rgba(62, 228, 200, 0.2)')
+            : 'transparent'
         }}
       >
         <Icon />
       </Box>
-      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+      <Typography 
+        variant="subtitle1" 
+        sx={{ 
+          fontWeight: 600,
+          color: isDarkMode ? '#ffffff' : '#0B1929'
+        }}
+      >
         {title}
       </Typography>
     </Box>
-    <Typography variant="body2" color="text.secondary" sx={{ ml: 6 }}>
+    <Typography 
+      variant="body2" 
+      sx={{ 
+        ml: 6,
+        color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)'
+      }}
+    >
       {description}
     </Typography>
   </Paper>
 );
 
 const AppearanceSettings = () => {
+  const { isDarkMode, toggleDarkMode, backgroundTheme, changeBackgroundTheme } = useTheme();
   const [settings, setSettings] = useState(() => {
     const saved = localStorage.getItem('appearanceSettings');
     return saved ? JSON.parse(saved) : {
-      theme: 'light',
       fontSize: 14,
       density: 'comfortable'
     };
@@ -69,9 +112,13 @@ const AppearanceSettings = () => {
 
   const [success, setSuccess] = useState(false);
 
-  const handleThemeChange = (theme) => {
-    setSettings({ ...settings, theme });
-  };
+  const backgroundOptions = [
+    //{ value: 'none', label: 'None', description: 'Clean interface without animations' },
+    //{ value: 'lightRays', label: 'Light Rays', description: 'Dynamic light rays effect' },
+    { value: 'gradientBlinds', label: 'Gradient Blinds', description: 'Animated gradient blinds' },
+    //{ value: 'threads', label: 'Threads', description: 'Flowing threads animation' },
+    //{ value: 'orb', label: 'Orb', description: 'Floating orb effect' },
+  ];
 
   const handleDensityChange = (density) => {
     setSettings({ ...settings, density });
@@ -84,7 +131,6 @@ const AppearanceSettings = () => {
   const handleSave = async () => {
     try {
       localStorage.setItem('appearanceSettings', JSON.stringify(settings));
-      
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (error) {
@@ -94,59 +140,217 @@ const AppearanceSettings = () => {
 
   return (
     <Box>
-      <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+      <Typography 
+        variant="h6" 
+        gutterBottom 
+        sx={{ 
+          fontWeight: 600,
+          color: isDarkMode ? '#ffffff' : '#0B1929'
+        }}
+      >
         Appearance Settings
       </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+      <Typography 
+        variant="body2" 
+        sx={{ 
+          mb: 3,
+          color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)'
+        }}
+      >
         Customize how the dashboard looks and feels
       </Typography>
 
       {success && (
-        <Alert severity="success" sx={{ mb: 3 }}>
+        <Alert 
+          severity="success" 
+          sx={{ 
+            mb: 3,
+            backgroundColor: isDarkMode 
+              ? 'rgba(52, 211, 153, 0.1)' 
+              : 'rgba(76, 175, 80, 0.1)',
+            color: isDarkMode ? '#34d399' : '#388E3C',
+            border: isDarkMode 
+              ? '1px solid rgba(52, 211, 153, 0.2)' 
+              : '1px solid rgba(76, 175, 80, 0.2)',
+          }}
+        >
           Appearance settings saved successfully!
         </Alert>
       )}
 
-      {/* Theme Selection */}
-      <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
-        Theme
-      </Typography>
+      {/* Theme Settings Card */}
+      <Card sx={{ 
+        mb: 4,
+        background: isDarkMode 
+          ? 'rgba(17, 24, 39, 0.25)'
+          : 'rgba(255, 255, 255, 0.25)',
+        backdropFilter: 'blur(20px)',
+        border: isDarkMode 
+          ? '1px solid rgba(100, 255, 218, 0.1)' 
+          : '1px solid rgba(62, 228, 200, 0.1)',
+        boxShadow: 'none',
+        borderRadius: '12px',
+      }}>
+        <CardContent>
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              fontWeight: 600, 
+              mb: 3, 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 1,
+              color: isDarkMode ? '#64ffda' : '#3EE4C8',
+            }}
+          >
+            <PaletteIcon /> Theme Preferences
+          </Typography>
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2, mb: 4 }}>
-        <AppearanceOption
-          icon={LightModeIcon}
-          title="Light"
-          description="Clean and bright interface"
-          selected={settings.theme === 'light'}
-          onClick={() => handleThemeChange('light')}
-        />
-        <AppearanceOption
-          icon={DarkModeIcon}
-          title="Dark"
-          description="Easy on the eyes in low light"
-          selected={settings.theme === 'dark'}
-          onClick={() => handleThemeChange('dark')}
-        />
-        <AppearanceOption
-          icon={AutoModeIcon}
-          title="Auto"
-          description="Follows system preferences"
-          selected={settings.theme === 'auto'}
-          onClick={() => handleThemeChange('auto')}
-        />
-      </Box>
+          <FormGroup>
+            {/* Dark Mode Toggle */}
+            <Box 
+              sx={{ 
+                mb: 3, 
+                p: 2,
+                background: isDarkMode 
+                  ? 'rgba(255, 255, 255, 0.02)'
+                  : 'rgba(0, 0, 0, 0.02)',
+                borderRadius: '8px',
+                border: isDarkMode 
+                  ? '1px solid rgba(100, 255, 218, 0.1)' 
+                  : '1px solid rgba(62, 228, 200, 0.1)',
+              }}
+            >
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={isDarkMode}
+                    onChange={toggleDarkMode}
+                    sx={{
+                      '& .MuiSwitch-track': {
+                        backgroundColor: isDarkMode
+                          ? 'rgba(100, 255, 218, 0.2)'
+                          : 'rgba(62, 228, 200, 0.2)',
+                      },
+                      '& .MuiSwitch-thumb': {
+                        backgroundColor: isDarkMode ? '#64ffda' : '#3EE4C8',
+                      }
+                    }}
+                  />
+                }
+                label={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {isDarkMode ? <DarkModeIcon /> : <LightModeIcon />}
+                    <Box>
+                      <Typography sx={{ fontWeight: 600 }}>
+                        {isDarkMode ? "Dark Mode" : "Light Mode"}
+                      </Typography>
+                      <Typography variant="caption" sx={{ 
+                        color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(11, 25, 41, 0.5)'
+                      }}>
+                        {isDarkMode 
+                          ? "Easier on the eyes in low light"
+                          : "Best for well-lit environments"}
+                      </Typography>
+                    </Box>
+                  </Box>
+                }
+              />
+            </Box>
+            
+            {/* Background Theme Selector */}
+            <FormControl fullWidth variant="outlined">
+              <InputLabel>Background Animation</InputLabel>
+              <Select
+                value={backgroundTheme}
+                onChange={(e) => changeBackgroundTheme(e.target.value)}
+                label="Background Animation"
+                sx={{
+                  backgroundColor: isDarkMode
+                    ? 'rgba(255, 255, 255, 0.03)'
+                    : 'rgba(0, 0, 0, 0.02)',
+                  backdropFilter: 'blur(10px)',
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: isDarkMode
+                      ? 'rgba(100, 255, 218, 0.2)'
+                      : 'rgba(62, 228, 200, 0.2)',
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: isDarkMode ? '#64ffda' : '#3EE4C8',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: isDarkMode ? '#64ffda' : '#3EE4C8',
+                  }
+                }}
+              >
+                {backgroundOptions.map(option => (
+                  <MenuItem key={option.value} value={option.value}>
+                    <Box>
+                      <Typography>{option.label}</Typography>
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          color: isDarkMode 
+                            ? 'rgba(255, 255, 255, 0.5)' 
+                            : 'rgba(11, 25, 41, 0.5)'
+                        }}
+                      >
+                        {option.description}
+                      </Typography>
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </FormGroup>
+        </CardContent>
+      </Card>
 
-      <Divider sx={{ my: 3 }} />
+      <Divider sx={{ 
+        my: 3,
+        borderColor: isDarkMode 
+          ? 'rgba(100, 255, 218, 0.1)' 
+          : 'rgba(62, 228, 200, 0.1)',
+      }} />
 
-      {/* Font Size */}
-      <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+      {/* Font Size 
+      <Typography 
+        variant="subtitle1" 
+        sx={{ 
+          fontWeight: 600, 
+          mb: 2,
+          color: isDarkMode ? '#ffffff' : '#0B1929'
+        }}
+      >
         Font Size
       </Typography>
 
-      <Paper elevation={0} sx={{ p: 3, mb: 4, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
+      <Paper 
+        elevation={0} 
+        sx={{ 
+          p: 3, 
+          mb: 4, 
+          background: isDarkMode 
+            ? 'rgba(17, 24, 39, 0.25)'
+            : 'rgba(255, 255, 255, 0.25)',
+          backdropFilter: 'blur(20px)',
+          border: isDarkMode 
+            ? '1px solid rgba(100, 255, 218, 0.1)' 
+            : '1px solid rgba(62, 228, 200, 0.1)',
+          borderRadius: '12px'
+        }}
+      >
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <FontSizeIcon sx={{ mr: 2, color: 'text.secondary' }} />
-          <Typography variant="body2" color="text.secondary">
+          <FontSizeIcon sx={{ 
+            mr: 2, 
+            color: isDarkMode ? '#64ffda' : '#3EE4C8' 
+          }} />
+          <Typography 
+            variant="body2" 
+            sx={{
+              color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)'
+            }}
+          >
             Adjust the text size throughout the dashboard
           </Typography>
         </Box>
@@ -164,26 +368,65 @@ const AppearanceSettings = () => {
               { value: 18, label: 'Extra Large' }
             ]}
             sx={{
-              color: '#3EE4C8',
+              color: isDarkMode ? '#64ffda' : '#3EE4C8',
               '& .MuiSlider-thumb': {
+                backgroundColor: isDarkMode ? '#64ffda' : '#3EE4C8',
                 '&:hover, &.Mui-focusVisible': {
-                  boxShadow: '0 0 0 8px rgba(62, 228, 200, 0.16)'
+                  boxShadow: isDarkMode
+                    ? '0 0 0 8px rgba(100, 255, 218, 0.16)'
+                    : '0 0 0 8px rgba(62, 228, 200, 0.16)'
                 }
+              },
+              '& .MuiSlider-track': {
+                backgroundColor: isDarkMode ? '#64ffda' : '#3EE4C8',
+              },
+              '& .MuiSlider-rail': {
+                backgroundColor: isDarkMode 
+                  ? 'rgba(100, 255, 218, 0.2)' 
+                  : 'rgba(62, 228, 200, 0.2)',
               }
             }}
           />
         </Box>
-        <Box sx={{ mt: 2, p: 2, bgcolor: 'rgba(62, 228, 200, 0.05)', borderRadius: 1 }}>
-          <Typography variant="body2" sx={{ fontSize: `${settings.fontSize}px` }}>
+        <Box sx={{ 
+          mt: 2, 
+          p: 2, 
+          backgroundColor: isDarkMode 
+            ? 'rgba(100, 255, 218, 0.05)' 
+            : 'rgba(62, 228, 200, 0.05)',
+          border: isDarkMode 
+            ? '1px solid rgba(100, 255, 218, 0.1)' 
+            : '1px solid rgba(62, 228, 200, 0.1)',
+          borderRadius: '8px'
+        }}>
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              fontSize: `${settings.fontSize}px`,
+              color: isDarkMode ? '#ffffff' : '#0B1929'
+            }}
+          >
             Preview: This is how text will look at {settings.fontSize}px
           </Typography>
         </Box>
       </Paper>
 
-      <Divider sx={{ my: 3 }} />
+      <Divider sx={{ 
+        my: 3,
+        borderColor: isDarkMode 
+          ? 'rgba(100, 255, 218, 0.1)' 
+          : 'rgba(62, 228, 200, 0.1)',
+      }} />*/}
 
-      {/* Density/Layout */}
-      <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+      {/* Density/Layout 
+      <Typography 
+        variant="subtitle1" 
+        sx={{ 
+          fontWeight: 600, 
+          mb: 2,
+          color: isDarkMode ? '#ffffff' : '#0B1929'
+        }}
+      >
         Layout Density
       </Typography>
 
@@ -194,6 +437,7 @@ const AppearanceSettings = () => {
           description="More information in less space"
           selected={settings.density === 'compact'}
           onClick={() => handleDensityChange('compact')}
+          isDarkMode={isDarkMode}
         />
         <AppearanceOption
           icon={ComfortableIcon}
@@ -201,20 +445,33 @@ const AppearanceSettings = () => {
           description="Spacious layout with more breathing room"
           selected={settings.density === 'comfortable'}
           onClick={() => handleDensityChange('comfortable')}
+          isDarkMode={isDarkMode}
         />
-      </Box>
+      </Box>*/}
 
       <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-start' }}>
         <Button
           variant="contained"
           onClick={handleSave}
           sx={{
-            bgcolor: '#3EE4C8',
-            color: '#0B1929',
+            backgroundColor: isDarkMode ? '#64ffda' : '#3EE4C8',
+            color: isDarkMode ? '#0B1929' : '#ffffff',
+            fontWeight: 600,
             px: 4,
+            py: 1.5,
+            borderRadius: '10px',
+            textTransform: 'none',
+            boxShadow: isDarkMode
+              ? '0 4px 20px rgba(100, 255, 218, 0.3)'
+              : '0 4px 20px rgba(62, 228, 200, 0.3)',
             '&:hover': {
-              bgcolor: '#2BC4A8'
-            }
+              backgroundColor: isDarkMode ? '#52d4c2' : '#2BC4A8',
+              transform: 'translateY(-2px)',
+              boxShadow: isDarkMode
+                ? '0 6px 24px rgba(100, 255, 218, 0.4)'
+                : '0 6px 24px rgba(62, 228, 200, 0.4)',
+            },
+            transition: 'all 0.25s ease',
           }}
         >
           Save Changes

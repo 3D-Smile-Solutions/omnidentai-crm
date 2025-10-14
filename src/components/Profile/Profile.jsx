@@ -1,3 +1,4 @@
+// frontend/src/components/Profile/Profile.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -14,17 +15,7 @@ import {
   ListItemIcon,
   ListItemText,
   Chip,
-  Button,
-  IconButton,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Switch,
-  FormGroup,
-  FormControlLabel,
-  Card,
-  CardContent
+  Button
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -34,24 +25,13 @@ import {
   Badge as BadgeIcon,
   Business as BusinessIcon,
   LocalHospital as LocalHospitalIcon,
-  Edit as EditIcon,
-  Palette as PaletteIcon,
-  Brightness4 as DarkModeIcon,
-  Brightness7 as LightModeIcon
+  Settings as SettingsIcon
 } from '@mui/icons-material';
 
 const Profile = () => {
   const navigate = useNavigate();
   const { user: currentUser } = useSelector((state) => state.auth);
-  const { isDarkMode, toggleDarkMode, backgroundTheme, changeBackgroundTheme } = useTheme();
-
-  const backgroundOptions = [
-    { value: 'none', label: 'None', description: 'No animated background' },
-    { value: 'lightRays', label: 'Light Rays', description: 'Dynamic light rays effect' },
-    { value: 'gradientBlinds', label: 'Gradient Blinds', description: 'Animated gradient blinds' },
-    { value: 'threads', label: 'Threads', description: 'Flowing threads animation' },
-    { value: 'orb', label: 'Orb', description: 'Floating orb effect' },
-  ];
+  const { isDarkMode } = useTheme();
 
   if (!currentUser) {
     return (
@@ -140,19 +120,20 @@ const Profile = () => {
           onClick={() => navigate('/dashboard')}
           sx={{ 
             mb: 3,
-            color: 'text.primary',
+            color: isDarkMode ? '#ffffff' : '#0B1929',
             backdropFilter: 'blur(10px)',
             backgroundColor: isDarkMode 
-              ? 'rgba(255, 255, 255, 0.05)' 
-              : 'rgba(255, 255, 255, 0.5)',
+              ? 'rgba(17, 24, 39, 0.25)' 
+              : 'rgba(255, 255, 255, 0.25)',
             border: isDarkMode
-              ? '1px solid rgba(255, 255, 255, 0.1)'
-              : '1px solid rgba(255, 255, 255, 0.5)',
+              ? '1px solid rgba(100, 255, 218, 0.1)'
+              : '1px solid rgba(62, 228, 200, 0.1)',
             '&:hover': {
               backgroundColor: isDarkMode
                 ? 'rgba(100, 255, 218, 0.1)'
-                : 'rgba(255, 255, 255, 1)',
+                : 'rgba(62, 228, 200, 0.1)',
               transform: 'translateY(-2px)',
+              borderColor: isDarkMode ? '#64ffda' : '#3EE4C8',
             },
             transition: 'all 0.3s ease',
           }}
@@ -163,18 +144,18 @@ const Profile = () => {
         <Paper
           elevation={0}
           sx={{
-            borderRadius: 3,
+            borderRadius: '16px',
             overflow: 'hidden',
             backdropFilter: 'blur(20px)',
             backgroundColor: isDarkMode 
-              ? 'rgba(17, 24, 39, 0.5)' 
-              : 'rgba(255, 255, 255, 0.5)',
+              ? 'rgba(17, 24, 39, 0.25)' 
+              : 'rgba(255, 255, 255, 0.25)',
             border: isDarkMode 
-              ? '1px solid rgba(100, 255, 218, 0.2)' 
-              : '1px solid rgba(62, 228, 200, 0.2)',
+              ? '1px solid rgba(100, 255, 218, 0.1)' 
+              : '1px solid rgba(62, 228, 200, 0.1)',
             boxShadow: isDarkMode
-              ? '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06)'
-              : '0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.5)',
+              ? '0 8px 32px rgba(0, 0, 0, 0.3)'
+              : '0 8px 32px rgba(0, 0, 0, 0.08)',
             transition: 'all 0.3s ease',
           }}
         >
@@ -182,30 +163,57 @@ const Profile = () => {
           <Box
             sx={{
               background: isDarkMode 
-                ? 'linear-gradient(135deg, rgba(100, 255, 218, 0.1) 0%, rgba(167, 139, 250, 0.1) 100%)'
-                : 'linear-gradient(135deg, rgba(62, 228, 200, 0.15) 0%, rgba(43, 196, 168, 0.15) 100%)',
+                ? 'linear-gradient(135deg, rgba(100, 255, 218, 0.05) 0%, rgba(167, 139, 250, 0.05) 100%)'
+                : 'linear-gradient(135deg, rgba(62, 228, 200, 0.08) 0%, rgba(43, 196, 168, 0.08) 100%)',
               backdropFilter: 'blur(10px)',
               p: 4,
               position: 'relative',
               borderBottom: isDarkMode 
-                ? '1px solid rgba(100, 255, 218, 0.2)' 
-                : '1px solid rgba(62, 228, 200, 0.2)',
+                ? '1px solid rgba(100, 255, 218, 0.1)' 
+                : '1px solid rgba(62, 228, 200, 0.1)',
             }}
           >
-
+            {/* Settings Button */}
+            <Box sx={{ position: 'absolute', top: 16, right: 16 }}>
+              <Button
+                startIcon={<SettingsIcon />}
+                onClick={() => navigate('/dashboard/settings')}
+                size="small"
+                sx={{
+                  color: isDarkMode ? '#64ffda' : '#3EE4C8',
+                  backgroundColor: isDarkMode 
+                    ? 'rgba(100, 255, 218, 0.1)' 
+                    : 'rgba(62, 228, 200, 0.1)',
+                  border: isDarkMode 
+                    ? '1px solid rgba(100, 255, 218, 0.2)' 
+                    : '1px solid rgba(62, 228, 200, 0.2)',
+                  '&:hover': {
+                    backgroundColor: isDarkMode 
+                      ? 'rgba(100, 255, 218, 0.2)' 
+                      : 'rgba(62, 228, 200, 0.2)',
+                  },
+                  textTransform: 'none',
+                  fontWeight: 600,
+                }}
+              >
+                Manage Settings
+              </Button>
+            </Box>
 
             <Box sx={{ textAlign: 'center' }}>
               <Avatar
                 sx={{
                   background: isDarkMode
                     ? 'linear-gradient(135deg, #64ffda 0%, #a78bfa 100%)'
-                    : 'linear-gradient(135deg, #3EE4C8 0%, #0B1929 100%)',
+                    : 'linear-gradient(135deg, #3EE4C8 0%, #2BC4A8 100%)',
                   width: 100,
                   height: 100,
                   fontSize: '2.5rem',
                   fontWeight: 600,
                   margin: '0 auto 16px',
-                  border: '4px solid rgba(255,255,255,0.2)',
+                  border: isDarkMode 
+                    ? '4px solid rgba(100, 255, 218, 0.2)'
+                    : '4px solid rgba(62, 228, 200, 0.2)',
                   boxShadow: isDarkMode
                     ? '0 8px 24px rgba(100, 255, 218, 0.3)'
                     : '0 8px 24px rgba(62, 228, 200, 0.3)',
@@ -218,12 +226,7 @@ const Profile = () => {
                 sx={{ 
                   fontWeight: 700,
                   mb: 1,
-                  background: isDarkMode
-                    ? 'linear-gradient(135deg, #64ffda 0%, #a78bfa 100%)'
-                    : 'linear-gradient(135deg, #0B1929 0%, #3EE4C8 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
+                  color: isDarkMode ? '#ffffff' : '#0B1929',
                 }}
               >
                 {fullName}
@@ -232,10 +235,14 @@ const Profile = () => {
                 icon={<LocalHospitalIcon sx={{ fontSize: 18 }} />}
                 label="Dentist" 
                 sx={{ 
-                  backgroundColor: isDarkMode ?  'rgba(255, 255, 255, 0.1)' :  'rgba(71, 71, 71, 0.23)',
+                  backgroundColor: isDarkMode 
+                    ? 'rgba(100, 255, 218, 0.1)' 
+                    : 'rgba(62, 228, 200, 0.1)',
                   backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  color: isDarkMode ? '#64ffda' : '#18574cff',
+                  border: isDarkMode 
+                    ? '1px solid rgba(100, 255, 218, 0.2)' 
+                    : '1px solid rgba(62, 228, 200, 0.2)',
+                  color: isDarkMode ? '#64ffda' : '#3EE4C8',
                   fontWeight: 600,
                   fontSize: '0.875rem'
                 }}
@@ -245,105 +252,6 @@ const Profile = () => {
 
           {/* Content Section */}
           <Box sx={{ p: 4 }}>
-            {/* Theme Settings Section */}
-            <Card sx={{ 
-              mb: 4,
-              backdropFilter: 'blur(20px)',
-              backgroundColor: isDarkMode
-                ? 'rgba(255, 255, 255, 0.03)'
-                : 'rgba(0, 0, 0, 0.02)',
-              border: isDarkMode
-                ? '1px solid rgba(100, 255, 218, 0.1)'
-                : '1px solid rgba(62, 228, 200, 0.1)',
-              boxShadow: 'none',
-            }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ 
-                  fontWeight: 600, 
-                  mb: 3, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: 1,
-                  color: isDarkMode ? '#64ffda' : '#144940ff',
-                }}>
-                  <PaletteIcon /> Theme Settings
-                </Typography>
-
-                <FormGroup>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={isDarkMode}
-                        onChange={toggleDarkMode}
-                        icon={<LightModeIcon />}
-                        checkedIcon={<DarkModeIcon />}
-                        sx={{
-                          '& .MuiSwitch-track': {
-                            backgroundColor: isDarkMode
-                              ? 'rgba(100, 255, 218, 0.2)'
-                              : 'rgba(62, 228, 200, 0.2)',
-                          },
-                          '& .MuiSwitch-thumb': {
-                            backgroundColor: isDarkMode ? '#64ffda' : '#3EE4C8',
-                          }
-                        }}
-                      />
-                    }
-                    label={
-                      <Typography sx={{ ml: 1 }}>
-                        {isDarkMode ? "Dark Mode" : "Light Mode"}
-                      </Typography>
-                    }
-                    sx={{ mb: 3 }}
-                  />
-                  
-                  <FormControl fullWidth variant="outlined">
-                    <InputLabel>Background Theme</InputLabel>
-                    <Select
-                      value={backgroundTheme}
-                      onChange={(e) => changeBackgroundTheme(e.target.value)}
-                      label="Background Theme"
-                      sx={{
-                        backgroundColor: isDarkMode
-                          ? 'rgba(255, 255, 255, 0.03)'
-                          : 'rgba(0, 0, 0, 0.02)',
-                        backdropFilter: 'blur(10px)',
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: isDarkMode
-                            ? 'rgba(100, 255, 218, 0.2)'
-                            : 'rgba(62, 228, 200, 0.2)',
-                        },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: isDarkMode ? '#64ffda' : '#3EE4C8',
-                        },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: isDarkMode ? '#64ffda' : '#3EE4C8',
-                        }
-                      }}
-                    >
-                      {backgroundOptions.map(option => (
-                        <MenuItem key={option.value} value={option.value}>
-                          <Box>
-                            <Typography>{option.label}</Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {option.description}
-                            </Typography>
-                          </Box>
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </FormGroup>
-              </CardContent>
-            </Card>
-
-            <Divider sx={{ 
-              my: 3,
-              borderColor: isDarkMode
-                ? 'rgba(100, 255, 218, 0.1)'
-                : 'rgba(62, 228, 200, 0.1)',
-            }} />
-
             {/* Personal Information */}
             <Typography variant="h6" sx={{ 
               fontWeight: 600, 
@@ -361,7 +269,7 @@ const Profile = () => {
                     sx={{
                       width: 40,
                       height: 40,
-                      borderRadius: '50%',
+                      borderRadius: '10px',
                       backgroundColor: isDarkMode
                         ? 'rgba(100, 255, 218, 0.1)'
                         : 'rgba(62, 228, 200, 0.1)',
@@ -375,24 +283,36 @@ const Profile = () => {
                         : 'rgba(62, 228, 200, 0.2)',
                     }}
                   >
-                    <BadgeIcon sx={{ color: isDarkMode ? '#64ffda' : 'rgba(0, 0, 0, 0.42)', fontSize: 20 }} />
+                    <BadgeIcon sx={{ color: isDarkMode ? '#64ffda' : '#3EE4C8', fontSize: 20 }} />
                   </Box>
                 </ListItemIcon>
                 <ListItemText
                   primary={
-                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                    <Typography variant="caption" sx={{ 
+                      color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)', 
+                      fontWeight: 500 
+                    }}>
                       Doctor ID
                     </Typography>
                   }
                   secondary={
-                    <Typography variant="body1" sx={{ color: 'text.primary', fontWeight: 500, fontFamily: 'monospace', mt: 0.5 }}>
+                    <Typography variant="body1" sx={{ 
+                      color: isDarkMode ? '#ffffff' : '#0B1929', 
+                      fontWeight: 500, 
+                      fontFamily: 'monospace', 
+                      mt: 0.5 
+                    }}>
                       {currentUser.id}
                     </Typography>
                   }
                 />
               </ListItem>
 
-              <Divider sx={{ borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)' }} />
+              <Divider sx={{ 
+                borderColor: isDarkMode 
+                  ? 'rgba(100, 255, 218, 0.05)' 
+                  : 'rgba(62, 228, 200, 0.05)' 
+              }} />
 
               {/* Email */}
               {currentUser.email && (
@@ -403,7 +323,7 @@ const Profile = () => {
                         sx={{
                           width: 40,
                           height: 40,
-                          borderRadius: '50%',
+                          borderRadius: '10px',
                           backgroundColor: isDarkMode
                             ? 'rgba(100, 255, 218, 0.1)'
                             : 'rgba(62, 228, 200, 0.1)',
@@ -417,23 +337,34 @@ const Profile = () => {
                             : 'rgba(62, 228, 200, 0.2)',
                         }}
                       >
-                        <EmailIcon sx={{ color: isDarkMode ? '#64ffda' : 'rgba(0, 0, 0, 0.42)', fontSize: 20 }} />
+                        <EmailIcon sx={{ color: isDarkMode ? '#64ffda' : '#3EE4C8', fontSize: 20 }} />
                       </Box>
                     </ListItemIcon>
                     <ListItemText
                       primary={
-                        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                        <Typography variant="caption" sx={{ 
+                          color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)', 
+                          fontWeight: 500 
+                        }}>
                           Email Address
                         </Typography>
                       }
                       secondary={
-                        <Typography variant="body1" sx={{ color: 'text.primary', fontWeight: 500, mt: 0.5 }}>
+                        <Typography variant="body1" sx={{ 
+                          color: isDarkMode ? '#ffffff' : '#0B1929', 
+                          fontWeight: 500, 
+                          mt: 0.5 
+                        }}>
                           {currentUser.email}
                         </Typography>
                       }
                     />
                   </ListItem>
-                  <Divider sx={{ borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)' }} />
+                  <Divider sx={{ 
+                    borderColor: isDarkMode 
+                      ? 'rgba(100, 255, 218, 0.05)' 
+                      : 'rgba(62, 228, 200, 0.05)' 
+                  }} />
                 </>
               )}
 
@@ -446,7 +377,7 @@ const Profile = () => {
                         sx={{
                           width: 40,
                           height: 40,
-                          borderRadius: '50%',
+                          borderRadius: '10px',
                           backgroundColor: isDarkMode
                             ? 'rgba(100, 255, 218, 0.1)'
                             : 'rgba(62, 228, 200, 0.1)',
@@ -465,18 +396,29 @@ const Profile = () => {
                     </ListItemIcon>
                     <ListItemText
                       primary={
-                        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                        <Typography variant="caption" sx={{ 
+                          color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)', 
+                          fontWeight: 500 
+                        }}>
                           Phone Number
                         </Typography>
                       }
                       secondary={
-                        <Typography variant="body1" sx={{ color: 'text.primary', fontWeight: 500, mt: 0.5 }}>
+                        <Typography variant="body1" sx={{ 
+                          color: isDarkMode ? '#ffffff' : '#0B1929', 
+                          fontWeight: 500, 
+                          mt: 0.5 
+                        }}>
                           {currentUser.phone}
                         </Typography>
                       }
                     />
                   </ListItem>
-                  <Divider sx={{ borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)' }} />
+                  <Divider sx={{ 
+                    borderColor: isDarkMode 
+                      ? 'rgba(100, 255, 218, 0.05)' 
+                      : 'rgba(62, 228, 200, 0.05)' 
+                  }} />
                 </>
               )}
 
@@ -489,7 +431,7 @@ const Profile = () => {
                         sx={{
                           width: 40,
                           height: 40,
-                          borderRadius: '50%',
+                          borderRadius: '10px',
                           backgroundColor: isDarkMode
                             ? 'rgba(100, 255, 218, 0.1)'
                             : 'rgba(62, 228, 200, 0.1)',
@@ -503,23 +445,34 @@ const Profile = () => {
                             : 'rgba(62, 228, 200, 0.2)',
                         }}
                       >
-                        <BusinessIcon sx={{ color: isDarkMode ? '#64ffda' : 'rgba(0, 0, 0, 0.42)', fontSize: 20 }} />
+                        <BusinessIcon sx={{ color: isDarkMode ? '#64ffda' : '#3EE4C8', fontSize: 20 }} />
                       </Box>
                     </ListItemIcon>
                     <ListItemText
                       primary={
-                        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                        <Typography variant="caption" sx={{ 
+                          color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)', 
+                          fontWeight: 500 
+                        }}>
                           Practice Name
                         </Typography>
                       }
                       secondary={
-                        <Typography variant="body1" sx={{ color: 'text.primary', fontWeight: 500, mt: 0.5 }}>
+                        <Typography variant="body1" sx={{ 
+                          color: isDarkMode ? '#ffffff' : '#0B1929', 
+                          fontWeight: 500, 
+                          mt: 0.5 
+                        }}>
                           {currentUser.practice_name}
                         </Typography>
                       }
                     />
                   </ListItem>
-                  <Divider sx={{ borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.42)' }} />
+                  <Divider sx={{ 
+                    borderColor: isDarkMode 
+                      ? 'rgba(100, 255, 218, 0.05)' 
+                      : 'rgba(62, 228, 200, 0.05)' 
+                  }} />
                 </>
               )}
 
@@ -531,10 +484,10 @@ const Profile = () => {
                       sx={{
                         width: 40,
                         height: 40,
-                        borderRadius: '50%',
+                        borderRadius: '10px',
                         backgroundColor: isDarkMode
                           ? 'rgba(100, 255, 218, 0.1)'
-                          : 'rgba(0, 255, 213, 0.1)',
+                          : 'rgba(62, 228, 200, 0.1)',
                         backdropFilter: 'blur(10px)',
                         display: 'flex',
                         alignItems: 'center',
@@ -545,17 +498,24 @@ const Profile = () => {
                           : 'rgba(62, 228, 200, 0.2)',
                       }}
                     >
-                      <CalendarIcon sx={{ color: isDarkMode ? '#64ffda' : 'rgba(0, 0, 0, 0.42)', fontSize: 20 }} />
+                      <CalendarIcon sx={{ color: isDarkMode ? '#64ffda' : '#3EE4C8', fontSize: 20 }} />
                     </Box>
                   </ListItemIcon>
                   <ListItemText
                     primary={
-                      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                      <Typography variant="caption" sx={{ 
+                        color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)', 
+                        fontWeight: 500 
+                      }}>
                         Member Since
                       </Typography>
                     }
                     secondary={
-                      <Typography variant="body1" sx={{ color: 'text.primary', fontWeight: 500, mt: 0.5 }}>
+                      <Typography variant="body1" sx={{ 
+                        color: isDarkMode ? '#ffffff' : '#0B1929', 
+                        fontWeight: 500, 
+                        mt: 0.5 
+                      }}>
                         {formatDate(currentUser.created_at)}
                       </Typography>
                     }
@@ -578,14 +538,14 @@ const Profile = () => {
                 sx={{
                   p: 3,
                   backgroundColor: isDarkMode
-                    ? 'rgba(255, 255, 255, 0.03)'
-                    : 'rgba(0, 0, 0, 0.02)',
+                    ? 'rgba(17, 24, 39, 0.25)'
+                    : 'rgba(255, 255, 255, 0.25)',
                   backdropFilter: 'blur(10px)',
-                  borderRadius: 2,
+                  borderRadius: '12px',
                   border: '1px solid',
                   borderColor: isDarkMode
-                    ? 'rgba(100, 255, 218, 0.2)'
-                    : 'rgba(62, 228, 200, 0.2)',
+                    ? 'rgba(100, 255, 218, 0.1)'
+                    : 'rgba(62, 228, 200, 0.1)',
                   textAlign: 'center'
                 }}
               >
@@ -593,9 +553,9 @@ const Profile = () => {
                   label="Active" 
                   sx={{ 
                     background: isDarkMode
-                      ? 'linear-gradient(135deg, #64ffda 0%, #a78bfa 100%)'
-                      : 'linear-gradient(135deg, #3EE4C8 0%, #10b981 100%)',
-                    color: '#ffffff',
+                      ? 'linear-gradient(135deg, #64ffda 0%, #52d4c2 100%)'
+                      : 'linear-gradient(135deg, #3EE4C8 0%, #2BC4A8 100%)',
+                    color: isDarkMode ? '#0B1929' : '#ffffff',
                     fontWeight: 600,
                     fontSize: '0.875rem',
                     px: 2,
@@ -604,7 +564,10 @@ const Profile = () => {
                       : '0 4px 12px rgba(62, 228, 200, 0.3)',
                   }}
                 />
-                <Typography variant="body2" sx={{ color: 'text.secondary', mt: 2 }}>
+                <Typography variant="body2" sx={{ 
+                  color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)', 
+                  mt: 2 
+                }}>
                   Your account is in good standing
                 </Typography>
               </Paper>
