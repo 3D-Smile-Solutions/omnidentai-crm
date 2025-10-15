@@ -1,7 +1,7 @@
 // backend/src/routes/authRoutes.js
 import express from "express";
 import { 
-  signup, 
+  // signup, 
   login, 
   me, 
   logout, 
@@ -22,7 +22,7 @@ import { authMiddleware } from "../middlewares/authMiddleware.js";
 const router = express.Router();
 
 // Auth routes
-router.post("/signup", signup);
+// router.post("/signup", signup);
 router.post("/login", login);
 router.get("/me", me);
 router.post("/logout", logout);

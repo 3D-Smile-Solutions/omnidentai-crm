@@ -1,18 +1,19 @@
 // redux/slices/authSlice.js
+
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
 const API_URL = "http://localhost:5000";
 
-// --- Thunks ---
-export const signup = createAsyncThunk("auth/signup", async (formData, { rejectWithValue }) => {
-  try {
-    const res = await axios.post(`${API_URL}/auth/signup`, formData, { withCredentials: true });
-    return res.data;
-  } catch (err) {
-    return rejectWithValue(err.response?.data?.error || "Signup failed");
-  }
-});
+// --- Thunks 
+// export const signup = createAsyncThunk("auth/signup", async (formData, { rejectWithValue }) => {
+//   try {
+//     const res = await axios.post(`${API_URL}/auth/signup`, formData, { withCredentials: true });
+//     return res.data;
+//   } catch (err) {
+//     return rejectWithValue(err.response?.data?.error || "Signup failed");
+//   }
+// });
 
 export const login = createAsyncThunk("auth/login", async (formData, { rejectWithValue }) => {
   try {
@@ -23,11 +24,10 @@ export const login = createAsyncThunk("auth/login", async (formData, { rejectWit
   }
 });
 
-// 🔧 CHANGE 1: Update fetchMe to return full response data
 export const fetchMe = createAsyncThunk("auth/me", async (_, { rejectWithValue }) => {
   try {
     const res = await axios.get(`${API_URL}/auth/me`, { withCredentials: true });
-    return res.data; // ← CHANGED: Return full response, not just res.data.user
+    return res.data;
   } catch (err) {
     return rejectWithValue(err.response?.data?.error || "Unauthorized");
   }
@@ -48,7 +48,8 @@ const authSlice = createSlice({
     user: null,
     session: null,
     sessionId: null,
-    signupStatus: "idle",
+    externalId: null, 
+    // signupStatus: "idle",
     loginStatus: "idle",
     fetchStatus: "idle",
     logoutStatus: "idle",
@@ -58,17 +59,21 @@ const authSlice = createSlice({
   extraReducers: (builder) => {
     builder
       // Signup
-      .addCase(signup.pending, (state) => {
-        state.signupStatus = "loading";
-        state.error = null;
-      })
-      .addCase(signup.fulfilled, (state) => {
-        state.signupStatus = "succeeded";
-      })
-      .addCase(signup.rejected, (state, action) => {
-        state.signupStatus = "failed";
-        state.error = action.payload;
-      })
+      // .addCase(signup.pending, (state) => {
+      //   state.signupStatus = "loading";
+      //   state.error = null;
+      // })
+      // .addCase(signup.fulfilled, (state, action) => {
+      //   state.signupStatus = "succeeded";
+        // ← Store external_id if returned
+      //   if (action.payload.externalId) {
+      //     state.externalId = action.payload.externalId;
+      //   }
+      // })
+      // .addCase(signup.rejected, (state, action) => {
+      //   state.signupStatus = "failed";
+      //   state.error = action.payload;
+      // })
 
       // Login
       .addCase(login.pending, (state) => {
@@ -79,11 +84,16 @@ const authSlice = createSlice({
         state.loginStatus = "succeeded";
         state.user = action.payload.user;
         state.session = action.payload.session;
-        //  Store sessionId from login response
+        
         if (action.payload.user?.sessionId) {
           state.sessionId = action.payload.user.sessionId;
         } else if (action.payload.sessionLogId) {
           state.sessionId = action.payload.sessionLogId;
+        }
+        
+        // ← Store external_id
+        if (action.payload.user?.external_id) {
+          state.externalId = action.payload.user.external_id;
         }
       })
       .addCase(login.rejected, (state, action) => {
@@ -91,25 +101,27 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // 🔧 CHANGE 2: Fix fetchMe.fulfilled to preserve session
+      // fetchMe
       .addCase(fetchMe.pending, (state) => {
         state.fetchStatus = "loading";
       })
       .addCase(fetchMe.fulfilled, (state, action) => {
         state.fetchStatus = "succeeded";
-        state.user = action.payload.user || action.payload; // Handle both response formats
+        state.user = action.payload.user || action.payload;
         
-        // ← CHANGED: Only update session if provided, preserve existing session
         if (action.payload.access_token) {
           state.session = { access_token: action.payload.access_token };
         } else if (action.payload.session) {
           state.session = action.payload.session;
         }
-        // If no session data in response, keep existing session intact
 
-        // now:Store sessionId if available in fetchMe response
         if (action.payload.user?.sessionId) {
           state.sessionId = action.payload.user.sessionId;
+        }
+        
+        // ← Store external_id
+        if (action.payload.user?.external_id) {
+          state.externalId = action.payload.user.external_id;
         }
       })
       .addCase(fetchMe.rejected, (state, action) => {
@@ -125,7 +137,8 @@ const authSlice = createSlice({
         state.logoutStatus = "succeeded";
         state.user = null;
         state.session = null;
-        state.sessionId = null; //  Clear sessionId on logout
+        state.sessionId = null;
+        state.externalId = null; // ← Clear external_id
       })
       .addCase(logout.rejected, (state, action) => {
         state.logoutStatus = "failed";
