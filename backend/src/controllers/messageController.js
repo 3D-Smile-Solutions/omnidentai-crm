@@ -1,3 +1,5 @@
+// backend/src/controllers/messageController.js
+
 import supabase from "../utils/supabaseClient.js";
 import { 
   getMessagesByContactId,
@@ -6,6 +8,10 @@ import {
   getPatientByContactId,
   getUnreadCounts 
 } from "../models/messageModel.js";
+// ✅ NEW: Import conversation control functions
+import {
+  updateDentistResponseTime
+} from "../models/conversationControlModel.js";
 
 // GET /messages/:patientId - Get messages for specific patient
 export async function getMessagesWithPatient(req, res) {
@@ -43,11 +49,10 @@ export async function getMessagesWithPatient(req, res) {
     
     console.log("Fetched messages:", messages.length);
 
-    // ✅ FIXED: Properly map ALL sender types
+    // Map ALL sender types
     const transformedMessages = messages.map(msg => {
       let senderType;
       
-      // Map database sender values to frontend format
       switch(msg.sender) {
         case 'client':
           senderType = 'dentist';
@@ -56,10 +61,10 @@ export async function getMessagesWithPatient(req, res) {
           senderType = 'patient';
           break;
         case 'bot':
-          senderType = 'bot'; // ✅ FIXED: Keep bot as bot
+          senderType = 'bot';
           break;
         default:
-          senderType = msg.sender; // Keep original if unknown
+          senderType = msg.sender;
       }
       
       return {
@@ -114,7 +119,7 @@ export async function getAllMessages(req, res) {
       acc[contactId].messages.push({
         id: msg.id,
         message: msg.message,
-        sender: msg.sender === 'client' ? 'dentist' : msg.sender === 'bot' ? 'bot' : 'patient', // ✅ FIXED
+        sender: msg.sender === 'client' ? 'dentist' : msg.sender === 'bot' ? 'bot' : 'patient',
         channel: msg.channel,
         timestamp: msg.created_at
       });
@@ -144,12 +149,10 @@ export async function getAllMessages(req, res) {
 }
 
 // POST /messages - Send a new message
-// backend/controllers/messageController.js
-
 export async function sendMessage(req, res) {
   try {
     const dentistId = req.user?.id;
-    const { patientId, content, channelType = 'webchat' } = req.body; // ✅ channelType can be 'webchat' or 'sms'
+    const { patientId, content, channelType = 'webchat' } = req.body;
 
     console.log("Send message request:", { dentistId, patientId, content, channelType });
 
@@ -161,15 +164,15 @@ export async function sendMessage(req, res) {
       return res.status(400).json({ error: "Patient ID and message content are required" });
     }
 
-    // ✅ VALIDATE CHANNEL TYPE
+    // Validate channel type
     if (!['webchat', 'sms'].includes(channelType)) {
       return res.status(400).json({ error: "Invalid channel type. Must be 'webchat' or 'sms'" });
     }
 
-    // Get patient's contact_id
+    // ✅ USING contact_id: Get patient's contact_id (not id)
     const { data: patient, error: patientError } = await supabase
       .from("user_profiles")
-      .select("contact_id, phone") // ✅ Also get phone for SMS validation
+      .select("contact_id, phone")
       .eq("id", patientId)
       .eq("dentist_id", dentistId)
       .single();
@@ -184,18 +187,27 @@ export async function sendMessage(req, res) {
       return res.status(400).json({ error: "Patient has no contact ID" });
     }
 
-    // ✅ IF SMS, VALIDATE PHONE NUMBER
+    // If SMS, validate phone number
     if (channelType === 'sms' && !patient.phone) {
       return res.status(400).json({ error: "Patient has no phone number for SMS" });
     }
 
     console.log("Found patient contact_id:", patient.contact_id);
 
+    // ✅ NEW: Update dentist response timestamp (marks bot as paused automatically if needed)
+    try {
+      await updateDentistResponseTime(patient.contact_id, dentistId);
+      console.log("✅ Updated dentist response time for contact:", patient.contact_id);
+    } catch (err) {
+      console.error("⚠️ Failed to update dentist response time (non-critical):", err);
+      // Don't block message sending if this fails
+    }
+
     const messageData = {
-      contactId: patient.contact_id,
+      contactId: patient.contact_id, // ✅ Using contact_id
       content: content.trim(),
       senderType: 'client', 
-      channelType // ✅ Pass channel type ('webchat' or 'sms')
+      channelType
     };
 
     console.log("Creating message:", messageData);
@@ -209,7 +221,7 @@ export async function sendMessage(req, res) {
       id: newMessage.id,
       message: newMessage.message,
       sender: 'dentist',
-      channel: newMessage.channel, // ✅ Will be 'webchat' or 'sms'
+      channel: newMessage.channel,
       timestamp: newMessage.created_at
     };
 
@@ -226,13 +238,10 @@ export async function sendMessage(req, res) {
   }
 }
 
-
 // GET /messages/unread-counts - Get unread message counts
 export async function getUnreadMessageCounts(req, res) {
   try {
     const dentistId = req.user?.id;
-    
-    // console.log("Fetching unread counts for dentist:", dentistId);
     
     if (!dentistId) {
       return res.status(401).json({ error: "Unauthorized" });
@@ -240,9 +249,7 @@ export async function getUnreadMessageCounts(req, res) {
 
     const unreadCountsByContactId = await getUnreadCounts(dentistId);
     
-    // console.log("Unread counts by contact_id:", unreadCountsByContactId);
-    
-    // Convert contact_id based counts to patient_id based counts
+    // ✅ Convert contact_id based counts to patient_id based counts
     const { data: patients, error } = await supabase
       .from("user_profiles")
       .select("id, contact_id")
@@ -253,8 +260,6 @@ export async function getUnreadMessageCounts(req, res) {
       throw error;
     }
 
-    // console.log("Found patients:", patients.length);
-
     const unreadCountsByPatientId = {};
     patients.forEach(patient => {
       const count = unreadCountsByContactId[patient.contact_id] || 0;
@@ -262,8 +267,6 @@ export async function getUnreadMessageCounts(req, res) {
         unreadCountsByPatientId[patient.id] = count;
       }
     });
-    
-    // console.log("Unread counts by patient_id:", unreadCountsByPatientId);
     
     res.json({ unreadCounts: unreadCountsByPatientId });
   } catch (err) {

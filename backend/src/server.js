@@ -13,6 +13,7 @@ import messageRoutes from "./routes/message.js";
 import metrics from './routes/metrics.js';
 import voiceCall from './routes/voice.js'
 import smsRoutes from './routes/sms.js';
+import conversationControlRoutes from "./routes/conversationControl.js";
 // import settings from './routes/settings.js'
 import practiceDocumentRoutes from './routes/practiceDocumentRoutes.js';
 dotenv.config();
@@ -23,7 +24,11 @@ const httpServer = createServer(app);
 // Socket.io setup with CORS
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: [
+    'http://localhost:3000',      // React frontend
+    'http://localhost:5501',      // Live Server (chat widget)
+    'http://127.0.0.1:5501',      // Alternative localhost
+  ],
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -31,12 +36,17 @@ const io = new Server(httpServer, {
 
 // Regular middleware
 app.use(cors({
-  origin: "http://localhost:3000",
+   origin: [
+    'http://localhost:3000',      // React frontend
+    'http://localhost:5501',      // Live Server (chat widget)
+    'http://127.0.0.1:5501',      // Alternative localhost
+  ],
   credentials: true
 }));
 app.use(express.json());
 app.use(cookieParser());
-
+// Add this BEFORE registering routes to verify import worked
+console.log('✅ Conversation control routes loaded:', typeof conversationControlRoutes);
 // Routes
 app.use("/auth", authRoutes);
 app.use("/patients", patientRoutes);
@@ -47,6 +57,7 @@ app.use('/api/voice', voiceCall);
 app.use('/api/sms', smsRoutes);
 // app.use('/api/settings', settings);
 app.use('/practice-documents', practiceDocumentRoutes);
+app.use("/api/conversation-control", conversationControlRoutes);
 app.get("/", (req, res) => {
   res.json({ message: "Backend API is running 🚀" });
 });

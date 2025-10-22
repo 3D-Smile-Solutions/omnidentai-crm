@@ -32,6 +32,10 @@ import {
   MicOff as MicOffIcon,
   Sms as SmsIcon
 } from '@mui/icons-material';
+// At the top with other imports
+import { useConversationControl } from './Dashboard/hooks/useConversationControl';
+import { SmartToy as BotIcon, Person as PersonIcon } from '@mui/icons-material';
+import { Tooltip, Switch, FormControlLabel } from '@mui/material';
 import CustomCheckbox from './CustomCheckbox';
 import TypingIndicator from './Dashboard/TypingIndicator';
 import UnifiedUploadModal from './Dashboard/components/UploadModal/UnifiedUploadModal';
@@ -254,7 +258,40 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     setIsMuted(newMuteState);
     console.log('New mute state:', newMuteState);
   };
-
+  useEffect(() => {
+  console.log('🔍 Current patient:', patient);
+  console.log('📋 Patient contact_id:', patient?.contact_id);
+}, [patient]);
+// ✅ NEW: Add conversation control hook (uses contact_id)
+  const {
+    botPaused,
+    loading: controlLoading,
+    pauseBot,
+    resumeBot
+  } = useConversationControl(patient?.contact_id); // ✅ Using contact_id
+useEffect(() => {
+  console.log('🎛️ Bot control state:', { 
+    botPaused, 
+    controlLoading, 
+    hasContactId: !!patient?.contact_id 
+  });
+}, [botPaused, controlLoading, patient?.contact_id]);
+  // ✅ NEW: Handle bot control toggle
+  const handleBotControlToggle = async (event) => {
+    const shouldPause = event.target.checked;
+    
+    if (shouldPause) {
+      const success = await pauseBot('manual_intervention');
+      if (success) {
+        console.log('✅ Bot paused - you are now in control');
+      }
+    } else {
+      const success = await resumeBot();
+      if (success) {
+        console.log('✅ Bot resumed - bot will respond automatically');
+      }
+    }
+  };
   const handleFileUploadComplete = (document) => {
     console.log('✅ File uploaded:', document);
     
@@ -691,141 +728,245 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
           zIndex: 0,
         }}
       />
-
-      {/* Header */}
-      <Paper 
-        elevation={0} 
+{/* Header */}
+<Paper 
+  elevation={0} 
+  sx={{ 
+    p: isMobile ? 1.5 : 2, 
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'space-between',
+    borderBottom: isDarkMode 
+      ? '1px solid rgba(100, 255, 218, 0.1)' 
+      : '1px solid rgba(62, 228, 200, 0.1)',
+    background: isDarkMode 
+      ? 'rgba(17, 24, 39, 0.3)'
+      : 'rgba(255, 255, 255, 0.3)',
+    backdropFilter: 'blur(10px)',
+    position: 'relative',
+    zIndex: 1,
+  }}
+>
+  {/* Left side - Patient info */}
+  <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+    <Avatar 
+      sx={{ 
+        bgcolor: getAvatarColor(patient.id),
+        width: isMobile ? 36 : 40,
+        height: isMobile ? 36 : 40,
+        mr: isMobile ? 1.5 : 2,
+        fontSize: isMobile ? '0.9rem' : '1rem',
+        border: isDarkMode 
+          ? '2px solid rgba(100, 255, 218, 0.2)' 
+          : '2px solid rgba(62, 228, 200, 0.2)',
+      }}
+    >
+      {getInitials(patient.first_name || patient.firstName, patient.last_name || patient.lastName)}
+    </Avatar>
+    <Box sx={{ flex: 1 }}>
+      <Typography 
+        variant={isMobile ? "body2" : "subtitle1"} 
         sx={{ 
-          p: isMobile ? 1.5 : 2, 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between',
-          borderBottom: isDarkMode 
-            ? '1px solid rgba(100, 255, 218, 0.1)' 
-            : '1px solid rgba(62, 228, 200, 0.1)',
-          background: isDarkMode 
-            ? 'rgba(17, 24, 39, 0.3)'
-            : 'rgba(255, 255, 255, 0.3)',
-          backdropFilter: 'blur(10px)',
-          position: 'relative',
-          zIndex: 1,
+          fontWeight: 600, 
+          color: isDarkMode ? '#64ffda' : '#0B1929' 
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-          <Avatar 
-            sx={{ 
-              bgcolor: getAvatarColor(patient.id),
-              width: isMobile ? 36 : 40,
-              height: isMobile ? 36 : 40,
-              mr: isMobile ? 1.5 : 2,
-              fontSize: isMobile ? '0.9rem' : '1rem',
-              border: isDarkMode 
-                ? '2px solid rgba(100, 255, 218, 0.2)' 
-                : '2px solid rgba(62, 228, 200, 0.2)',
+        {patient.first_name || patient.firstName} {patient.last_name || patient.lastName}
+      </Typography>
+      <Typography 
+        variant="caption" 
+        sx={{ 
+          color: isDarkMode 
+            ? 'rgba(255, 255, 255, 0.5)' 
+            : 'rgba(11, 25, 41, 0.6)', 
+          fontSize: isMobile ? '0.7rem' : '0.75rem' 
+        }}
+      >
+        Patient ID: {patient.id.substring(0, 8)}...
+      </Typography>
+    </Box>
+  </Box>
+
+  {/* Right side - Bot control toggle + Action buttons */}
+  <Box sx={{ display: 'flex', gap: isMobile ? 0.5 : 1, alignItems: 'center' }}>
+    
+    {/* ✅ NEW: Bot Control Toggle */}
+    <Tooltip 
+      title={botPaused 
+        ? "🧑‍⚕️ Manual Mode: You're responding to patient messages" 
+        : "🤖 Auto Mode: Bot is responding automatically"
+      }
+      placement="bottom"
+      arrow
+    >
+      <FormControlLabel
+        control={
+          <Switch
+            checked={botPaused}
+            onChange={handleBotControlToggle}
+            disabled={controlLoading || !patient?.contact_id}
+            size={isMobile ? "small" : "medium"}
+            sx={{
+              '& .MuiSwitch-switchBase.Mui-checked': {
+                color: isDarkMode ? '#64ffda' : '#3EE4C8',
+              },
+              '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                backgroundColor: isDarkMode ? '#64ffda' : '#3EE4C8',
+              },
+              '& .MuiSwitch-track': {
+                backgroundColor: isDarkMode 
+                  ? 'rgba(255, 255, 255, 0.3)' 
+                  : 'rgba(11, 25, 41, 0.3)',
+              },
             }}
-          >
-            {getInitials(patient.first_name || patient.firstName, patient.last_name || patient.lastName)}
-          </Avatar>
-          <Box sx={{ flex: 1 }}>
-            <Typography 
-              variant={isMobile ? "body2" : "subtitle1"} 
-              sx={{ 
-                fontWeight: 600, 
-                color: isDarkMode ? '#64ffda' : '#0B1929' 
-              }}
-            >
-              {patient.first_name || patient.firstName} {patient.last_name || patient.lastName}
-            </Typography>
+          />
+        }
+        label={
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 0.5,
+            minWidth: isMobile ? 65 : 75,
+            ml: isMobile ? -0.5 : 0,
+          }}>
+            {botPaused ? (
+              <PersonIcon 
+                fontSize="small" 
+                sx={{ 
+                  color: isDarkMode ? '#64ffda' : '#3EE4C8',
+                  fontSize: isMobile ? '1rem' : '1.2rem'
+                }} 
+              />
+            ) : (
+              <BotIcon 
+                fontSize="small" 
+                sx={{ 
+                  color: isDarkMode 
+                    ? 'rgba(255, 255, 255, 0.6)' 
+                    : 'rgba(11, 25, 41, 0.6)',
+                  fontSize: isMobile ? '1rem' : '1.2rem'
+                }} 
+              />
+            )}
             <Typography 
               variant="caption" 
               sx={{ 
-                color: isDarkMode 
-                  ? 'rgba(255, 255, 255, 0.5)' 
-                  : 'rgba(11, 25, 41, 0.6)', 
-                fontSize: isMobile ? '0.7rem' : '0.75rem' 
+                fontWeight: 600,
+                fontSize: isMobile ? '0.7rem' : '0.75rem',
+                color: botPaused 
+                  ? (isDarkMode ? '#64ffda' : '#3EE4C8')
+                  : (isDarkMode 
+                    ? 'rgba(255, 255, 255, 0.6)' 
+                    : 'rgba(11, 25, 41, 0.6)'),
+                transition: 'color 0.25s ease',
               }}
             >
-              Patient ID: {patient.id.substring(0, 8)}...
+              {botPaused ? 'Manual' : 'Auto'}
             </Typography>
           </Box>
-        </Box>
-        <Box sx={{ display: 'flex', gap: isMobile ? 0 : 1 }}>
-          {/* Phone Call Button */}
-          <IconButton 
-            sx={{ 
-              color: isCallInProgress 
-                ? '#64ffda' 
-                : (isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)'),
-              backgroundColor: isDarkMode 
-                ? 'rgba(100, 255, 218, 0.05)' 
-                : 'rgba(62, 228, 200, 0.08)',
-              '&:hover': { 
-                color: isDarkMode ? '#64ffda' : '#3EE4C8',
-                backgroundColor: isDarkMode 
-                  ? 'rgba(100, 255, 218, 0.1)' 
-                  : 'rgba(62, 228, 200, 0.15)',
-              },
-              '&:disabled': { 
-                color: isDarkMode 
-                  ? 'rgba(255, 255, 255, 0.3)' 
-                  : 'rgba(11, 25, 41, 0.3)' 
-              },
-              transition: 'all 0.25s ease',
-            }}
-            onClick={handlePhoneClick}
-            disabled={!isReady || !patient?.phone}
-            title={!isReady ? 'Voice calling initializing...' : !patient?.phone ? 'No phone number' : 'Call patient'}
-          >
-            <PhoneIcon />
-          </IconButton>
+        }
+        labelPlacement="start"
+        sx={{ 
+          mr: isMobile ? 0.5 : 1.5,
+          ml: 0,
+          '& .MuiFormControlLabel-label': {
+            ml: 0
+          }
+        }}
+      />
+    </Tooltip>
 
-          {/* SMS Button */}
-          <IconButton 
-            onClick={handleSMSClick}
-            disabled={!patient?.phone}
-            title={patient?.phone ? "Send SMS" : "No phone number"}
-            sx={{ 
-              color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)',
-              backgroundColor: isDarkMode 
-                ? 'rgba(100, 255, 218, 0.05)' 
-                : 'rgba(62, 228, 200, 0.08)',
-              '&:hover': { 
-                backgroundColor: isDarkMode 
-                  ? 'rgba(100, 255, 218, 0.1)' 
-                  : 'rgba(62, 228, 200, 0.15)',
-                color: isDarkMode ? '#64ffda' : '#3EE4C8',
-              },
-              '&:disabled': { 
-                color: isDarkMode 
-                  ? 'rgba(255, 255, 255, 0.3)' 
-                  : 'rgba(11, 25, 41, 0.3)' 
-              },
-              transition: 'all 0.25s ease',
-            }}
-          >
-            <SmsIcon />
-          </IconButton>
+    {/* Divider (optional visual separator) */}
+    {!isMobile && (
+      <Box 
+        sx={{ 
+          width: '1px', 
+          height: 32, 
+          backgroundColor: isDarkMode 
+            ? 'rgba(100, 255, 218, 0.1)' 
+            : 'rgba(62, 228, 200, 0.1)',
+          mx: 0.5
+        }} 
+      />
+    )}
+    
+    {/* Phone Call Button */}
+    <IconButton 
+      sx={{ 
+        color: isCallInProgress 
+          ? '#64ffda' 
+          : (isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)'),
+        backgroundColor: isDarkMode 
+          ? 'rgba(100, 255, 218, 0.05)' 
+          : 'rgba(62, 228, 200, 0.08)',
+        '&:hover': { 
+          color: isDarkMode ? '#64ffda' : '#3EE4C8',
+          backgroundColor: isDarkMode 
+            ? 'rgba(100, 255, 218, 0.1)' 
+            : 'rgba(62, 228, 200, 0.15)',
+        },
+        '&:disabled': { 
+          color: isDarkMode 
+            ? 'rgba(255, 255, 255, 0.3)' 
+            : 'rgba(11, 25, 41, 0.3)' 
+        },
+        transition: 'all 0.25s ease',
+      }}
+      onClick={handlePhoneClick}
+      disabled={!isReady || !patient?.phone}
+      title={!isReady ? 'Voice calling initializing...' : !patient?.phone ? 'No phone number' : 'Call patient'}
+    >
+      <PhoneIcon fontSize={isMobile ? "small" : "medium"} />
+    </IconButton>
 
-          <IconButton 
-            sx={{ 
-              color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)',
-              backgroundColor: isDarkMode 
-                ? 'rgba(100, 255, 218, 0.05)' 
-                : 'rgba(62, 228, 200, 0.08)',
-              '&:hover': { 
-                backgroundColor: isDarkMode 
-                  ? 'rgba(100, 255, 218, 0.1)' 
-                  : 'rgba(62, 228, 200, 0.15)',
-                color: isDarkMode ? '#64ffda' : '#3EE4C8',
-              },
-              transition: 'all 0.25s ease',
-            }}
-            onClick={() => setDetailsModalOpen(true)}
-          >
-            <MoreVertIcon />
-          </IconButton>
-        </Box>
-      </Paper>
+    {/* SMS Button */}
+    <IconButton 
+      onClick={handleSMSClick}
+      disabled={!patient?.phone}
+      title={patient?.phone ? "Send SMS" : "No phone number"}
+      sx={{ 
+        color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)',
+        backgroundColor: isDarkMode 
+          ? 'rgba(100, 255, 218, 0.05)' 
+          : 'rgba(62, 228, 200, 0.08)',
+        '&:hover': { 
+          backgroundColor: isDarkMode 
+            ? 'rgba(100, 255, 218, 0.1)' 
+            : 'rgba(62, 228, 200, 0.15)',
+          color: isDarkMode ? '#64ffda' : '#3EE4C8',
+        },
+        '&:disabled': { 
+          color: isDarkMode 
+            ? 'rgba(255, 255, 255, 0.3)' 
+            : 'rgba(11, 25, 41, 0.3)' 
+        },
+        transition: 'all 0.25s ease',
+      }}
+    >
+      <SmsIcon fontSize={isMobile ? "small" : "medium"} />
+    </IconButton>
+
+    {/* More Options Button */}
+    <IconButton 
+      sx={{ 
+        color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)',
+        backgroundColor: isDarkMode 
+          ? 'rgba(100, 255, 218, 0.05)' 
+          : 'rgba(62, 228, 200, 0.08)',
+        '&:hover': { 
+          backgroundColor: isDarkMode 
+            ? 'rgba(100, 255, 218, 0.1)' 
+            : 'rgba(62, 228, 200, 0.15)',
+          color: isDarkMode ? '#64ffda' : '#3EE4C8',
+        },
+        transition: 'all 0.25s ease',
+      }}
+      onClick={() => setDetailsModalOpen(true)}
+    >
+      <MoreVertIcon fontSize={isMobile ? "small" : "medium"} />
+    </IconButton>
+  </Box>
+</Paper>
 
       {/* Messages Area */}
       <Box sx={{ 
