@@ -61,33 +61,40 @@ app.use("/api/conversation-control", conversationControlRoutes);
 app.get("/", (req, res) => {
   res.json({ message: "Backend API is running 🚀" });
 });
-
 // ==========================================
 // WEBSOCKET AUTHENTICATION & HANDLING
 // ==========================================
 
-// Authenticate WebSocket connections using Supabase tokens
+// Authenticate WebSocket connections
 const authenticateSocket = async (socket, next) => {
   try {
-    // Get token from socket handshake
     const token = socket.handshake.auth.token;
+    const contactId = socket.handshake.auth.contactId;
     
+    // ✅ CHAT WIDGET CONNECTION (no token, uses contactId)
+    if (!token && contactId) {
+      socket.isWidget = true;
+      socket.contactId = contactId;
+      console.log(`✅ Chat widget authenticated for contact: ${contactId}`);
+      return next();
+    }
+    
+    // ✅ CRM CONNECTION (requires token)
     if (!token) {
       return next(new Error('No authentication token provided'));
     }
 
-    // Validate token with Supabase (same as your existing middleware)
     const { data, error } = await supabase.auth.getUser(token);
     
     if (error || !data?.user) {
       return next(new Error('Invalid authentication token'));
     }
 
-    // Store user info in socket
     socket.userId = data.user.id;
     socket.userEmail = data.user.email;
+    socket.isWidget = false;
     
-    // console.log(`✅ Socket authenticated for user: ${data.user.email}`);
+    console.log(`✅ CRM authenticated for user: ${data.user.email}`);
     next();
   } catch (err) {
     console.error('Socket authentication error:', err);
@@ -95,121 +102,200 @@ const authenticateSocket = async (socket, next) => {
   }
 };
 
-// Apply authentication to all socket connections
 io.use(authenticateSocket);
 
 // Handle WebSocket connections
 io.on('connection', (socket) => {
-  // console.log(`🔌 User connected: ${socket.userEmail} (${socket.userId})`);
+  
+  // ==========================================
+  // CHAT WIDGET CONNECTIONS
+  // ==========================================
+  if (socket.isWidget) {
+    console.log(`🔌 Chat widget connected: ${socket.contactId}`);
+    
+    // Join widget to its contact room
+    socket.join(`contact_${socket.contactId}`);
+    
+    // ✅ WIDGET SENDS MESSAGE TO CRM
+    socket.on('send_message', async (data) => {
+      try {
+        const { content } = data;
+        const contactId = socket.contactId;
 
-  // Join user to their personal room for receiving updates
+        console.log(`📤 Widget message from ${contactId}: ${content}`);
+
+        if (!content?.trim()) {
+          socket.emit('message_error', { error: 'Message content required' });
+          return;
+        }
+
+        // Find patient by contact_id
+        const { data: patient, error: patientError } = await supabase
+          .from("user_profiles")
+          .select("id, dentist_id, first_name, last_name")
+          .eq("contact_id", contactId)
+          .single();
+
+        if (patientError || !patient) {
+          socket.emit('message_error', { error: 'Patient not found' });
+          return;
+        }
+
+        // Create message in database
+        const messageData = {
+          contactId: contactId,
+          content: content.trim(),
+          senderType: 'user', // Patient message
+          channelType: 'webchat'
+        };
+
+        const newMessage = await createMessage(messageData);
+
+        const transformedMessage = {
+          id: newMessage.id,
+          message: newMessage.message,
+          sender: 'user',
+          channel: 'webchat',
+          timestamp: newMessage.created_at,
+          patientId: patient.id
+        };
+
+        // ✅ SEND TO CRM (dentist's room AND patient's room)
+        io.to(`dentist_${patient.dentist_id}`).emit('new_message', transformedMessage);
+        io.to(`patient_${patient.id}`).emit('new_message', transformedMessage);
+        
+        // ✅ CONFIRMATION TO WIDGET
+        socket.emit('message_sent', transformedMessage);
+
+        console.log(`✅ Widget message sent to CRM for dentist ${patient.dentist_id}`);
+
+      } catch (error) {
+        console.error('❌ Error handling widget message:', error);
+        socket.emit('message_error', { 
+          error: 'Failed to send message',
+          details: error.message 
+        });
+      }
+    });
+
+    socket.on('disconnect', (reason) => {
+      console.log(`🔌 Widget disconnected: ${socket.contactId} (${reason})`);
+    });
+
+    return; // ✅ Exit early for widget - don't process CRM events
+  }
+
+  // ==========================================
+  // CRM CONNECTIONS
+  // ==========================================
+  console.log(`🔌 CRM user connected: ${socket.userEmail} (${socket.userId})`);
+  
+  // Join dentist to their personal room
   socket.join(`dentist_${socket.userId}`);
 
   // ==========================================
   // PATIENT CONVERSATION ROOM MANAGEMENT
   // ==========================================
-
-  // Join a specific patient conversation
+  
   socket.on('join_patient_conversation', (patientId) => {
     socket.join(`patient_${patientId}`);
-    // console.log(`👥 ${socket.userEmail} joined conversation with patient ${patientId}`);
+    console.log(`👥 ${socket.userEmail} joined conversation with patient ${patientId}`);
   });
 
-  // Leave a specific patient conversation
   socket.on('leave_patient_conversation', (patientId) => {
     socket.leave(`patient_${patientId}`);
-    // console.log(`👋 ${socket.userEmail} left conversation with patient ${patientId}`);
+    console.log(`👋 ${socket.userEmail} left conversation with patient ${patientId}`);
   });
 
   // ==========================================
-  // REAL-TIME MESSAGE HANDLING
+  // CRM SENDS MESSAGE TO WIDGET
   // ==========================================
+  
+  socket.on('send_message', async (data) => {
+    try {
+      const { patientId, content, channelType = 'webchat' } = data;
 
-  // Handle sending messages via WebSocket
+      console.log(`📤 CRM message from ${socket.userEmail} to patient ${patientId} via ${channelType}: ${content}`);
 
-socket.on('send_message', async (data) => {
-  try {
-    const { patientId, content, channelType = 'webchat' } = data; // ✅ Support channelType
+      // Validate input
+      if (!patientId || !content?.trim()) {
+        socket.emit('message_error', { error: 'Patient ID and message content required' });
+        return;
+      }
 
-    console.log(`📤 Message from ${socket.userEmail} to patient ${patientId} via ${channelType}: ${content}`);
+      // Validate channel type
+      if (!['webchat', 'sms'].includes(channelType)) {
+        socket.emit('message_error', { error: 'Invalid channel type' });
+        return;
+      }
 
-    // Validate input
-    if (!patientId || !content?.trim()) {
-      socket.emit('message_error', { error: 'Patient ID and message content are required' });
-      return;
+      // Get patient's contact_id
+      const { data: patient, error: patientError } = await supabase
+        .from("user_profiles")
+        .select("contact_id, first_name, last_name, phone")
+        .eq("id", patientId)
+        .eq("dentist_id", socket.userId)
+        .single();
+
+      if (patientError || !patient) {
+        socket.emit('message_error', { error: 'Patient not found or unauthorized' });
+        return;
+      }
+
+      if (!patient.contact_id) {
+        socket.emit('message_error', { error: 'Patient has no contact ID' });
+        return;
+      }
+
+      // Validate phone for SMS
+      if (channelType === 'sms' && !patient.phone) {
+        socket.emit('message_error', { error: 'Patient has no phone number for SMS' });
+        return;
+      }
+
+      // Create message in database
+      const messageData = {
+        contactId: patient.contact_id,
+        content: content.trim(),
+        senderType: 'dentist', // ✅ Changed from 'client'
+        channelType
+      };
+
+      const newMessage = await createMessage(messageData);
+
+      const transformedMessage = {
+        id: newMessage.id,
+        message: newMessage.message,
+        sender: 'dentist', // ✅ Changed from 'client'
+        channel: newMessage.channel,
+        timestamp: newMessage.created_at,
+        patientId: patientId
+      };
+
+      // ✅ SEND TO WIDGET (contact room)
+      io.to(`contact_${patient.contact_id}`).emit('new_message', transformedMessage);
+      
+      // ✅ SEND TO OTHER CRM USERS IN THIS CONVERSATION
+      socket.to(`patient_${patientId}`).emit('new_message', transformedMessage);
+
+      // ✅ CONFIRMATION TO SENDER
+      socket.emit('message_sent', transformedMessage);
+
+      console.log(`✅ CRM ${channelType.toUpperCase()} message sent to widget for contact ${patient.contact_id}`);
+
+    } catch (error) {
+      console.error('❌ Error sending message from CRM:', error);
+      socket.emit('message_error', { 
+        error: 'Failed to send message',
+        details: error.message 
+      });
     }
-
-    // ✅ VALIDATE CHANNEL TYPE
-    if (!['webchat', 'sms'].includes(channelType)) {
-      socket.emit('message_error', { error: 'Invalid channel type' });
-      return;
-    }
-
-    // Get patient's contact_id
-    const { data: patient, error: patientError } = await supabase
-      .from("user_profiles")
-      .select("contact_id, first_name, last_name, phone") // ✅ Also get phone
-      .eq("id", patientId)
-      .eq("dentist_id", socket.userId)
-      .single();
-
-    if (patientError || !patient) {
-      socket.emit('message_error', { error: 'Patient not found or unauthorized' });
-      return;
-    }
-
-    if (!patient.contact_id) {
-      socket.emit('message_error', { error: 'Patient has no contact ID' });
-      return;
-    }
-
-    // ✅ IF SMS, VALIDATE PHONE
-    if (channelType === 'sms' && !patient.phone) {
-      socket.emit('message_error', { error: 'Patient has no phone number for SMS' });
-      return;
-    }
-
-    // Create message in database
-    const messageData = {
-      contactId: patient.contact_id,
-      content: content.trim(),
-      senderType: 'client',
-      channelType // ✅ 'webchat' or 'sms'
-    };
-
-    const newMessage = await createMessage(messageData);
-
-    // Transform for frontend
-    const transformedMessage = {
-      id: newMessage.id,
-      message: newMessage.message,
-      sender: 'dentist',
-      channel: newMessage.channel, // ✅ 'webchat' or 'sms'
-      timestamp: newMessage.created_at,
-      patientId: patientId
-    };
-
-    // Broadcast to all users in this patient's conversation room
-    socket.to(`patient_${patientId}`).emit('new_message', transformedMessage);
-
-    // Send success confirmation to sender
-    socket.emit('message_sent', transformedMessage);
-
-    console.log(`✅ ${channelType.toUpperCase()} message sent successfully to patient ${patientId}`);
-
-  } catch (error) {
-    console.error('❌ Error sending message via WebSocket:', error);
-    socket.emit('message_error', { 
-      error: 'Failed to send message',
-      details: error.message 
-    });
-  }
-});
+  });
 
   // ==========================================
-  // TYPING INDICATORS (OPTIONAL)
+  // TYPING INDICATORS
   // ==========================================
-
+  
   socket.on('typing_start', (data) => {
     const { patientId } = data;
     socket.to(`patient_${patientId}`).emit('user_typing', {
@@ -231,14 +317,13 @@ socket.on('send_message', async (data) => {
   });
 
   // ==========================================
-  // MARK MESSAGES AS READ (OPTIONAL)
+  // MARK MESSAGES AS READ
   // ==========================================
-
+  
   socket.on('mark_messages_read', async (data) => {
     try {
       const { patientId } = data;
       
-      // Broadcast read status to all users in conversation
       io.to(`patient_${patientId}`).emit('messages_read', {
         patientId,
         readBy: socket.userId,
@@ -255,9 +340,9 @@ socket.on('send_message', async (data) => {
   // ==========================================
   // CONNECTION MANAGEMENT
   // ==========================================
-
+  
   socket.on('disconnect', (reason) => {
-    console.log(`🔌 User disconnected: ${socket.userEmail} (${reason})`);
+    console.log(`🔌 CRM user disconnected: ${socket.userEmail} (${reason})`);
   });
 
   socket.on('error', (error) => {

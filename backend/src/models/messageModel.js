@@ -91,20 +91,31 @@ export async function getAllMessagesForDentist(dentistId) {
   }
 }
 
-// Create a new message (CRM dashboard) - PROPER FIELD HANDLING
+// Create a new message (CRM dashboard + WebSocket) - PROPER FIELD HANDLING
 export async function createMessage(messageData) {
   try {
     console.log(`Creating message: ${JSON.stringify(messageData)}`);
     
+    // ✅ MAP senderType TO CORRECT DB VALUE
+    let dbSender;
+    if (messageData.senderType === 'user') {
+      dbSender = 'user'; // Patient messages → saved as 'user'
+    } else if (messageData.senderType === 'dentist') {
+      dbSender = 'client'; // Dentist messages → saved as 'client'
+    } else if (messageData.senderType === 'bot') {
+      dbSender = 'bot'; // Bot messages → saved as 'bot'
+    } else {
+      dbSender = messageData.senderType; // Fallback
+    }
+    
     const insertData = {
       contact_id: messageData.contactId,
       message: messageData.content,
-      sender: 'client', 
-      channel: messageData.channelType || 'webchat', // ✅ FIXED: Now uses channelType parameter
-      // FIXED: Match chat widget session_id format
-      session_id: `${messageData.contactId}_session_${Date.now()}`,
+      sender: dbSender, // ✅ Use mapped value
+      channel: messageData.channelType || 'webchat',
+      session_id: messageData.sessionId || `${messageData.contactId}_session_${Date.now()}`,
       created_at: new Date().toISOString(),
-      delivered: true
+      delivered: false
     };
     
     console.log('Insert data:', insertData);
@@ -134,7 +145,6 @@ export async function createMessage(messageData) {
     throw error;
   }
 }
-
 // Get patient by contact_id
 export async function getPatientByContactId(contactId, dentistId) {
   try {
