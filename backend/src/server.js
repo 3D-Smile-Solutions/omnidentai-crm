@@ -352,7 +352,73 @@ io.on('connection', (socket) => {
 
 // Export io for potential use in other files
 export { io };
+// ==========================================
+// BOT RESPONSE WEBHOOK ENDPOINT (for N8N)
+// ==========================================
 
+app.post("/api/bot-response", express.json(), async (req, res) => {
+  try {
+    const { contact_id, message, sender = 'bot' } = req.body;
+
+    console.log('📩 Bot response received for contact:', contact_id);
+
+    if (!contact_id || !message) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'contact_id and message are required' 
+      });
+    }
+
+    // Find patient by contact_id
+    const { data: patient, error: patientError } = await supabase
+      .from("user_profiles")
+      .select("id, dentist_id, first_name, last_name")
+      .eq("contact_id", contact_id)
+      .single();
+
+    if (patientError || !patient) {
+      console.error('Patient not found:', patientError);
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Patient not found' 
+      });
+    }
+
+    // Create transformed message for WebSocket broadcast
+    const transformedMessage = {
+      message: message,
+      sender: sender, // 'bot'
+      channel: 'webchat',
+      timestamp: new Date().toISOString(),
+      patientId: patient.id,
+      contact_id: contact_id
+    };
+
+    // ✅ BROADCAST TO CRM (Dentist's room)
+    io.to(`dentist_${patient.dentist_id}`).emit('new_message', transformedMessage);
+    
+    // ✅ BROADCAST TO PATIENT'S ROOM (for multi-user CRM)
+    io.to(`patient_${patient.id}`).emit('new_message', transformedMessage);
+
+    // ✅ BROADCAST TO WIDGET (if widget is connected)
+    io.to(`contact_${contact_id}`).emit('new_message', transformedMessage);
+
+    console.log('✅ Bot response broadcasted via WebSocket to CRM and widget');
+
+    res.json({ 
+      success: true, 
+      message: 'Bot response broadcasted successfully' 
+    });
+
+  } catch (error) {
+    console.error('❌ Error handling bot response:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Internal server error',
+      details: error.message 
+    });
+  }
+});
 // Start server
 const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, () => {

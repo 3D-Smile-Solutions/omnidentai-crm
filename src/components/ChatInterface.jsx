@@ -793,8 +793,8 @@ useEffect(() => {
     {/* ✅ NEW: Bot Control Toggle */}
     <Tooltip 
       title={botPaused 
-        ? "🧑‍⚕️ Manual Mode: You're responding to patient messages" 
-        : "🤖 Auto Mode: Bot is responding automatically"
+        ? "Manual Mode: You're responding to patient messages" 
+        : "Auto Mode: Bot is responding automatically"
       }
       placement="bottom"
       arrow
