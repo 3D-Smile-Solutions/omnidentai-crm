@@ -257,7 +257,7 @@ io.on('connection', (socket) => {
       const messageData = {
         contactId: patient.contact_id,
         content: content.trim(),
-        senderType: 'dentist', // ✅ Changed from 'client'
+        senderType: 'client', // ✅ Changed from 'client'
         channelType
       };
 
@@ -266,7 +266,7 @@ io.on('connection', (socket) => {
       const transformedMessage = {
         id: newMessage.id,
         message: newMessage.message,
-        sender: 'dentist', // ✅ Changed from 'client'
+        sender: 'client', // ✅ Changed from 'client'
         channel: newMessage.channel,
         timestamp: newMessage.created_at,
         patientId: patientId
