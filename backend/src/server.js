@@ -117,66 +117,62 @@ io.on('connection', (socket) => {
     socket.join(`contact_${socket.contactId}`);
     
     // ✅ WIDGET SENDS MESSAGE TO CRM
-    socket.on('send_message', async (data) => {
-      try {
-        const { content } = data;
-        const contactId = socket.contactId;
+   // ✅ WIDGET SENDS MESSAGE TO CRM
+socket.on('send_message', async (data) => {
+  try {
+    const { content } = data;
+    const contactId = socket.contactId;
 
-        console.log(`📤 Widget message from ${contactId}: ${content}`);
+    console.log(`📤 Widget message from ${contactId}: ${content}`);
 
-        if (!content?.trim()) {
-          socket.emit('message_error', { error: 'Message content required' });
-          return;
-        }
+    if (!content?.trim()) {
+      socket.emit('message_error', { error: 'Message content required' });
+      return;
+    }
 
-        // Find patient by contact_id
-        const { data: patient, error: patientError } = await supabase
-          .from("user_profiles")
-          .select("id, dentist_id, first_name, last_name")
-          .eq("contact_id", contactId)
-          .single();
+    // Find patient by contact_id
+    const { data: patient, error: patientError } = await supabase
+      .from("user_profiles")
+      .select("id, dentist_id, first_name, last_name")
+      .eq("contact_id", contactId)
+      .single();
 
-        if (patientError || !patient) {
-          socket.emit('message_error', { error: 'Patient not found' });
-          return;
-        }
+    if (patientError || !patient) {
+      socket.emit('message_error', { error: 'Patient not found' });
+      return;
+    }
 
-        // Create message in database
-        const messageData = {
-          contactId: contactId,
-          content: content.trim(),
-          senderType: 'user', // Patient message
-          channelType: 'webchat'
-        };
+    // ❌ REMOVE THIS ENTIRE BLOCK - Don't save user messages!
+    // const messageData = { ... };
+    // const newMessage = await createMessage(messageData);
 
-        const newMessage = await createMessage(messageData);
+    // ✅ Just create the message object for WebSocket broadcast
+    const transformedMessage = {
+      id: Date.now(), // Temporary ID for real-time display
+      message: content.trim(),
+      sender: 'user',
+      channel: 'webchat',
+      timestamp: new Date().toISOString(),
+      patientId: patient.id
+    };
 
-        const transformedMessage = {
-          id: newMessage.id,
-          message: newMessage.message,
-          sender: 'user',
-          channel: 'webchat',
-          timestamp: newMessage.created_at,
-          patientId: patient.id
-        };
+    // ✅ SEND TO CRM (dentist's room AND patient's room) - REAL-TIME ONLY
+    io.to(`dentist_${patient.dentist_id}`).emit('new_message', transformedMessage);
+    io.to(`patient_${patient.id}`).emit('new_message', transformedMessage);
+    
+    // ✅ CONFIRMATION TO WIDGET
+    socket.emit('message_sent', transformedMessage);
 
-        // ✅ SEND TO CRM (dentist's room AND patient's room)
-        io.to(`dentist_${patient.dentist_id}`).emit('new_message', transformedMessage);
-        io.to(`patient_${patient.id}`).emit('new_message', transformedMessage);
-        
-        // ✅ CONFIRMATION TO WIDGET
-        socket.emit('message_sent', transformedMessage);
+    console.log(`✅ Widget message forwarded to CRM (not saved - widget handles DB)`);
 
-        console.log(`✅ Widget message sent to CRM for dentist ${patient.dentist_id}`);
-
-      } catch (error) {
-        console.error('❌ Error handling widget message:', error);
-        socket.emit('message_error', { 
-          error: 'Failed to send message',
-          details: error.message 
-        });
-      }
+  } catch (error) {
+    console.error('❌ Error handling widget message:', error);
+    socket.emit('message_error', { 
+      error: 'Failed to send message',
+      details: error.message 
     });
+  }
+});
 
     socket.on('disconnect', (reason) => {
       console.log(`🔌 Widget disconnected: ${socket.contactId} (${reason})`);
