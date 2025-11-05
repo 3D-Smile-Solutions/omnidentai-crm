@@ -172,7 +172,7 @@ export async function makeCall(req, res) {
 /**
  * Generate TwiML for outbound call (browser-initiated calls)
  * GET /api/voice/twiml/outbound
- * ⚠️ THIS IS WHERE BROWSER CALLS ARE LOGGED
+ *  THIS IS WHERE BROWSER CALLS ARE LOGGED
  */
 export function generateOutboundTwiML(req, res) {
   const { To, PatientId, DentistId } = req.query;
@@ -355,11 +355,11 @@ export async function getCallHistory(req, res) {
     }
 
     // Log that these records were accessed (HIPAA audit)
-    if (calls && calls.length > 0) {
-      for (const call of calls) {
-        await supabase.rpc('log_call_view', { call_log_id_param: call.id });
-      }
-    }
+    // if (calls && calls.length > 0) {
+    //   for (const call of calls) {
+    //     await supabase.rpc('log_call_view', { call_log_id_param: call.id });
+    //   }
+    // }
 
     res.json({
       calls,

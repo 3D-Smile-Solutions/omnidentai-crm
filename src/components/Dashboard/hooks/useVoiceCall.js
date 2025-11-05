@@ -27,7 +27,7 @@ export const useVoiceCall = () => {
         const twilioDevice = new Device(token, {
           logLevel: 'debug',
           codecPreferences: ['opus', 'pcmu'],
-          edge: 'ashburn'
+          edge: 'roaming'
         });
 
         twilioDevice.on('registered', () => {
