@@ -8,6 +8,7 @@ import metricsReducer from "./slices/metricsSlice";
 import settingsReducer from "./slices/settingsSlice";
 import activityReducer from './slices/activitySlice';
 import uploadsReducer from './slices/uploadsSlice';
+import twilioUsageReducer from "./slices/twilioUsageSlice";
 const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -17,7 +18,8 @@ const store = configureStore({
     metrics: metricsReducer, 
     settings: settingsReducer,
     activity: activityReducer,
-    uploads: uploadsReducer 
+    uploads: uploadsReducer,
+    twilioUsage: twilioUsageReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

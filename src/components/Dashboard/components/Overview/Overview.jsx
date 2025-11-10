@@ -6,6 +6,7 @@ import { fetchOverviewMetrics } from '../../../../redux/slices/metricsSlice';
 import OverviewMetrics from './OverviewMetrics';
 import OverviewCharts from './OverviewCharts';
 import GoogleMapComponent from '../../../GoogleMapComponent';
+import TwilioUsage from '../../../TwilioUsage';
 
 const Overview = ({ isMobile }) => {
   const dispatch = useDispatch();
@@ -63,6 +64,7 @@ const Overview = ({ isMobile }) => {
       <OverviewMetrics />
       <OverviewCharts isMobile={isMobile} />
       <GoogleMapComponent/>
+      <TwilioUsage/>
     </>
   );
 };

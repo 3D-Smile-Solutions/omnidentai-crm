@@ -14,6 +14,7 @@ import metrics from './routes/metrics.js';
 import voiceCall from './routes/voice.js'
 import smsRoutes from './routes/sms.js';
 import conversationControlRoutes from "./routes/conversationControl.js";
+import twilioUsage from './routes/twilioUsage.js';
 // import settings from './routes/settings.js'
 import practiceDocumentRoutes from './routes/practiceDocumentRoutes.js';
 dotenv.config();
@@ -55,6 +56,7 @@ app.use("/messages", messageRoutes);
 app.use('/api/metrics', metrics);
 app.use('/api/voice', voiceCall);
 app.use('/api/sms', smsRoutes);
+app.use('/api/usage', twilioUsage);
 // app.use('/api/settings', settings);
 app.use('/practice-documents', practiceDocumentRoutes);
 app.use("/api/conversation-control", conversationControlRoutes);
