@@ -229,7 +229,7 @@ const Reports = () => {
       </Box>
 
       {/* Stats Summary Bar (Optional Enhancement) */}
-      <Box 
+      {/* <Box 
         sx={{ 
           display: 'flex',
           gap: 2,
@@ -281,7 +281,7 @@ const Reports = () => {
             </Typography>
           </Box>
         ))}
-      </Box>
+      </Box> */}
       
       {/* Report Cards Grid */}
       <Box 
