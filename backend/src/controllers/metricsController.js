@@ -257,12 +257,59 @@ export async function getOverviewMetrics(req, res) {
     res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 }
+
+// ============================================================================
+// ✅ HELPER FUNCTION: ZIP CODE TO STATE CONVERSION
+// ============================================================================
+function getStateFromZip(zipCode) {
+  if (!zipCode) return null;
+  
+  const zip = parseInt(zipCode.substring(0, 3));
+  
+  // ZIP code to state mapping (first 3 digits)
+  const zipRanges = {
+    'AL': [[350, 369]], 'AK': [[995, 999]], 'AZ': [[850, 865]],
+    'AR': [[716, 729]], 'CA': [[900, 961]], 'CO': [[800, 816]],
+    'CT': [[60, 69]], 'DE': [[197, 199]], 'FL': [[320, 349]],
+    'GA': [[300, 319]], 'HI': [[967, 968]], 'ID': [[832, 839]],
+    'IL': [[600, 629]], 'IN': [[460, 479]], 'IA': [[500, 528]],
+    'KS': [[660, 679]], 'KY': [[400, 427]], 'LA': [[700, 715]],
+    'ME': [[39, 49]], 'MD': [[206, 219]], 'MA': [[10, 27]],
+    'MI': [[480, 499]], 'MN': [[550, 567]], 'MS': [[386, 399]],
+    'MO': [[630, 658]], 'MT': [[590, 599]], 'NE': [[680, 693]],
+    'NV': [[889, 898]], 'NH': [[30, 38]], 'NJ': [[70, 89]],
+    'NM': [[870, 884]], 'NY': [[100, 149]], 'NC': [[270, 289]],
+    'ND': [[580, 588]], 'OH': [[430, 459]], 'OK': [[730, 749]],
+    'OR': [[970, 979]], 'PA': [[150, 196]], 'RI': [[28, 29]],
+    'SC': [[290, 299]], 'SD': [[570, 577]], 'TN': [[370, 385]],
+    'TX': [[750, 799], [885, 888]], 'UT': [[840, 847]],
+    'VT': [[50, 59]], 'VA': [[220, 246]], 'WA': [[980, 994]],
+    'WV': [[247, 268]], 'WI': [[530, 549]], 'WY': [[820, 831]],
+    'DC': [[200, 205]], 'PR': [[6, 9]]
+  };
+  
+  for (const [state, ranges] of Object.entries(zipRanges)) {
+    for (const [min, max] of ranges) {
+      if (zip >= min && zip <= max) {
+        return state;
+      }
+    }
+  }
+  
+  return null;
+}
+
+// ============================================================================
+// ✅ IMPROVED PATIENT MAP DATA FUNCTION
+// ============================================================================
 /**
  * Get patient distribution map data
  * GET /api/metrics/patient-map
  */
 export async function getPatientMapData(req, res) {
   try {
+    // IMPORTANT: Currently using dentist_id from user_profiles
+    // TODO: When switching to client_id, change this to req.user.client_id
     const dentistId = req.user?.id;
     
     if (!dentistId) {
@@ -271,11 +318,13 @@ export async function getPatientMapData(req, res) {
 
     console.log('🗺️ Fetching patient map data for dentist:', dentistId);
 
-    // Get patients with location data
+    // ========== STEP 1: GET PATIENTS WITH LOCATION DATA ==========
+    // CURRENT: Uses dentist_id (from user_profiles table)
+    // TODO: When ready, change 'dentist_id' to 'client_id'
     const { data: patients, error: patientsError } = await supabase
       .from('user_profiles')
       .select('id, contact_id, latitude, longitude, zip_code')
-      .eq('dentist_id', dentistId)
+      .eq('dentist_id', dentistId)  // ← TODO: Change to .eq('client_id', dentistId) when ready
       .not('latitude', 'is', null)
       .not('longitude', 'is', null);
 
@@ -284,6 +333,7 @@ export async function getPatientMapData(req, res) {
       throw patientsError;
     }
 
+    // Return empty data if no patients
     if (!patients || patients.length === 0) {
       return res.json({
         locations: [],
@@ -295,37 +345,38 @@ export async function getPatientMapData(req, res) {
       });
     }
 
-    // Get conversation metrics for these patients
+    // ========== STEP 2: GET CONVERSATION METRICS FOR THESE PATIENTS ==========
     const contactIds = patients.map(p => p.contact_id).filter(Boolean);
     
+    // TEMPORARY FIX: Fetch ALL conversation metrics for these contacts
+    // TODO: Once client_id is populated in conversation_metrics, uncomment: .eq('client_id', dentistId)
     const { data: metrics, error: metricsError } = await supabase
       .from('conversation_metrics')
       .select('contact_id, procedures_discussed, procedure_primary')
-      .in('contact_id', contactIds);
+      .in('contact_id', contactIds)
+      // .eq('client_id', dentistId)
 
     if (metricsError) {
       console.error('❌ Error fetching metrics:', metricsError);
     }
 
-    // Build map: contact_id -> procedures
+    // ========== STEP 3: BUILD PROCEDURE MAP (contact_id -> procedures) ==========
     const procedureMap = {};
     (metrics || []).forEach(m => {
       if (!procedureMap[m.contact_id]) {
         procedureMap[m.contact_id] = [];
       }
       
-      // Add primary procedure
       if (m.procedure_primary) {
         procedureMap[m.contact_id].push(m.procedure_primary);
       }
       
-      // Add discussed procedures
       if (Array.isArray(m.procedures_discussed)) {
         procedureMap[m.contact_id].push(...m.procedures_discussed);
       }
     });
 
-    // Normalize procedure names
+    // ========== STEP 4: NORMALIZE PROCEDURE NAMES ==========
     const normalizeProcedure = (proc) => {
       const lower = proc.toLowerCase().trim();
       if (lower.includes('clean')) return 'Cleanings';
@@ -340,7 +391,7 @@ export async function getPatientMapData(req, res) {
       return 'Other';
     };
 
-    // Group patients by location (rounded lat/lng for clustering)
+    // ========== STEP 5: GROUP PATIENTS BY LOCATION (WITH CLUSTERING) ==========
     const locationGroups = {};
     
     patients.forEach(patient => {
@@ -349,7 +400,7 @@ export async function getPatientMapData(req, res) {
       
       if (isNaN(lat) || isNaN(lng)) return;
 
-      // Round coordinates to 2 decimal places for grouping nearby patients
+      // Round to 2 decimal places for clustering nearby patients
       const roundedLat = Math.round(lat * 100) / 100;
       const roundedLng = Math.round(lng * 100) / 100;
       const locationKey = `${roundedLat},${roundedLng}`;
@@ -375,27 +426,33 @@ export async function getPatientMapData(req, res) {
       });
     });
 
-    // Convert to array and add top procedure
+    // ========== STEP 6: CONVERT TO ARRAY AND ADD LOCATION DETAILS ==========
     const locations = Object.values(locationGroups).map((loc, index) => {
       const procedureEntries = Object.entries(loc.procedures);
       const topProcedure = procedureEntries.length > 0
         ? procedureEntries.reduce((a, b) => a[1] > b[1] ? a : b)[0]
         : 'Other';
 
+      // ✅ Get state from ZIP code
+      const state = getStateFromZip(loc.zip_code);
+      
+      // City placeholder (can enhance with reverse geocoding later)
+      const city = 'Unknown City';
+
       return {
         id: index,
         lat: loc.lat,
         lng: loc.lng,
         zip_code: loc.zip_code,
-        city: '', // Could enhance with reverse geocoding
-        state: '', // Could enhance with reverse geocoding
+        city: city,
+        state: state || 'Unknown',
         patient_count: loc.patients.length,
         top_procedure: topProcedure,
         procedure_breakdown: loc.procedures
       };
     });
 
-    // Calculate procedure summary
+    // ========== STEP 7: CALCULATE PROCEDURE SUMMARY ==========
     const procedureTotals = {};
     locations.forEach(loc => {
       Object.entries(loc.procedure_breakdown).forEach(([proc, count]) => {
@@ -407,20 +464,21 @@ export async function getPatientMapData(req, res) {
       .map(([procedure, count]) => ({ procedure, count }))
       .sort((a, b) => b.count - a.count);
 
-    // Calculate center and zoom based on patient distribution
+    // ========== STEP 8: CALCULATE CENTER AND ZOOM ==========
     const avgLat = locations.reduce((sum, loc) => sum + loc.lat, 0) / locations.length;
     const avgLng = locations.reduce((sum, loc) => sum + loc.lng, 0) / locations.length;
 
-    // Calculate unique states (rough estimate based on ZIP codes)
-    const uniqueZipPrefixes = new Set(
-      locations.map(loc => loc.zip_code?.substring(0, 3)).filter(Boolean)
+    // ✅ Calculate ACTUAL unique states (not rough estimate)
+    const uniqueStates = new Set(
+      locations.map(loc => loc.state).filter(s => s !== 'Unknown')
     );
 
+    // ========== STEP 9: PREPARE RESPONSE ==========
     const response = {
       locations,
       procedure_summary,
       total_patients: patients.length,
-      total_states: Math.max(1, Math.floor(uniqueZipPrefixes.size / 10)), // Rough estimate
+      total_states: uniqueStates.size,
       center: {
         lat: avgLat || 39.8283,
         lng: avgLng || -98.5795
@@ -431,7 +489,8 @@ export async function getPatientMapData(req, res) {
     console.log('✅ Map data prepared:', {
       locations: response.locations.length,
       procedures: response.procedure_summary.length,
-      total_patients: response.total_patients
+      total_patients: response.total_patients,
+      total_states: response.total_states
     });
 
     res.json(response);

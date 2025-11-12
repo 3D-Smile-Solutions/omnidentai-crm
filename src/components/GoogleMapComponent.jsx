@@ -1,48 +1,57 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+// src/components/GoogleMapComponent.jsx
+import React, { useEffect, useRef, useCallback } from 'react';
 import { Box, Paper, Typography, CircularProgress } from '@mui/material';
-import axios from 'axios';
-
-const API_URL = 'http://localhost:5000';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchPatientMapData } from '../redux/slices/mapSlice';
 
 // Global flag to track script loading
 let isScriptLoading = false;
 let isScriptLoaded = false;
 
 const GoogleMapComponent = ({ isMobile }) => {
+  const dispatch = useDispatch();
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [mapError, setMapError] = useState(null);
-  const [mapData, setMapData] = useState(null);
-  const [dataLoading, setDataLoading] = useState(true);
+  
+  // ✅ Get map data from Redux store
+  const { 
+    locations, 
+    procedureSummary, 
+    totalPatients, 
+    totalStates, 
+    center, 
+    zoom, 
+    loading, 
+    error 
+  } = useSelector((state) => state.map);
   
   // Google Maps API key from environment variable
   const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 
-  // ✅ FETCH REAL DATA FROM BACKEND
+  // ✅ Fetch data on component mount
   useEffect(() => {
-    fetchMapData();
+    console.log('🗺️ GoogleMapComponent mounted - fetching data');
+    dispatch(fetchPatientMapData());
+  }, [dispatch]);
+
+  // ✅ Helper function to get procedure colors
+  const getProcedureColor = useCallback((procedure) => {
+    const colorMap = {
+      'Cleanings': '#3EE4C8',
+      'Fillings': '#45B7D1',
+      'Crowns': '#FFA726',
+      'Root Canals': '#FF7043',
+      'Implants': '#9C27B0',
+      'Whitening': '#34d399',
+      'Orthodontics': '#f472b6',
+      'Extractions': '#fb923c',
+      'Dentures': '#94a3b8',
+      'Other': '#64748b'
+    };
+    return colorMap[procedure] || '#64748b';
   }, []);
 
-  const fetchMapData = async () => {
-    try {
-      setDataLoading(true);
-      console.log('🗺️ Fetching patient map data...');
-      
-      const response = await axios.get(`${API_URL}/api/metrics/patient-map`, {
-        withCredentials: true
-      });
-
-      console.log('✅ Map data received:', response.data);
-      setMapData(response.data);
-      setDataLoading(false);
-    } catch (err) {
-      console.error('❌ Error fetching map data:', err);
-      setMapError(err.response?.data?.error || 'Failed to load map data');
-      setDataLoading(false);
-    }
-  };
-
+  // ✅ Initialize map once data is loaded
   const initializeMap = useCallback(async () => {
     try {
       if (!mapContainerRef.current || mapInstanceRef.current) {
@@ -51,13 +60,12 @@ const GoogleMapComponent = ({ isMobile }) => {
 
       // Check if API key is configured
       if (!API_KEY) {
-        setMapError('Google Maps API key not configured');
-        setIsLoading(false);
+        console.error('❌ Google Maps API key not configured');
         return;
       }
 
       // Wait for map data to be loaded
-      if (!mapData) {
+      if (!locations || locations.length === 0) {
         return;
       }
 
@@ -76,15 +84,11 @@ const GoogleMapComponent = ({ isMobile }) => {
       const { Map } = await google.maps.importLibrary("maps");
       const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
 
-      // ✅ Use center from backend data or default to US center
-      const mapCenter = mapData.center || { lat: 39.8283, lng: -98.5795 };
-      const mapZoom = mapData.zoom || (isMobile ? 2.8 : 3.7);
-
-      // Create the map
+      // Create the map with center from backend
       const map = new Map(mapContainerRef.current, {
-        center: mapCenter,
-        zoom: mapZoom,
-        mapId: 'DEMO_MAP_ID', // Required for Advanced Markers
+        center: center,
+        zoom: isMobile ? zoom - 1 : zoom,
+        mapId: 'DEMO_MAP_ID',
         mapTypeControl: true,
         streetViewControl: false,
         fullscreenControl: !isMobile,
@@ -92,9 +96,8 @@ const GoogleMapComponent = ({ isMobile }) => {
 
       mapInstanceRef.current = map;
 
-      // ✅ Add markers from REAL backend data
-      mapData.locations.forEach((location) => {
-        // Create a pin element with custom color
+      // ✅ Add markers from backend data
+      locations.forEach((location) => {
         const pinElement = new PinElement({
           background: getProcedureColor(location.top_procedure),
           borderColor: '#FFFFFF',
@@ -103,29 +106,34 @@ const GoogleMapComponent = ({ isMobile }) => {
           scale: isMobile ? 0.85 : 1.0
         });
 
-        // Create the advanced marker
         const marker = new AdvancedMarkerElement({
           map: map,
           position: { lat: location.lat, lng: location.lng },
-          title: `${location.city || 'Location'}, ${location.state || ''} - ${location.zip_code}`,
+          title: `${location.city}, ${location.state} - ${location.zip_code}`,
           content: pinElement.element,
         });
 
-        // Create info window for this marker
+        // Create info window
         const infoWindow = new google.maps.InfoWindow({
           content: `
             <div style="padding: 10px; min-width: 180px;">
               <h4 style="margin: 0 0 8px 0; color: #0B1929;">
-                ${location.city || 'Location'}, ${location.state || ''}
+                ${location.city}, ${location.state}
               </h4>
-              <p style="margin: 4px 0; color: #333; font-weight: 600;">ZIP: ${location.zip_code}</p>
-              <p style="margin: 4px 0; color: #666;">Top Procedure: ${location.top_procedure}</p>
-              <p style="margin: 4px 0; color: #666;">Patients: ${location.patient_count}</p>
+              <p style="margin: 4px 0; color: #333; font-weight: 600;">
+                ZIP: ${location.zip_code}
+              </p>
+              <p style="margin: 4px 0; color: #666;">
+                Top Procedure: ${location.top_procedure}
+              </p>
+              <p style="margin: 4px 0; color: #666;">
+                Patients: ${location.patient_count}
+              </p>
             </div>
           `
         });
 
-        // Add hover listeners for info window
+        // Hover listeners
         marker.element.addEventListener('mouseenter', () => {
           infoWindow.open(map, marker);
         });
@@ -134,53 +142,31 @@ const GoogleMapComponent = ({ isMobile }) => {
           infoWindow.close();
         });
 
-        // Keep click functionality for mobile/touch devices
+        // Click for mobile
         marker.addListener('click', () => {
           infoWindow.open(map, marker);
         });
       });
 
-      setIsLoading(false);
+      console.log('✅ Map initialized with', locations.length, 'markers');
     } catch (error) {
-      console.error('Error initializing map:', error);
-      setMapError(error.message);
-      setIsLoading(false);
+      console.error('❌ Error initializing map:', error);
     }
-  }, [isMobile, mapData]);
+  }, [locations, center, zoom, isMobile, API_KEY, getProcedureColor]);
 
-  // ✅ Helper function to get procedure colors
-  const getProcedureColor = (procedure) => {
-    const colorMap = {
-      'Cleanings': '#3EE4C8',
-      'Fillings': '#45B7D1',
-      'Crowns': '#FFA726',
-      'Root Canals': '#FF7043',
-      'Implants': '#9C27B0',
-      'Whitening': '#34d399',
-      'Orthodontics': '#f472b6',
-      'Extractions': '#fb923c',
-      'Dentures': '#94a3b8',
-      'Other': '#64748b'
-    };
-    return colorMap[procedure] || '#64748b';
-  };
-
+  // ✅ Load Google Maps script
   const loadGoogleMapsScript = useCallback(() => {
-    // Check if API key is configured
     if (!API_KEY) {
-      setMapError('Google Maps API key not configured. Please set VITE_GOOGLE_MAPS_API_KEY in environment variables.');
-      setIsLoading(false);
+      console.error('❌ Google Maps API key not configured');
       return;
     }
 
-    // Check if script is already loaded or loading
     if (isScriptLoaded) {
       initializeMap();
       return;
     }
 
     if (isScriptLoading) {
-      // Wait for script to load
       const checkInterval = setInterval(() => {
         if (window.google?.maps) {
           clearInterval(checkInterval);
@@ -191,10 +177,8 @@ const GoogleMapComponent = ({ isMobile }) => {
       return;
     }
 
-    // Check if Google Maps is already available
     if (window.google?.maps) {
       isScriptLoaded = true;
-      // Give the API a moment to ensure importLibrary is ready
       setTimeout(() => initializeMap(), 100);
       return;
     }
@@ -209,34 +193,33 @@ const GoogleMapComponent = ({ isMobile }) => {
     script.onload = () => {
       isScriptLoaded = true;
       isScriptLoading = false;
-      // Give the API a moment to fully initialize
       setTimeout(() => initializeMap(), 100);
     };
     
     script.onerror = () => {
-      setMapError('Failed to load Google Maps');
-      setIsLoading(false);
+      console.error('❌ Failed to load Google Maps');
       isScriptLoading = false;
     };
     
     document.head.appendChild(script);
-  }, [initializeMap]);
+  }, [initializeMap, API_KEY]);
 
+  // ✅ Load script when data is ready
   useEffect(() => {
-    if (mapData && !dataLoading) {
+    if (!loading && locations && locations.length > 0) {
       loadGoogleMapsScript();
     }
-  }, [loadGoogleMapsScript, mapData, dataLoading]);
+  }, [loadGoogleMapsScript, loading, locations]);
 
-  // Cleanup on unmount
+  // ✅ Cleanup on unmount
   useEffect(() => {
     return () => {
       mapInstanceRef.current = null;
     };
   }, []);
 
-  // Show loading while fetching data
-  if (dataLoading) {
+  // ✅ Show loading spinner
+  if (loading) {
     return (
       <Paper elevation={0} sx={{ 
         p: 3,
@@ -256,8 +239,28 @@ const GoogleMapComponent = ({ isMobile }) => {
     );
   }
 
-  // Show message if no data
-  if (!mapData || mapData.locations.length === 0) {
+  // ✅ Show error message
+  if (error) {
+    return (
+      <Paper elevation={0} sx={{ 
+        p: 3,
+        mt: 3,
+        background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
+        border: '1px solid rgba(62, 228, 200, 0.2)',
+        textAlign: 'center'
+      }}>
+        <Typography variant="h6" color="error" sx={{ mb: 1 }}>
+          {error}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Please check your configuration and try again
+        </Typography>
+      </Paper>
+    );
+  }
+
+  // ✅ Show empty state
+  if (!locations || locations.length === 0) {
     return (
       <Paper elevation={0} sx={{ 
         p: 3,
@@ -276,6 +279,7 @@ const GoogleMapComponent = ({ isMobile }) => {
     );
   }
 
+  // ✅ Render map
   return (
     <Paper elevation={0} sx={{ 
       p: 3,
@@ -288,12 +292,12 @@ const GoogleMapComponent = ({ isMobile }) => {
       </Typography>
       
       <Typography variant="caption" sx={{ color: 'rgba(11, 25, 41, 0.6)', display: 'block', mb: 2 }}>
-        Click on markers to see patient details
+        Hover over markers to see patient details
       </Typography>
       
-      {/* ✅ DYNAMIC Legend from real data */}
+      {/* ✅ Dynamic legend from backend data */}
       <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
-        {mapData.procedure_summary.map((proc) => (
+        {procedureSummary.map((proc) => (
           <Box key={proc.procedure} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <Box sx={{ 
               width: 12, 
@@ -308,7 +312,7 @@ const GoogleMapComponent = ({ isMobile }) => {
         ))}
       </Box>
 
-      {/* Map Container */}
+      {/* Map container */}
       <Box 
         sx={{ 
           width: '100%', 
@@ -317,7 +321,6 @@ const GoogleMapComponent = ({ isMobile }) => {
           overflow: 'hidden',
           border: '1px solid rgba(62, 228, 200, 0.2)',
           bgcolor: '#f0f0f0',
-          position: 'relative'
         }} 
       >
         <Box
@@ -325,48 +328,11 @@ const GoogleMapComponent = ({ isMobile }) => {
           sx={{
             width: '100%',
             height: '100%',
-            display: isLoading ? 'none' : 'block'
           }}
         />
-        
-        {isLoading && !mapError && (
-          <Box sx={{ 
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 2
-          }}>
-            <CircularProgress sx={{ color: '#3EE4C8' }} />
-            <Typography variant="body2" color="text.secondary">
-              Loading map...
-            </Typography>
-          </Box>
-        )}
-        
-        {mapError && (
-          <Box sx={{ 
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            textAlign: 'center',
-            p: 2
-          }}>
-            <Typography variant="body2" color="error" sx={{ mb: 1 }}>
-              {mapError}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Make sure VITE_GOOGLE_MAPS_API_KEY is set in your .env file
-            </Typography>
-          </Box>
-        )}
       </Box>
 
-      {/* ✅ DYNAMIC Summary Stats from real data */}
+      {/* ✅ Summary stats from backend */}
       <Box sx={{ 
         mt: 3, 
         p: 2, 
@@ -381,7 +347,7 @@ const GoogleMapComponent = ({ isMobile }) => {
             Total States
           </Typography>
           <Typography variant="h6" sx={{ color: '#0B1929', fontWeight: 600 }}>
-            {mapData.total_states}
+            {totalStates}
           </Typography>
           <Typography variant="caption" component="div" sx={{ color: '#3EE4C8' }}>
             Active states
@@ -392,7 +358,7 @@ const GoogleMapComponent = ({ isMobile }) => {
             Total Patients
           </Typography>
           <Typography variant="h6" sx={{ color: '#0B1929', fontWeight: 600 }}>
-            {mapData.total_patients.toLocaleString()}
+            {totalPatients.toLocaleString()}
           </Typography>
           <Typography variant="caption" component="div" sx={{ color: '#3EE4C8' }}>
             Nationwide
@@ -400,13 +366,13 @@ const GoogleMapComponent = ({ isMobile }) => {
         </Box>
         <Box>
           <Typography variant="caption" component="div" sx={{ color: 'rgba(11, 25, 41, 0.6)' }}>
-            Coverage
+            Locations
           </Typography>
           <Typography variant="h6" sx={{ color: '#0B1929', fontWeight: 600 }}>
-            United States
+            {locations.length}
           </Typography>
           <Typography variant="caption" component="div" sx={{ color: '#3EE4C8' }}>
-            {mapData.locations.length} locations
+            Clustered markers
           </Typography>
         </Box>
       </Box>
