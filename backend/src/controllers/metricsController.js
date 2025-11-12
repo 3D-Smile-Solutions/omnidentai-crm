@@ -16,6 +16,7 @@ export async function getOverviewMetrics(req, res) {
     const { data: metrics, error } = await supabase
       .from('conversation_metrics')
       .select('*')
+      // .eq('client_id', clientId)
       .order('created_at', { ascending: false });
 
     if (error) {
