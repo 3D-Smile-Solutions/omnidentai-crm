@@ -36,6 +36,30 @@ const buildFilePath = (documentType, dentistId, category, patientId, filename) =
 };
 
 /**
+ * Generate a fresh signed URL for a document
+ * @param {string} bucket - Storage bucket name
+ * @param {string} filePath - File path in storage
+ * @param {number} expiresIn - Expiration time in seconds (default: 7 days)
+ */
+const generateSignedUrl = async (bucket, filePath, expiresIn = 604800) => {
+  try {
+    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+      .from(bucket)
+      .createSignedUrl(filePath, expiresIn); // 7 days = 604800 seconds
+
+    if (signedUrlError) {
+      console.error('❌ Error creating signed URL:', signedUrlError);
+      return null;
+    }
+
+    return signedUrlData?.signedUrl;
+  } catch (error) {
+    console.error('❌ Exception creating signed URL:', error);
+    return null;
+  }
+};
+
+/**
  * Upload practice document
  * POST /practice-documents/upload
  */
@@ -100,14 +124,8 @@ export async function uploadPracticeDocument(req, res) {
 
     console.log('✅ File uploaded to Supabase:', uploadData.path);
 
-    // Generate signed URL
-    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-      .from(storageBucket)
-      .createSignedUrl(filePath, 3600);
-
-    if (signedUrlError) {
-      console.error('❌ Error creating signed URL:', signedUrlError);
-    }
+    // Generate signed URL (7 days expiration)
+    const signedUrl = await generateSignedUrl(storageBucket, filePath);
 
     // Save to practice_documents table
     const { data: document, error: dbError } = await supabase
@@ -142,7 +160,7 @@ export async function uploadPracticeDocument(req, res) {
       success: true,
       document: {
         ...document,
-        url: signedUrlData?.signedUrl
+        url: signedUrl
       }
     });
 
@@ -156,7 +174,7 @@ export async function uploadPracticeDocument(req, res) {
 }
 
 /**
- * Get practice documents
+ * Get practice documents with fresh signed URLs
  * GET /practice-documents?type=form&category=patient_intake
  */
 export async function getPracticeDocuments(req, res) {
@@ -185,16 +203,13 @@ export async function getPracticeDocuments(req, res) {
       return res.status(500).json({ error: "Failed to fetch documents" });
     }
 
-    // Generate signed URLs
+    // Generate fresh signed URLs (7 days expiration)
     const documentsWithUrls = await Promise.all(
       documents.map(async (doc) => {
-        const { data: signedUrlData } = await supabase.storage
-          .from(doc.storage_bucket)
-          .createSignedUrl(doc.file_path, 3600);
-
+        const signedUrl = await generateSignedUrl(doc.storage_bucket, doc.file_path);
         return {
           ...doc,
-          url: signedUrlData?.signedUrl
+          url: signedUrl
         };
       })
     );
@@ -204,6 +219,46 @@ export async function getPracticeDocuments(req, res) {
   } catch (error) {
     console.error('❌ Error:', error);
     res.status(500).json({ error: "Failed to fetch documents" });
+  }
+}
+
+/**
+ * Get a single document with fresh signed URL
+ * GET /practice-documents/:documentId
+ */
+export async function getDocumentById(req, res) {
+  try {
+    const dentistId = req.user?.id;
+    if (!dentistId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const { documentId } = req.params;
+
+    const { data: document, error: fetchError } = await supabase
+      .from('practice_documents')
+      .select('*')
+      .eq('id', documentId)
+      .eq('dentist_id', dentistId)
+      .single();
+
+    if (fetchError || !document) {
+      return res.status(404).json({ error: "Document not found" });
+    }
+
+    // Generate fresh signed URL
+    const signedUrl = await generateSignedUrl(document.storage_bucket, document.file_path);
+
+    res.json({
+      document: {
+        ...document,
+        url: signedUrl
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error:', error);
+    res.status(500).json({ error: "Failed to fetch document" });
   }
 }
 

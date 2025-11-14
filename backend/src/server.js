@@ -26,10 +26,14 @@ const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
     origin: [
-    'http://localhost:3000',      // React frontend
-    'http://localhost:5501',      // Live Server (chat widget)
-    'http://127.0.0.1:5501',      // Alternative localhost
-  ],
+      'http://localhost:3000',      // React frontend (CRM)
+      'http://localhost:8080',      // Vite dev server (chat widget) ✅ ADD THIS
+      'http://localhost:5500',      // Live Server (chat widget)
+      'http://localhost:5501',      // Live Server alternative
+      'http://127.0.0.1:8080',      // Alternative localhost ✅ ADD THIS
+      'http://127.0.0.1:5500',      // Alternative localhost
+      'http://127.0.0.1:5501',      // Alternative localhost
+    ],
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -38,10 +42,14 @@ const io = new Server(httpServer, {
 // Regular middleware
 app.use(cors({
    origin: [
-    'http://localhost:3000',      // React frontend
-    'http://localhost:5501',      // Live Server (chat widget)
-    'http://127.0.0.1:5501',      // Alternative localhost
-  ],
+      'http://localhost:3000',      // React frontend (CRM)
+      'http://localhost:8080',      // Vite dev server (chat widget) ✅ ADD THIS
+      'http://localhost:5500',      // Live Server (chat widget)
+      'http://localhost:5501',      // Live Server alternative
+      'http://127.0.0.1:8080',      // Alternative localhost ✅ ADD THIS
+      'http://127.0.0.1:5500',      // Alternative localhost
+      'http://127.0.0.1:5501',      // Alternative localhost
+    ],
   credentials: true
 }));
 app.use(express.json());
