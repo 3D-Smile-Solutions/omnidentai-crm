@@ -164,7 +164,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     const result = await sendSMS(patient.id, smsContent);
 
     if (result.success) {
-      console.log("✅ SMS sent successfully");
+      console.log(" SMS sent successfully");
       setSmsSuccess(true);
 
       setTimeout(() => {
@@ -173,7 +173,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
         setSmsSuccess(false);
       }, 1500);
     } else {
-      console.error("❌ Failed to send SMS:", result.error);
+      console.error(" Failed to send SMS:", result.error);
     }
   };
 
@@ -192,25 +192,25 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     console.log("═══════════════════════════════════════");
 
     if (!patient) {
-      console.log("❌ No patient selected");
+      console.log(" No patient selected");
       alert("No patient selected");
       return;
     }
 
     if (!patient.phone) {
-      console.log("❌ Patient has no phone number");
+      console.log(" Patient has no phone number");
       alert("This patient has no phone number on file.");
       return;
     }
 
     if (!currentUser?.id) {
-      console.log("❌ No current user/dentist ID");
+      console.log(" No current user/dentist ID");
       alert("Authentication error. Please refresh the page.");
       return;
     }
 
     if (!isReady) {
-      console.log("❌ Voice device not ready");
+      console.log(" Voice device not ready");
       alert("Voice calling is not ready. Please refresh the page.");
       return;
     }
@@ -228,18 +228,18 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     console.log("User confirmation:", confirmed);
 
     if (confirmed) {
-      console.log("✅ User confirmed - Attempting to make call...");
+      console.log(" User confirmed - Attempting to make call...");
 
       try {
         const result = makeCall(patient.id, patient.phone, currentUser.id);
-        console.log("✅ makeCall executed, result:", result);
+        console.log(" makeCall executed, result:", result);
         setCallDialogOpen(true);
       } catch (err) {
-        console.error("❌ Error calling makeCall:", err);
+        console.error(" Error calling makeCall:", err);
         alert(`Error making call: ${err.message}`);
       }
     } else {
-      console.log("❌ User cancelled call");
+      console.log(" User cancelled call");
     }
   };
 
@@ -260,13 +260,13 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     console.log("🔍 Current patient:", patient);
     console.log("📋 Patient contact_id:", patient?.contact_id);
   }, [patient]);
-  // ✅ NEW: Add conversation control hook (uses contact_id)
+  //  NEW: Add conversation control hook (uses contact_id)
   const {
     botPaused,
     loading: controlLoading,
     pauseBot,
     resumeBot,
-  } = useConversationControl(patient?.contact_id); // ✅ Using contact_id
+  } = useConversationControl(patient?.contact_id); //  Using contact_id
   useEffect(() => {
     console.log("🎛️ Bot control state:", {
       botPaused,
@@ -274,24 +274,24 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
       hasContactId: !!patient?.contact_id,
     });
   }, [botPaused, controlLoading, patient?.contact_id]);
-  // ✅ NEW: Handle bot control toggle
+  //  NEW: Handle bot control toggle
   const handleBotControlToggle = async (event) => {
     const shouldPause = event.target.checked;
 
     if (shouldPause) {
       const success = await pauseBot("manual_intervention");
       if (success) {
-        console.log("✅ Bot paused - you are now in control");
+        console.log(" Bot paused - you are now in control");
       }
     } else {
       const success = await resumeBot();
       if (success) {
-        console.log("✅ Bot resumed - bot will respond automatically");
+        console.log(" Bot resumed - bot will respond automatically");
       }
     }
   };
   const handleFileUploadComplete = (document) => {
-    console.log("✅ File uploaded:", document);
+    console.log(" File uploaded:", document);
 
     const fileMessage = JSON.stringify({
       type: "file",
@@ -378,7 +378,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
                   cursor: "pointer",
                 }}
                 onError={async (e) => {
-                  // ✅ ADD THIS: Auto-refresh URL when image fails to load
+                  //  ADD THIS: Auto-refresh URL when image fails to load
                   if (fileData.documentId) {
                     console.log("🔄 Chat image failed to load, refreshing URL");
                     const newUrl = await refreshUrl(fileData.documentId);
@@ -587,13 +587,13 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     }));
   };
 
-  // ✅ FIXED: Determine if message should appear on RIGHT side
+  //  FIXED: Determine if message should appear on RIGHT side
   // Bot messages AND dentist messages go on the right
   const isOwnMessage = (sender) => {
     return sender === "dentist" || sender === "bot";
   };
 
-  // ✅ NEW: Get background color based on sender
+  //  NEW: Get background color based on sender
   const getMessageBackgroundColor = (sender) => {
     if (sender === "dentist") {
       // Dentist messages - Teal
@@ -611,7 +611,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     }
   };
 
-  // ✅ NEW: Get border color based on sender
+  //  NEW: Get border color based on sender
   const getMessageBorderColor = (sender) => {
     if (sender === "dentist") {
       return isDarkMode
@@ -845,7 +845,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
             alignItems: "center",
           }}
         >
-          {/* ✅ NEW: Bot Control Toggle */}
+          {/*  NEW: Bot Control Toggle */}
           <Tooltip
             title={
               botPaused
@@ -1132,7 +1132,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
               );
             }
 
-            // ✅ FIXED: Check if message is from bot OR dentist for positioning
+            //  FIXED: Check if message is from bot OR dentist for positioning
             const isStaff = isOwnMessage(item.sender);
             const isFile = isFileMessage(item.message);
             const fileData = isFile ? parseFileMessage(item.message) : null;
@@ -1193,7 +1193,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
                         borderTopRightRadius: isStaff ? 4 : 16,
                       }}
                     >
-                      {/* ✅ NEW: Bot label */}
+                      {/*  NEW: Bot label */}
                       {item.sender === "bot" && (
                         <Typography
                           variant="caption"
@@ -1242,7 +1242,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
                       >
                         {formatTime(item.timestamp)}
                       </Typography>
-                      {/* ✅ ENHANCED: Channel badge with icons */}
+                      {/*  ENHANCED: Channel badge with icons */}
                       <Chip
                         label={
                           item.channel === "sms"
@@ -1688,7 +1688,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
                 color: isDarkMode ? "#34d399" : "#388E3C",
               }}
             >
-              ✅ SMS sent successfully!
+               SMS sent successfully!
             </Alert>
           )}
         </DialogContent>
@@ -1714,7 +1714,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
               isSendingSMS ? (
                 <CircularProgress size={20} color="inherit" />
               ) : smsSuccess ? (
-                "✅"
+                ""
               ) : (
                 <SmsIcon />
               )

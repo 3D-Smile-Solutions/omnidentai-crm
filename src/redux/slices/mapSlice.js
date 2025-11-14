@@ -12,10 +12,10 @@ export const fetchPatientMapData = createAsyncThunk(
     try {
       console.log('🗺️ Fetching patient map data...');
       const response = await api.get('/api/metrics/patient-map');
-      console.log('✅ Map data fetched:', response.data);
+      console.log(' Map data fetched:', response.data);
       return response.data;
     } catch (error) {
-      console.error('❌ Error fetching map data:', error);
+      console.error(' Error fetching map data:', error);
       return rejectWithValue(error.response?.data || { error: 'Failed to fetch map data' });
     }
   }

@@ -20,11 +20,11 @@ export async function getOverviewMetrics(req, res) {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('❌ Error fetching metrics:', error);
+      console.error(' Error fetching metrics:', error);
       return res.status(500).json({ error: 'Failed to fetch metrics' });
     }
 
-    console.log(`✅ Fetched ${metrics.length} conversation records`);
+    console.log(` Fetched ${metrics.length} conversation records`);
 
     // If no data, return empty structure
     if (metrics.length === 0) {
@@ -243,7 +243,7 @@ export async function getOverviewMetrics(req, res) {
       }
     };
 
-    console.log('✅ Successfully calculated column-based metrics');
+    console.log(' Successfully calculated column-based metrics');
     console.log('📊 Sample data:', {
       appointmentTypes: appointmentTypeData.length,
       procedures: procedurePrimaryData.length,
@@ -253,13 +253,13 @@ export async function getOverviewMetrics(req, res) {
     res.json(response);
 
   } catch (error) {
-    console.error('❌ Error in getOverviewMetrics:', error);
+    console.error(' Error in getOverviewMetrics:', error);
     res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 }
 
 // ============================================================================
-// ✅ HELPER FUNCTION: ZIP CODE TO STATE CONVERSION
+//  HELPER FUNCTION: ZIP CODE TO STATE CONVERSION
 // ============================================================================
 function getStateFromZip(zipCode) {
   if (!zipCode) return null;
@@ -300,7 +300,7 @@ function getStateFromZip(zipCode) {
 }
 
 // ============================================================================
-// ✅ IMPROVED PATIENT MAP DATA FUNCTION
+//  IMPROVED PATIENT MAP DATA FUNCTION
 // ============================================================================
 /**
  * Get patient distribution map data
@@ -329,7 +329,7 @@ export async function getPatientMapData(req, res) {
       .not('longitude', 'is', null);
 
     if (patientsError) {
-      console.error('❌ Error fetching patients:', patientsError);
+      console.error(' Error fetching patients:', patientsError);
       throw patientsError;
     }
 
@@ -357,7 +357,7 @@ export async function getPatientMapData(req, res) {
       // .eq('client_id', dentistId)
 
     if (metricsError) {
-      console.error('❌ Error fetching metrics:', metricsError);
+      console.error(' Error fetching metrics:', metricsError);
     }
 
     // ========== STEP 3: BUILD PROCEDURE MAP (contact_id -> procedures) ==========
@@ -433,7 +433,7 @@ export async function getPatientMapData(req, res) {
         ? procedureEntries.reduce((a, b) => a[1] > b[1] ? a : b)[0]
         : 'Other';
 
-      // ✅ Get state from ZIP code
+      //  Get state from ZIP code
       const state = getStateFromZip(loc.zip_code);
       
       // City placeholder (can enhance with reverse geocoding later)
@@ -468,7 +468,7 @@ export async function getPatientMapData(req, res) {
     const avgLat = locations.reduce((sum, loc) => sum + loc.lat, 0) / locations.length;
     const avgLng = locations.reduce((sum, loc) => sum + loc.lng, 0) / locations.length;
 
-    // ✅ Calculate ACTUAL unique states (not rough estimate)
+    //  Calculate ACTUAL unique states (not rough estimate)
     const uniqueStates = new Set(
       locations.map(loc => loc.state).filter(s => s !== 'Unknown')
     );
@@ -486,7 +486,7 @@ export async function getPatientMapData(req, res) {
       zoom: locations.length > 50 ? 4 : 6
     };
 
-    console.log('✅ Map data prepared:', {
+    console.log(' Map data prepared:', {
       locations: response.locations.length,
       procedures: response.procedure_summary.length,
       total_patients: response.total_patients,
@@ -496,7 +496,7 @@ export async function getPatientMapData(req, res) {
     res.json(response);
 
   } catch (error) {
-    console.error('❌ Error fetching patient map data:', error);
+    console.error(' Error fetching patient map data:', error);
     res.status(500).json({ 
       error: 'Failed to fetch patient map data',
       details: error.message 

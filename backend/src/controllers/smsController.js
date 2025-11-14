@@ -70,14 +70,14 @@ export async function sendSMS(req, res) {
       statusCallback: `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/sms/status`
     });
 
-    console.log('✅ SMS sent via Twilio:', twilioMessage.sid);
+    console.log(' SMS sent via Twilio:', twilioMessage.sid);
 
     // Log message to database with channel: 'sms'
     const messageData = {
       contactId: patient.contact_id,
       content: content.trim(),
       senderType: 'client',
-      channelType: 'sms' // ✅ SMS CHANNEL TAG
+      channelType: 'sms' //  SMS CHANNEL TAG
     };
 
     const newMessage = await createMessage(messageData);
@@ -96,16 +96,16 @@ export async function sendSMS(req, res) {
       id: newMessage.id,
       message: newMessage.message,
       sender: 'dentist',
-      channel: 'sms', // ✅ SMS CHANNEL
+      channel: 'sms', //  SMS CHANNEL
       timestamp: newMessage.created_at,
       patientId: patientId,
       twilioSid: twilioMessage.sid,
       smsStatus: twilioMessage.status
     };
 
-    console.log('✅ SMS logged to database');
+    console.log(' SMS logged to database');
 
-    // ✅ EMIT WEBSOCKET EVENT - Import io from server.js
+    //  EMIT WEBSOCKET EVENT - Import io from server.js
     try {
       const { io } = await import('../server.js');
       
@@ -115,7 +115,7 @@ export async function sendSMS(req, res) {
       // Also emit to dentist's personal room
       io.to(`dentist_${dentistId}`).emit('message_sent', transformedMessage);
       
-      console.log(`✅ WebSocket SMS event emitted to patient_${patientId}`);
+      console.log(` WebSocket SMS event emitted to patient_${patientId}`);
       
     } catch (wsError) {
       console.warn('⚠️ Could not emit WebSocket event:', wsError.message);
@@ -128,7 +128,7 @@ export async function sendSMS(req, res) {
     });
 
   } catch (error) {
-    console.error('❌ Error sending SMS:', error);
+    console.error(' Error sending SMS:', error);
     res.status(500).json({
       error: 'Failed to send SMS',
       details: error.message
@@ -160,7 +160,7 @@ export async function handleIncomingSMS(req, res) {
       .or(`phone.eq.${From},phone.eq.${formattedPhone}`);
 
     if (patientError || !patients || patients.length === 0) {
-      console.error('❌ Patient not found for phone:', From);
+      console.error(' Patient not found for phone:', From);
       
       // Send TwiML response
       const twiml = new twilio.twiml.MessagingResponse();
@@ -172,14 +172,14 @@ export async function handleIncomingSMS(req, res) {
 
     const patient = patients[0];
 
-    console.log('✅ Found patient:', patient.id);
+    console.log(' Found patient:', patient.id);
 
     // Save message to database with channel: 'sms'
     const messageData = {
       contactId: patient.contact_id,
       content: Body.trim(),
       senderType: 'user', // FROM patient
-      channelType: 'sms' // ✅ SMS CHANNEL TAG
+      channelType: 'sms' //  SMS CHANNEL TAG
     };
 
     const newMessage = await createMessage(messageData);
@@ -193,9 +193,9 @@ export async function handleIncomingSMS(req, res) {
       })
       .eq('id', newMessage.id);
 
-    console.log('✅ Incoming SMS logged to database');
+    console.log(' Incoming SMS logged to database');
 
-    // ✅ EMIT WEBSOCKET EVENT - Import io from server.js
+    //  EMIT WEBSOCKET EVENT - Import io from server.js
     // You need to pass io to this controller or import it
     try {
       // Get io instance - you'll need to export it from server.js
@@ -219,7 +219,7 @@ export async function handleIncomingSMS(req, res) {
       // Also emit to patient conversation room
       io.to(`patient_${patient.id}`).emit('new_message', transformedMessage);
       
-      console.log('✅ WebSocket event emitted to dentist:', patient.dentist_id);
+      console.log(' WebSocket event emitted to dentist:', patient.dentist_id);
       
     } catch (wsError) {
       console.warn('⚠️ Could not emit WebSocket event:', wsError.message);
@@ -233,7 +233,7 @@ export async function handleIncomingSMS(req, res) {
     res.send(twiml.toString());
 
   } catch (error) {
-    console.error('❌ Error handling incoming SMS:', error);
+    console.error(' Error handling incoming SMS:', error);
     
     // Still send valid TwiML response even on error
     const twiml = new twilio.twiml.MessagingResponse();
@@ -262,12 +262,12 @@ export async function handleSMSStatus(req, res) {
       })
       .eq('twilio_message_sid', MessageSid);
 
-    console.log('✅ SMS status updated:', MessageSid);
+    console.log(' SMS status updated:', MessageSid);
 
     res.sendStatus(200);
 
   } catch (error) {
-    console.error('❌ Error updating SMS status:', error);
+    console.error(' Error updating SMS status:', error);
     res.sendStatus(500);
   }
 }
@@ -327,7 +327,7 @@ export async function getSMSHistory(req, res) {
     res.json({ messages: transformedMessages });
 
   } catch (error) {
-    console.error('❌ Error fetching SMS history:', error);
+    console.error(' Error fetching SMS history:', error);
     res.status(500).json({
       error: 'Failed to fetch SMS history',
       details: error.message

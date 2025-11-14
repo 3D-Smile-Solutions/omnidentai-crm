@@ -34,7 +34,7 @@ export const fetchPatients = createAsyncThunk(
       
       return res.data.patients;
     } catch (err) {
-      console.error('❌ Error fetching patients:', err);
+      console.error(' Error fetching patients:', err);
       return rejectWithValue(err.response?.data || err.message || "Failed to fetch patients");
     }
   }
@@ -66,7 +66,7 @@ const patientSlice = createSlice({
           patient.lastMessageChannel = lastMessageChannel;
         }
         
-        // console.log(`✅ Updated last message for patient ${patientId}`);
+        // console.log(` Updated last message for patient ${patientId}`);
       } else {
         console.warn(`⚠️ Patient ${patientId} not found in list`);
       }
@@ -80,7 +80,7 @@ const patientSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchPatients.fulfilled, (state, action) => {
-        console.log('✅ fetchPatients.fulfilled');
+        console.log(' fetchPatients.fulfilled');
         // console.log('📦 Payload received in reducer:', action.payload);
         
         if (action.payload && action.payload.length > 0) {
@@ -100,7 +100,7 @@ const patientSlice = createSlice({
         console.log('📦 State.list after update:', state.list);
       })
       .addCase(fetchPatients.rejected, (state, action) => {
-        console.error('❌ fetchPatients.rejected:', action.payload);
+        console.error(' fetchPatients.rejected:', action.payload);
         state.status = "failed";
         state.error = action.payload || action.error.message;
       });

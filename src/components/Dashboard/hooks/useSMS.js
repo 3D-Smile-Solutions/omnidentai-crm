@@ -42,7 +42,7 @@ export const useSMS = () => {
         config
       );
 
-      console.log('✅ SMS sent successfully:', response.data);
+      console.log(' SMS sent successfully:', response.data);
 
       // Note: WebSocket will emit 'message_sent' event automatically
       // The message will appear via WebSocket listener in useWebSocket
@@ -55,7 +55,7 @@ export const useSMS = () => {
       };
 
     } catch (err) {
-      console.error('❌ Error sending SMS:', err);
+      console.error(' Error sending SMS:', err);
       
       const errorMessage = err.response?.data?.error || 
                           err.response?.data?.details || 
@@ -84,11 +84,11 @@ export const useSMS = () => {
         config
       );
 
-      console.log('✅ SMS history fetched:', response.data.messages.length);
+      console.log(' SMS history fetched:', response.data.messages.length);
       return { success: true, messages: response.data.messages };
 
     } catch (err) {
-      console.error('❌ Error fetching SMS history:', err);
+      console.error(' Error fetching SMS history:', err);
       return { 
         success: false, 
         error: err.response?.data?.error || 'Failed to fetch SMS history' 

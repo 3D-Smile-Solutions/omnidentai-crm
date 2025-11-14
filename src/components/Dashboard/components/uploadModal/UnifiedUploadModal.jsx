@@ -131,7 +131,7 @@ const UnifiedUploadModal = ({
         }
       })).unwrap();
 
-      console.log('✅ Upload successful:', result);
+      console.log(' Upload successful:', result);
       
       if (onUploadComplete) {
         onUploadComplete(result);
@@ -143,7 +143,7 @@ const UnifiedUploadModal = ({
       }, 500);
 
     } catch (error) {
-      console.error('❌ Upload failed:', error);
+      console.error(' Upload failed:', error);
       // Error is in Redux state
     }
   };

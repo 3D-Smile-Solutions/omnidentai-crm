@@ -20,7 +20,7 @@ const useWebSocket = () => {
     
     // Only connect if user is authenticated
     if (!session?.access_token) {
-      console.log('❌ No access token - WebSocket not connecting');
+      console.log(' No access token - WebSocket not connecting');
       return;
     }
 
@@ -39,7 +39,7 @@ const useWebSocket = () => {
     // ==========================================
 
     socket.current.on('connect', () => {
-      console.log('✅ Connected to WebSocket server');
+      console.log(' Connected to WebSocket server');
     });
 
     socket.current.on('disconnect', (reason) => {
@@ -47,7 +47,7 @@ const useWebSocket = () => {
     });
 
     socket.current.on('connect_error', (error) => {
-      console.error('❌ WebSocket connection error:', error.message);
+      console.error(' WebSocket connection error:', error.message);
     });
 
     // ==========================================
@@ -75,7 +75,7 @@ const useWebSocket = () => {
 
     // Listen for confirmation that your message was sent
     socket.current.on('message_sent', (message) => {
-      console.log('✅ Message sent confirmation:', message);
+      console.log(' Message sent confirmation:', message);
       
       // 🆕 NEW: Update patient's last message for sender too
       dispatch(updatePatientLastMessage({
@@ -88,7 +88,7 @@ const useWebSocket = () => {
 
     // Listen for message errors
     socket.current.on('message_error', (error) => {
-      console.error('❌ Message error:', error);
+      console.error(' Message error:', error);
       // You could dispatch an error action here if needed
     });
 
@@ -154,7 +154,7 @@ const useWebSocket = () => {
     }
 
     if (!patientId || !content?.trim()) {
-      console.error('❌ Invalid message data');
+      console.error(' Invalid message data');
       return false;
     }
 

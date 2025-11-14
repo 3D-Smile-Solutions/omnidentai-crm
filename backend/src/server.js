@@ -27,10 +27,10 @@ const io = new Server(httpServer, {
   cors: {
     origin: [
       'http://localhost:3000',      // React frontend (CRM)
-      'http://localhost:8080',      // Vite dev server (chat widget) ✅ ADD THIS
+      'http://localhost:8080',      // Vite dev server (chat widget)  ADD THIS
       'http://localhost:5500',      // Live Server (chat widget)
       'http://localhost:5501',      // Live Server alternative
-      'http://127.0.0.1:8080',      // Alternative localhost ✅ ADD THIS
+      'http://127.0.0.1:8080',      // Alternative localhost  ADD THIS
       'http://127.0.0.1:5500',      // Alternative localhost
       'http://127.0.0.1:5501',      // Alternative localhost
     ],
@@ -43,10 +43,10 @@ const io = new Server(httpServer, {
 app.use(cors({
    origin: [
       'http://localhost:3000',      // React frontend (CRM)
-      'http://localhost:8080',      // Vite dev server (chat widget) ✅ ADD THIS
+      'http://localhost:8080',      // Vite dev server (chat widget)  ADD THIS
       'http://localhost:5500',      // Live Server (chat widget)
       'http://localhost:5501',      // Live Server alternative
-      'http://127.0.0.1:8080',      // Alternative localhost ✅ ADD THIS
+      'http://127.0.0.1:8080',      // Alternative localhost  ADD THIS
       'http://127.0.0.1:5500',      // Alternative localhost
       'http://127.0.0.1:5501',      // Alternative localhost
     ],
@@ -55,7 +55,7 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 // Add this BEFORE registering routes to verify import worked
-console.log('✅ Conversation control routes loaded:', typeof conversationControlRoutes);
+console.log(' Conversation control routes loaded:', typeof conversationControlRoutes);
 // Routes
 app.use("/auth", authRoutes);
 app.use("/patients", patientRoutes);
@@ -69,7 +69,7 @@ app.use('/api/usage', twilioUsage);
 app.use('/practice-documents', practiceDocumentRoutes);
 app.use("/api/conversation-control", conversationControlRoutes);
 app.get("/", (req, res) => {
-  res.json({ message: "Backend API is running 🚀" });
+  res.json({ message: "Backend API is running " });
 });
 // ==========================================
 // WEBSOCKET AUTHENTICATION & HANDLING
@@ -81,15 +81,15 @@ const authenticateSocket = async (socket, next) => {
     const token = socket.handshake.auth.token;
     const contactId = socket.handshake.auth.contactId;
     
-    // ✅ CHAT WIDGET CONNECTION (no token, uses contactId)
+    //  CHAT WIDGET CONNECTION (no token, uses contactId)
     if (!token && contactId) {
       socket.isWidget = true;
       socket.contactId = contactId;
-      console.log(`✅ Chat widget authenticated for contact: ${contactId}`);
+      console.log(` Chat widget authenticated for contact: ${contactId}`);
       return next();
     }
     
-    // ✅ CRM CONNECTION (requires token)
+    //  CRM CONNECTION (requires token)
     if (!token) {
       return next(new Error('No authentication token provided'));
     }
@@ -104,7 +104,7 @@ const authenticateSocket = async (socket, next) => {
     socket.userEmail = data.user.email;
     socket.isWidget = false;
     
-    console.log(`✅ CRM authenticated for user: ${data.user.email}`);
+    console.log(` CRM authenticated for user: ${data.user.email}`);
     next();
   } catch (err) {
     console.error('Socket authentication error:', err);
@@ -126,8 +126,8 @@ io.on('connection', (socket) => {
     // Join widget to its contact room
     socket.join(`contact_${socket.contactId}`);
     
-    // ✅ WIDGET SENDS MESSAGE TO CRM
-   // ✅ WIDGET SENDS MESSAGE TO CRM
+    //  WIDGET SENDS MESSAGE TO CRM
+   //  WIDGET SENDS MESSAGE TO CRM
 socket.on('send_message', async (data) => {
   try {
     const { content } = data;
@@ -152,11 +152,11 @@ socket.on('send_message', async (data) => {
       return;
     }
 
-    // ❌ REMOVE THIS ENTIRE BLOCK - Don't save user messages!
+    //  REMOVE THIS ENTIRE BLOCK - Don't save user messages!
     // const messageData = { ... };
     // const newMessage = await createMessage(messageData);
 
-    // ✅ Just create the message object for WebSocket broadcast
+    //  Just create the message object for WebSocket broadcast
     const transformedMessage = {
       id: Date.now(), // Temporary ID for real-time display
       message: content.trim(),
@@ -166,17 +166,17 @@ socket.on('send_message', async (data) => {
       patientId: patient.id
     };
 
-    // ✅ SEND TO CRM (dentist's room AND patient's room) - REAL-TIME ONLY
+    //  SEND TO CRM (dentist's room AND patient's room) - REAL-TIME ONLY
     io.to(`dentist_${patient.dentist_id}`).emit('new_message', transformedMessage);
     io.to(`patient_${patient.id}`).emit('new_message', transformedMessage);
     
-    // ✅ CONFIRMATION TO WIDGET
+    //  CONFIRMATION TO WIDGET
     socket.emit('message_sent', transformedMessage);
 
-    console.log(`✅ Widget message forwarded to CRM (not saved - widget handles DB)`);
+    console.log(` Widget message forwarded to CRM (not saved - widget handles DB)`);
 
   } catch (error) {
-    console.error('❌ Error handling widget message:', error);
+    console.error(' Error handling widget message:', error);
     socket.emit('message_error', { 
       error: 'Failed to send message',
       details: error.message 
@@ -188,7 +188,7 @@ socket.on('send_message', async (data) => {
       console.log(`🔌 Widget disconnected: ${socket.contactId} (${reason})`);
     });
 
-    return; // ✅ Exit early for widget - don't process CRM events
+    return; //  Exit early for widget - don't process CRM events
   }
 
   // ==========================================
@@ -263,7 +263,7 @@ socket.on('send_message', async (data) => {
       const messageData = {
         contactId: patient.contact_id,
         content: content.trim(),
-        senderType: 'client', // ✅ Changed from 'client'
+        senderType: 'client', //  Changed from 'client'
         channelType
       };
 
@@ -272,25 +272,25 @@ socket.on('send_message', async (data) => {
       const transformedMessage = {
         id: newMessage.id,
         message: newMessage.message,
-        sender: 'client', // ✅ Changed from 'client'
+        sender: 'client', //  Changed from 'client'
         channel: newMessage.channel,
         timestamp: newMessage.created_at,
         patientId: patientId
       };
 
-      // ✅ SEND TO WIDGET (contact room)
+      //  SEND TO WIDGET (contact room)
       io.to(`contact_${patient.contact_id}`).emit('new_message', transformedMessage);
       
-      // ✅ SEND TO OTHER CRM USERS IN THIS CONVERSATION
+      //  SEND TO OTHER CRM USERS IN THIS CONVERSATION
       socket.to(`patient_${patientId}`).emit('new_message', transformedMessage);
 
-      // ✅ CONFIRMATION TO SENDER
+      //  CONFIRMATION TO SENDER
       socket.emit('message_sent', transformedMessage);
 
-      console.log(`✅ CRM ${channelType.toUpperCase()} message sent to widget for contact ${patient.contact_id}`);
+      console.log(` CRM ${channelType.toUpperCase()} message sent to widget for contact ${patient.contact_id}`);
 
     } catch (error) {
-      console.error('❌ Error sending message from CRM:', error);
+      console.error(' Error sending message from CRM:', error);
       socket.emit('message_error', { 
         error: 'Failed to send message',
         details: error.message 
@@ -352,7 +352,7 @@ socket.on('send_message', async (data) => {
   });
 
   socket.on('error', (error) => {
-    console.error(`❌ Socket error for ${socket.userEmail}:`, error);
+    console.error(` Socket error for ${socket.userEmail}:`, error);
   });
 });
 
@@ -400,16 +400,16 @@ app.post("/api/bot-response", express.json(), async (req, res) => {
       contact_id: contact_id
     };
 
-    // ✅ BROADCAST TO CRM (Dentist's room)
+    //  BROADCAST TO CRM (Dentist's room)
     io.to(`dentist_${patient.dentist_id}`).emit('new_message', transformedMessage);
     
-    // ✅ BROADCAST TO PATIENT'S ROOM (for multi-user CRM)
+    //  BROADCAST TO PATIENT'S ROOM (for multi-user CRM)
     io.to(`patient_${patient.id}`).emit('new_message', transformedMessage);
 
-    // ✅ BROADCAST TO WIDGET (if widget is connected)
+    //  BROADCAST TO WIDGET (if widget is connected)
     io.to(`contact_${contact_id}`).emit('new_message', transformedMessage);
 
-    console.log('✅ Bot response broadcasted via WebSocket to CRM and widget');
+    console.log(' Bot response broadcasted via WebSocket to CRM and widget');
 
     res.json({ 
       success: true, 
@@ -417,7 +417,7 @@ app.post("/api/bot-response", express.json(), async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error handling bot response:', error);
+    console.error(' Error handling bot response:', error);
     res.status(500).json({ 
       success: false, 
       error: 'Internal server error',
@@ -428,7 +428,7 @@ app.post("/api/bot-response", express.json(), async (req, res) => {
 // Start server
 const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log(` Server running on http://localhost:${PORT}`);
   // console.log(`🔌 WebSocket server ready`);
 });
 

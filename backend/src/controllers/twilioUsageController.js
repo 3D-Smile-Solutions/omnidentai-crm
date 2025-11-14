@@ -5,15 +5,15 @@ const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 
 if (!accountSid || !authToken) {
-  console.error('❌ Missing Twilio credentials in .env file');
-  console.error('TWILIO_ACCOUNT_SID:', accountSid ? '✅ Present' : '❌ Missing');
-  console.error('TWILIO_AUTH_TOKEN:', authToken ? '✅ Present' : '❌ Missing');
+  console.error(' Missing Twilio credentials in .env file');
+  console.error('TWILIO_ACCOUNT_SID:', accountSid ? ' Present' : ' Missing');
+  console.error('TWILIO_AUTH_TOKEN:', authToken ? ' Present' : ' Missing');
 }
 
 const client = twilio(accountSid, authToken);
 
 /**
- * ✅ UNIFIED API - Get all usage data in ONE call
+ *  UNIFIED API - Get all usage data in ONE call
  */
 export async function getUsageStats(req, res) {
   try {
@@ -25,20 +25,20 @@ export async function getUsageStats(req, res) {
     
     console.log('📅 Date range:', dateRange);
     
-    // ✅ Fetch ALL usage records in ONE call
+    //  Fetch ALL usage records in ONE call
     const usageRecords = await client.usage.records.list({
       startDate: dateRange.start,
       endDate: dateRange.end,
       limit: 1000
     });
     
-    console.log('✅ Received', usageRecords.length, 'usage records');
+    console.log(' Received', usageRecords.length, 'usage records');
     
-    // ✅ Process ALL data from the SAME response
+    //  Process ALL data from the SAME response
     const stats = processUsageRecords(usageRecords);
     const costBreakdown = calculateCostBreakdown(usageRecords);
     
-    // ✅ Get daily usage separately (but with same date range)
+    //  Get daily usage separately (but with same date range)
     const dailyUsage = await getDailyUsageData(dateRange);
     
     console.log('📊 Final unified response:');
@@ -46,7 +46,7 @@ export async function getUsageStats(req, res) {
     console.log('   Cost breakdown:', costBreakdown);
     console.log('   Daily usage days:', dailyUsage.length);
     
-    // ✅ Return EVERYTHING in one response
+    //  Return EVERYTHING in one response
     res.json({
       success: true,
       period: period,
@@ -57,7 +57,7 @@ export async function getUsageStats(req, res) {
     });
     
   } catch (error) {
-    console.error('❌ Error in getUsageStats:', error.message);
+    console.error(' Error in getUsageStats:', error.message);
     console.error('Full error:', error);
     res.status(500).json({
       error: 'Failed to fetch usage statistics',
@@ -67,7 +67,7 @@ export async function getUsageStats(req, res) {
 }
 
 /**
- * ✅ Helper function to get daily usage
+ *  Helper function to get daily usage
  */
 async function getDailyUsageData(dateRange) {
   try {
@@ -82,7 +82,7 @@ async function getDailyUsageData(dateRange) {
       limit: 100
     });
     
-    console.log('✅ Received', dailyRecords.length, 'daily records');
+    console.log(' Received', dailyRecords.length, 'daily records');
     
     if (dailyRecords.length === 0) {
       console.log('⚠️ No daily records found');
@@ -91,7 +91,7 @@ async function getDailyUsageData(dateRange) {
     
     return formatDailyUsageForCharts(dailyRecords);
   } catch (error) {
-    console.error('❌ Error fetching daily usage:', error.message);
+    console.error(' Error fetching daily usage:', error.message);
     return [];
   }
 }
@@ -165,7 +165,7 @@ export async function debugUsageCategories(req, res) {
     });
     
   } catch (error) {
-    console.error('❌ Error:', error.message);
+    console.error(' Error:', error.message);
     res.status(500).json({
       error: 'Failed to fetch debug data',
       details: error.message
@@ -251,7 +251,7 @@ function processUsageRecords(records) {
   
   console.log('📊 PROCESSING', records.length, 'USAGE RECORDS');
   
-  // ✅ ONLY use the most specific categories to avoid double-counting
+  //  ONLY use the most specific categories to avoid double-counting
   const VALID_CALL_CATEGORIES = [
     'calls-inbound-local',
     'calls-inbound-mobile',
@@ -280,7 +280,7 @@ function processUsageRecords(records) {
     // Skip if no count
     if (count === 0 && price === 0) return;
     
-    // ✅ CALLS - Only count specific categories
+    //  CALLS - Only count specific categories
     if (VALID_CALL_CATEGORIES.includes(category)) {
       if (category.includes('inbound')) {
         stats.callsInbound += count;
@@ -293,7 +293,7 @@ function processUsageRecords(records) {
       console.log(`  📞 ${category}: ${count} calls, ${usage}s, $${Math.abs(price).toFixed(4)}`);
     }
     
-    // ✅ SMS - Only count specific categories
+    //  SMS - Only count specific categories
     else if (VALID_SMS_CATEGORIES.includes(category)) {
       if (category.includes('inbound')) {
         stats.smsInbound += count;
@@ -305,7 +305,7 @@ function processUsageRecords(records) {
       console.log(`  💬 ${category}: ${count} messages, $${Math.abs(price).toFixed(4)}`);
     }
     
-    // ✅ Track total cost from ALL records
+    //  Track total cost from ALL records
     stats.totalCost += Math.abs(price);
   });
   
@@ -313,7 +313,7 @@ function processUsageRecords(records) {
   stats.callDuration = Math.round(stats.callDuration / 60);
   stats.totalCost = Math.round(stats.totalCost * 100) / 100;
   
-  console.log('✅ FINAL PROCESSED STATS:', stats);
+  console.log(' FINAL PROCESSED STATS:', stats);
   
   return stats;
 }
@@ -343,7 +343,7 @@ function formatDailyUsageForCharts(records) {
   console.log('📊 Processing', records.length, 'daily records');
   
   records.forEach(record => {
-    // ✅ Handle both Date objects and strings
+    //  Handle both Date objects and strings
     let dateStr;
     if (typeof record.startDate === 'string') {
       dateStr = record.startDate.split('T')[0];
@@ -367,24 +367,24 @@ function formatDailyUsageForCharts(records) {
     const count = parseInt(record.count) || 0;
     const price = Math.abs(parseFloat(record.price)) || 0;
     
-    // ✅ Only count specific categories to match main stats
+    //  Only count specific categories to match main stats
     if (CALL_CATEGORIES.includes(category)) {
       grouped[dateStr].calls += count;
     } else if (SMS_CATEGORIES.includes(category)) {
       grouped[dateStr].sms += count;
     }
     
-    // ✅ Add all costs
+    //  Add all costs
     grouped[dateStr].cost += price;
   });
   
-  // ✅ Convert to array and round costs
+  //  Convert to array and round costs
   const result = Object.values(grouped).map(day => ({
     ...day,
     cost: Math.round(day.cost * 100) / 100
   }));
   
-  // ✅ Sort by date ascending
+  //  Sort by date ascending
   result.sort((a, b) => new Date(a.date) - new Date(b.date));
   
   console.log('📊 Formatted', result.length, 'days of usage data');
@@ -403,7 +403,7 @@ function calculateCostBreakdown(records) {
   
   console.log('💰 CALCULATING COST BREAKDOWN FROM', records.length, 'RECORDS');
   
-  // ✅ ONLY use the most specific categories
+  //  ONLY use the most specific categories
   const CALL_CATEGORIES = [
     'calls-inbound-local',
     'calls-inbound-mobile',
@@ -440,7 +440,7 @@ function calculateCostBreakdown(records) {
     detailedBreakdown[category].count += count;
     detailedBreakdown[category].cost += price;
     
-    // ✅ Categorize by specific categories only
+    //  Categorize by specific categories only
     if (CALL_CATEGORIES.includes(category)) {
       breakdown.calls.count += count;
       breakdown.calls.cost += price;
@@ -456,7 +456,7 @@ function calculateCostBreakdown(records) {
     breakdown.totalCost += price;
   });
   
-  // ✅ LOG DETAILED BREAKDOWN (only items with cost)
+  //  LOG DETAILED BREAKDOWN (only items with cost)
   const itemsWithCost = Object.entries(detailedBreakdown)
     .filter(([_, data]) => data.cost > 0)
     .sort((a, b) => b[1].cost - a[1].cost);
@@ -472,7 +472,7 @@ function calculateCostBreakdown(records) {
   breakdown.other.cost = Math.round(breakdown.other.cost * 100) / 100;
   breakdown.totalCost = Math.round(breakdown.totalCost * 100) / 100;
   
-  console.log('✅ FINAL COST BREAKDOWN:', breakdown);
+  console.log(' FINAL COST BREAKDOWN:', breakdown);
   
   return breakdown;
 }

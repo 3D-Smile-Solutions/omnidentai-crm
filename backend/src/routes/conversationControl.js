@@ -7,7 +7,7 @@ import {
   resumeBotForConversation,
   checkShouldBotRespond
 } from "../controllers/conversationControlController.js";
-import { authMiddleware } from "../middlewares/authMiddleware.js"; // ✅ FIXED PATH
+import { authMiddleware } from "../middlewares/authMiddleware.js"; //  FIXED PATH
 
 const router = express.Router();
 
@@ -19,4 +19,4 @@ router.get("/:contactId", authMiddleware, getControlStatus);
 router.post("/pause", authMiddleware, pauseBotForConversation);
 router.post("/resume", authMiddleware, resumeBotForConversation);
 
-export default router; // ✅ ADD THIS LINE
+export default router; //  ADD THIS LINE

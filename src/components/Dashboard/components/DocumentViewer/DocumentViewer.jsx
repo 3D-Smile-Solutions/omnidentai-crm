@@ -577,7 +577,7 @@ const DocumentViewer = ({
                           alt={doc.filename}
                           sx={{ objectFit: "cover" }}
                           onError={async (e) => {
-                            // ✅ ADD THIS: Auto-refresh URL when image fails to load
+                            //  ADD THIS: Auto-refresh URL when image fails to load
                             console.log(
                               "🔄 Image failed to load, refreshing URL for:",
                               doc.id

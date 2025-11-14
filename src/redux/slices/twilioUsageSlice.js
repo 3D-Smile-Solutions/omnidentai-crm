@@ -3,7 +3,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../api/axiosInstance';
 
 /**
- * ✅ UNIFIED API - Fetch everything in one call
+ *  UNIFIED API - Fetch everything in one call
  */
 export const fetchUsageStats = createAsyncThunk(
   'twilioUsage/fetchUsageStats',
@@ -15,7 +15,7 @@ export const fetchUsageStats = createAsyncThunk(
         params: { period }
       });
       
-      console.log('✅ Twilio usage data fetched:', response.data);
+      console.log(' Twilio usage data fetched:', response.data);
       
       return {
         stats: response.data.stats,
@@ -24,7 +24,7 @@ export const fetchUsageStats = createAsyncThunk(
         period: period
       };
     } catch (error) {
-      console.error('❌ Error fetching Twilio usage:', error);
+      console.error(' Error fetching Twilio usage:', error);
       return rejectWithValue(error.response?.data || { error: 'Failed to fetch usage data' });
     }
   }

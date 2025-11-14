@@ -42,9 +42,9 @@ const Signup = () => {
         }
       );
 
-      console.log('✅ n8n response:', response.data);
+      console.log(' n8n response:', response.data);
 
-      // ✅ CHECK if response indicates success
+      //  CHECK if response indicates success
       if (response.data?.success || response.status === 200) {
         toast.success("Account created! Check your email to set password.");
         setTimeout(() => navigate("/login"), 2000);
@@ -53,7 +53,7 @@ const Signup = () => {
       }
 
     } catch (err) {
-      console.error('❌ Signup error:', err);
+      console.error(' Signup error:', err);
       
       let errorMessage = "Signup failed. Please try again.";
       

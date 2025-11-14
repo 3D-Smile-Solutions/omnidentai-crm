@@ -19,7 +19,7 @@ const setRefreshCookie = (res, refreshToken) => {
 //   const { firstName, lastName, email, password } = req.body;
 
 //   try {
-//     console.log('🚀 Starting signup for:', email);
+//     console.log(' Starting signup for:', email);
 
 //     let ghlUserId = null;
 
@@ -38,7 +38,7 @@ const setRefreshCookie = (res, refreshToken) => {
 //         timeout: 8000 // 8 second timeout
 //       });
 
-//       console.log('✅ n8n response:', ghlResponse.data);
+//       console.log(' n8n response:', ghlResponse.data);
 
 //       // Extract GHL user ID (adjust based on actual n8n response format)
 //       ghlUserId = ghlResponse.data?.userId 
@@ -47,7 +47,7 @@ const setRefreshCookie = (res, refreshToken) => {
 //                   || ghlResponse.data?.ghlId;
 
 //       if (ghlUserId) {
-//         console.log('✅ GHL user ID received:', ghlUserId);
+//         console.log(' GHL user ID received:', ghlUserId);
 //       } else {
 //         console.warn('⚠️ n8n response did not contain user ID');
 //       }
@@ -70,11 +70,11 @@ const setRefreshCookie = (res, refreshToken) => {
 //     });
 
 //     if (authError) {
-//       console.error('❌ Supabase Auth error:', authError);
+//       console.error(' Supabase Auth error:', authError);
 //       return res.status(400).json({ error: authError.message });
 //     }
 
-//     console.log('✅ Supabase user created:', authUser.user.id);
+//     console.log(' Supabase user created:', authUser.user.id);
 
 //     // STEP 3: Create profile with both IDs
 //     const { error: profileError } = await supabase
@@ -88,14 +88,14 @@ const setRefreshCookie = (res, refreshToken) => {
 //       });
 
 //     if (profileError) {
-//       console.error('❌ Profile creation error:', profileError);
+//       console.error(' Profile creation error:', profileError);
       
 //       // Rollback: delete auth user
 //       await supabase.auth.admin.deleteUser(authUser.user.id);
 //       return res.status(400).json({ error: profileError.message });
 //     }
 
-//     console.log('✅ Profile created');
+//     console.log(' Profile created');
 
 //     // STEP 4: If GHL ID is missing, queue for background sync (optional)
 //     if (!ghlUserId) {
@@ -111,7 +111,7 @@ const setRefreshCookie = (res, refreshToken) => {
 //     });
 
 //   } catch (err) {
-//     console.error('❌ Signup error:', err);
+//     console.error(' Signup error:', err);
 //     res.status(500).json({ error: err.message });
 //   }
 // };
@@ -156,7 +156,7 @@ export const login = async (req, res) => {
 };
 
 
-// ✅ UPDATED: GET /auth/me - Return external_id
+//  UPDATED: GET /auth/me - Return external_id
 export const me = async (req, res) => {
   const token = req.headers.authorization?.split(" ")[1];
 
@@ -278,18 +278,18 @@ export const updateProfile = async (req, res) => {
       .single();
 
     if (error) {
-      console.error('❌ Error updating profile:', error);
+      console.error(' Error updating profile:', error);
       return res.status(400).json({ error: error.message });
     }
 
-    // console.log('✅ Profile updated successfully');
+    // console.log(' Profile updated successfully');
     res.json({ 
       message: 'Profile updated successfully',
       user: data 
     });
 
   } catch (error) {
-    console.error('❌ Error in updateProfile:', error);
+    console.error(' Error in updateProfile:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -321,15 +321,15 @@ export const changePassword = async (req, res) => {
     );
 
     if (error) {
-      console.error('❌ Error updating password:', error);
+      console.error(' Error updating password:', error);
       return res.status(400).json({ error: error.message });
     }
 
-    // console.log('✅ Password changed successfully');
+    // console.log(' Password changed successfully');
     res.json({ message: 'Password changed successfully' });
 
   } catch (error) {
-    console.error('❌ Error in changePassword:', error);
+    console.error(' Error in changePassword:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

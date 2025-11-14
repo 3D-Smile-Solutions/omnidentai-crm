@@ -19,7 +19,7 @@ const upload = multer({
 
 router.post('/upload', authMiddleware, upload.single('file'), uploadPracticeDocument);
 router.get('/', authMiddleware, getPracticeDocuments);
-router.get('/:documentId', authMiddleware, getDocumentById); // ✅ NEW: Get single document with fresh URL
+router.get('/:documentId', authMiddleware, getDocumentById); //  NEW: Get single document with fresh URL
 router.delete('/:documentId', authMiddleware, deletePracticeDocument);
 
 export default router;

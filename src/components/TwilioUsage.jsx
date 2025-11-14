@@ -331,7 +331,7 @@ const TwilioUsage = () => {
                 cy="50%"
                 labelLine={false}
                 label={({ name, percent, value }) => {
-                  // ✅ Show actual dollar amount for small percentages
+                  //  Show actual dollar amount for small percentages
                   if (percent < 0.01) {
                     return `${name} $${value.toFixed(2)}`;
                   }

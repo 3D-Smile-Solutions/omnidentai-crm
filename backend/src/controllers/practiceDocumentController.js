@@ -48,13 +48,13 @@ const generateSignedUrl = async (bucket, filePath, expiresIn = 604800) => {
       .createSignedUrl(filePath, expiresIn); // 7 days = 604800 seconds
 
     if (signedUrlError) {
-      console.error('❌ Error creating signed URL:', signedUrlError);
+      console.error(' Error creating signed URL:', signedUrlError);
       return null;
     }
 
     return signedUrlData?.signedUrl;
   } catch (error) {
-    console.error('❌ Exception creating signed URL:', error);
+    console.error(' Exception creating signed URL:', error);
     return null;
   }
 };
@@ -115,14 +115,14 @@ export async function uploadPracticeDocument(req, res) {
       });
 
     if (uploadError) {
-      console.error('❌ Supabase upload error:', uploadError);
+      console.error(' Supabase upload error:', uploadError);
       return res.status(500).json({ 
         error: "Failed to upload file",
         details: uploadError.message 
       });
     }
 
-    console.log('✅ File uploaded to Supabase:', uploadData.path);
+    console.log(' File uploaded to Supabase:', uploadData.path);
 
     // Generate signed URL (7 days expiration)
     const signedUrl = await generateSignedUrl(storageBucket, filePath);
@@ -146,7 +146,7 @@ export async function uploadPracticeDocument(req, res) {
       .single();
 
     if (dbError) {
-      console.error('❌ Database error:', dbError);
+      console.error(' Database error:', dbError);
       await supabase.storage.from(storageBucket).remove([filePath]);
       return res.status(500).json({ 
         error: "Failed to save document metadata",
@@ -154,7 +154,7 @@ export async function uploadPracticeDocument(req, res) {
       });
     }
 
-    console.log('✅ Practice document metadata saved');
+    console.log(' Practice document metadata saved');
 
     res.json({
       success: true,
@@ -165,7 +165,7 @@ export async function uploadPracticeDocument(req, res) {
     });
 
   } catch (error) {
-    console.error('❌ Upload error:', error);
+    console.error(' Upload error:', error);
     res.status(500).json({ 
       error: "Failed to upload document",
       details: error.message 
@@ -199,7 +199,7 @@ export async function getPracticeDocuments(req, res) {
     const { data: documents, error } = await query;
 
     if (error) {
-      console.error('❌ Error fetching documents:', error);
+      console.error(' Error fetching documents:', error);
       return res.status(500).json({ error: "Failed to fetch documents" });
     }
 
@@ -217,7 +217,7 @@ export async function getPracticeDocuments(req, res) {
     res.json({ documents: documentsWithUrls });
 
   } catch (error) {
-    console.error('❌ Error:', error);
+    console.error(' Error:', error);
     res.status(500).json({ error: "Failed to fetch documents" });
   }
 }
@@ -257,7 +257,7 @@ export async function getDocumentById(req, res) {
     });
 
   } catch (error) {
-    console.error('❌ Error:', error);
+    console.error(' Error:', error);
     res.status(500).json({ error: "Failed to fetch document" });
   }
 }
@@ -292,7 +292,7 @@ export async function deletePracticeDocument(req, res) {
       .remove([document.file_path]);
 
     if (storageError) {
-      console.error('❌ Storage deletion error:', storageError);
+      console.error(' Storage deletion error:', storageError);
     }
 
     // Delete from database
@@ -302,7 +302,7 @@ export async function deletePracticeDocument(req, res) {
       .eq('id', documentId);
 
     if (dbError) {
-      console.error('❌ Database deletion error:', dbError);
+      console.error(' Database deletion error:', dbError);
       return res.status(500).json({ error: "Failed to delete document" });
     }
 
@@ -310,7 +310,7 @@ export async function deletePracticeDocument(req, res) {
     res.json({ success: true, message: "Document deleted successfully" });
 
   } catch (error) {
-    console.error('❌ Delete error:', error);
+    console.error(' Delete error:', error);
     res.status(500).json({ error: "Failed to delete document" });
   }
 }

@@ -96,7 +96,7 @@ export async function createMessage(messageData) {
   try {
     console.log(`Creating message: ${JSON.stringify(messageData)}`);
     
-    // ✅ MAP senderType TO CORRECT DB VALUE
+    //  MAP senderType TO CORRECT DB VALUE
     let dbSender;
     if (messageData.senderType === 'user') {
       dbSender = 'user'; // Patient messages → saved as 'user'
@@ -111,7 +111,7 @@ export async function createMessage(messageData) {
     const insertData = {
       contact_id: messageData.contactId,
       message: messageData.content,
-      sender: dbSender, // ✅ Use mapped value
+      sender: dbSender, //  Use mapped value
       channel: messageData.channelType || 'webchat',
       session_id: messageData.sessionId || `${messageData.contactId}_session_${Date.now()}`,
       created_at: new Date().toISOString(),
@@ -138,7 +138,7 @@ export async function createMessage(messageData) {
       throw error;
     }
     
-    console.log('✅ Message created successfully:', data.id);
+    console.log(' Message created successfully:', data.id);
     return data;
   } catch (error) {
     console.error('Error in createMessage:', error);
@@ -238,7 +238,7 @@ export async function setContactSessionForWidget(contactId) {
       throw new Error(`Failed to set contact session: ${error.message}`);
     }
     
-    console.log('✅ Contact session set successfully');
+    console.log(' Contact session set successfully');
   } catch (error) {
     console.error('Error in setContactSessionForWidget:', error);
     throw error;
@@ -269,7 +269,7 @@ export async function createMessageFromWidget(contactId, messageContent, senderT
 
     if (error) throw error;
     
-    console.log('✅ Widget message created successfully');
+    console.log(' Widget message created successfully');
     return data;
   } catch (error) {
     console.error('Error in createMessageFromWidget:', error);

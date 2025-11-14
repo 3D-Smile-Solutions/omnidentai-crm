@@ -13,7 +13,7 @@ const GoogleMapComponent = ({ isMobile }) => {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   
-  // ✅ Get map data from Redux store
+  //  Get map data from Redux store
   const { 
     locations, 
     procedureSummary, 
@@ -28,13 +28,13 @@ const GoogleMapComponent = ({ isMobile }) => {
   // Google Maps API key from environment variable
   const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 
-  // ✅ Fetch data on component mount
+  //  Fetch data on component mount
   useEffect(() => {
     console.log('🗺️ GoogleMapComponent mounted - fetching data');
     dispatch(fetchPatientMapData());
   }, [dispatch]);
 
-  // ✅ Helper function to get procedure colors
+  //  Helper function to get procedure colors
   const getProcedureColor = useCallback((procedure) => {
     const colorMap = {
       'Cleanings': '#3EE4C8',
@@ -51,7 +51,7 @@ const GoogleMapComponent = ({ isMobile }) => {
     return colorMap[procedure] || '#64748b';
   }, []);
 
-  // ✅ Initialize map once data is loaded
+  //  Initialize map once data is loaded
   const initializeMap = useCallback(async () => {
     try {
       if (!mapContainerRef.current || mapInstanceRef.current) {
@@ -60,7 +60,7 @@ const GoogleMapComponent = ({ isMobile }) => {
 
       // Check if API key is configured
       if (!API_KEY) {
-        console.error('❌ Google Maps API key not configured');
+        console.error(' Google Maps API key not configured');
         return;
       }
 
@@ -96,7 +96,7 @@ const GoogleMapComponent = ({ isMobile }) => {
 
       mapInstanceRef.current = map;
 
-      // ✅ Add markers from backend data
+      //  Add markers from backend data
       locations.forEach((location) => {
         const pinElement = new PinElement({
           background: getProcedureColor(location.top_procedure),
@@ -148,16 +148,16 @@ const GoogleMapComponent = ({ isMobile }) => {
         });
       });
 
-      console.log('✅ Map initialized with', locations.length, 'markers');
+      console.log(' Map initialized with', locations.length, 'markers');
     } catch (error) {
-      console.error('❌ Error initializing map:', error);
+      console.error(' Error initializing map:', error);
     }
   }, [locations, center, zoom, isMobile, API_KEY, getProcedureColor]);
 
-  // ✅ Load Google Maps script
+  //  Load Google Maps script
   const loadGoogleMapsScript = useCallback(() => {
     if (!API_KEY) {
-      console.error('❌ Google Maps API key not configured');
+      console.error(' Google Maps API key not configured');
       return;
     }
 
@@ -197,28 +197,28 @@ const GoogleMapComponent = ({ isMobile }) => {
     };
     
     script.onerror = () => {
-      console.error('❌ Failed to load Google Maps');
+      console.error(' Failed to load Google Maps');
       isScriptLoading = false;
     };
     
     document.head.appendChild(script);
   }, [initializeMap, API_KEY]);
 
-  // ✅ Load script when data is ready
+  //  Load script when data is ready
   useEffect(() => {
     if (!loading && locations && locations.length > 0) {
       loadGoogleMapsScript();
     }
   }, [loadGoogleMapsScript, loading, locations]);
 
-  // ✅ Cleanup on unmount
+  //  Cleanup on unmount
   useEffect(() => {
     return () => {
       mapInstanceRef.current = null;
     };
   }, []);
 
-  // ✅ Show loading spinner
+  //  Show loading spinner
   if (loading) {
     return (
       <Paper elevation={0} sx={{ 
@@ -239,7 +239,7 @@ const GoogleMapComponent = ({ isMobile }) => {
     );
   }
 
-  // ✅ Show error message
+  //  Show error message
   if (error) {
     return (
       <Paper elevation={0} sx={{ 
@@ -259,7 +259,7 @@ const GoogleMapComponent = ({ isMobile }) => {
     );
   }
 
-  // ✅ Show empty state
+  //  Show empty state
   if (!locations || locations.length === 0) {
     return (
       <Paper elevation={0} sx={{ 
@@ -279,7 +279,7 @@ const GoogleMapComponent = ({ isMobile }) => {
     );
   }
 
-  // ✅ Render map
+  //  Render map
   return (
     <Paper elevation={0} sx={{ 
       p: 3,
@@ -295,7 +295,7 @@ const GoogleMapComponent = ({ isMobile }) => {
         Hover over markers to see patient details
       </Typography>
       
-      {/* ✅ Dynamic legend from backend data */}
+      {/*  Dynamic legend from backend data */}
       <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
         {procedureSummary.map((proc) => (
           <Box key={proc.procedure} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -332,7 +332,7 @@ const GoogleMapComponent = ({ isMobile }) => {
         />
       </Box>
 
-      {/* ✅ Summary stats from backend */}
+      {/*  Summary stats from backend */}
       <Box sx={{ 
         mt: 3, 
         p: 2, 

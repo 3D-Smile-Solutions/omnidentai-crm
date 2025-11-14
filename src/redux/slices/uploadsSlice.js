@@ -20,12 +20,12 @@ export const uploadDocument = createAsyncThunk(
       if (description) formData.append('description', description);
       if (patientId) formData.append('patientId', patientId);
 
-      // ✅ FIX: Use withCredentials for cookie-based auth
+      //  FIX: Use withCredentials for cookie-based auth
       const response = await axios.post(
         `${API_URL}/practice-documents/upload`,
         formData,
         {
-          withCredentials: true, // ✅ This sends cookies automatically
+          withCredentials: true, //  This sends cookies automatically
           headers: {
             'Content-Type': 'multipart/form-data'
           },
@@ -63,11 +63,11 @@ export const fetchDocuments = createAsyncThunk(
       if (category) params.append('category', category);
       if (patientId) params.append('patientId', patientId);
 
-      // ✅ FIX: Use withCredentials for cookie-based auth
+      //  FIX: Use withCredentials for cookie-based auth
       const response = await axios.get(
         `${API_URL}/practice-documents?${params.toString()}`,
         {
-          withCredentials: true // ✅ This sends cookies automatically
+          withCredentials: true //  This sends cookies automatically
         }
       );
 
@@ -87,11 +87,11 @@ export const deleteDocument = createAsyncThunk(
   'uploads/deleteDocument',
   async (documentId, { rejectWithValue }) => {
     try {
-      // ✅ FIX: Use withCredentials for cookie-based auth
+      //  FIX: Use withCredentials for cookie-based auth
       await axios.delete(
         `${API_URL}/practice-documents/${documentId}`,
         {
-          withCredentials: true // ✅ This sends cookies automatically
+          withCredentials: true //  This sends cookies automatically
         }
       );
 

@@ -8,7 +8,7 @@ import {
   getPatientByContactId,
   getUnreadCounts 
 } from "../models/messageModel.js";
-// ✅ NEW: Import conversation control functions
+//  NEW: Import conversation control functions
 import {
   updateDentistResponseTime
 } from "../models/conversationControlModel.js";
@@ -76,7 +76,7 @@ export async function getMessagesWithPatient(req, res) {
       };
     });
 
-    console.log(`✅ Transformed ${transformedMessages.length} messages`);
+    console.log(` Transformed ${transformedMessages.length} messages`);
 
     res.json({ messages: transformedMessages });
   } catch (err) {
@@ -169,7 +169,7 @@ export async function sendMessage(req, res) {
       return res.status(400).json({ error: "Invalid channel type. Must be 'webchat' or 'sms'" });
     }
 
-    // ✅ USING contact_id: Get patient's contact_id (not id)
+    //  USING contact_id: Get patient's contact_id (not id)
     const { data: patient, error: patientError } = await supabase
       .from("user_profiles")
       .select("contact_id, phone")
@@ -194,17 +194,17 @@ export async function sendMessage(req, res) {
 
     console.log("Found patient contact_id:", patient.contact_id);
 
-    // ✅ NEW: Update dentist response timestamp (marks bot as paused automatically if needed)
+    //  NEW: Update dentist response timestamp (marks bot as paused automatically if needed)
     try {
       await updateDentistResponseTime(patient.contact_id, dentistId);
-      console.log("✅ Updated dentist response time for contact:", patient.contact_id);
+      console.log(" Updated dentist response time for contact:", patient.contact_id);
     } catch (err) {
       console.error("⚠️ Failed to update dentist response time (non-critical):", err);
       // Don't block message sending if this fails
     }
 
     const messageData = {
-      contactId: patient.contact_id, // ✅ Using contact_id
+      contactId: patient.contact_id, //  Using contact_id
       content: content.trim(),
       senderType: 'client', 
       channelType
@@ -249,7 +249,7 @@ export async function getUnreadMessageCounts(req, res) {
 
     const unreadCountsByContactId = await getUnreadCounts(dentistId);
     
-    // ✅ Convert contact_id based counts to patient_id based counts
+    //  Convert contact_id based counts to patient_id based counts
     const { data: patients, error } = await supabase
       .from("user_profiles")
       .select("id, contact_id")

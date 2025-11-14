@@ -22,7 +22,7 @@ export const getSessionHistory = async (req, res) => {
       .order('session_start', { ascending: false });
 
     if (error) {
-      console.error('❌ Error fetching sessions:', error);
+      console.error(' Error fetching sessions:', error);
       return res.status(400).json({ error: error.message });
     }
 
@@ -49,7 +49,7 @@ export const getSessionHistory = async (req, res) => {
       };
     });
 
-    console.log(`✅ Fetched ${transformedSessions.length} sessions`);
+    console.log(` Fetched ${transformedSessions.length} sessions`);
 
     res.json({
       success: true,
@@ -57,7 +57,7 @@ export const getSessionHistory = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Get session history error:', error);
+    console.error(' Get session history error:', error);
     res.status(500).json({ 
       success: false,
       message: 'Internal server error',
@@ -162,7 +162,7 @@ export const logActivity = async (req, res) => {
     // Use the helper function from sessionLogger
     await logActivityHelper(sessionId, activityType, details);
 
-    console.log('✅ Activity logged successfully');
+    console.log(' Activity logged successfully');
 
     res.json({
       success: true,
@@ -170,7 +170,7 @@ export const logActivity = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Log activity error:', error);
+    console.error(' Log activity error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to log activity',
@@ -205,11 +205,11 @@ export const logoutAllDevices = async (req, res) => {
       .select();
 
     if (error) {
-      console.error('❌ Error logging out all devices:', error);
+      console.error(' Error logging out all devices:', error);
       throw error;
     }
 
-    // console.log(`✅ Logged out from ${data?.length || 0} devices`);
+    // console.log(` Logged out from ${data?.length || 0} devices`);
 
     res.json({
       success: true,
@@ -218,7 +218,7 @@ export const logoutAllDevices = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Logout all devices error:', error);
+    console.error(' Logout all devices error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to logout from all devices',
@@ -258,7 +258,7 @@ export const logoutSession = async (req, res) => {
       .single();
 
     if (error) {
-      console.error('❌ Error logging out session:', error);
+      console.error(' Error logging out session:', error);
       throw error;
     }
 
@@ -269,7 +269,7 @@ export const logoutSession = async (req, res) => {
       });
     }
 
-    console.log('✅ Session logged out successfully');
+    console.log(' Session logged out successfully');
 
     res.json({
       success: true,
@@ -278,7 +278,7 @@ export const logoutSession = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Logout session error:', error);
+    console.error(' Logout session error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to logout session',

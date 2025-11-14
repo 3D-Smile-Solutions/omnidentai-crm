@@ -9,10 +9,10 @@ export const fetchOverviewMetrics = createAsyncThunk(
     try {
       console.log('📊 Fetching overview metrics...');
       const response = await api.get('/api/metrics/overview'); // ← Added /api prefix
-      // console.log('✅ Overview metrics fetched:', response.data);
+      // console.log(' Overview metrics fetched:', response.data);
       return response.data;
     } catch (error) {
-      console.error('❌ Error fetching overview metrics:', error);
+      console.error(' Error fetching overview metrics:', error);
       return rejectWithValue(error.response?.data || { error: 'Failed to fetch metrics' });
     }
   }

@@ -10,7 +10,7 @@ export async function getPatientsByDentist(dentistId) {
       .eq("dentist_id", dentistId);
 
     if (patientsError) {
-      console.error('❌ Error fetching patients:', patientsError);
+      console.error(' Error fetching patients:', patientsError);
       throw patientsError;
     }
 
@@ -19,11 +19,11 @@ export async function getPatientsByDentist(dentistId) {
       return [];
     }
 
-    console.log(`✅ Found ${patients.length} patients`);
+    console.log(` Found ${patients.length} patients`);
     console.log('Sample patient:', {
       id: patients[0].id,
       name: `${patients[0].first_name} ${patients[0].last_name}`,
-      phone: patients[0].phone, // ✅ Now this will show
+      phone: patients[0].phone, //  Now this will show
       contact_id: patients[0].contact_id
     });
 
@@ -71,11 +71,11 @@ export async function getPatientsByDentist(dentistId) {
       })
     );
 
-    console.log('✅ Returning patients with phone numbers');
+    console.log(' Returning patients with phone numbers');
     return patientsWithLastMessage;
 
   } catch (error) {
-    console.error("❌ Fatal error in getPatientsByDentist:", error);
+    console.error(" Fatal error in getPatientsByDentist:", error);
     throw error;
   }
 }

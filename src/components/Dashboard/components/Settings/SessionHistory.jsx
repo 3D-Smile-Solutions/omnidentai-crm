@@ -38,14 +38,14 @@ const SessionHistory = () => {
   const dispatch = useDispatch();
   const [expandedRow, setExpandedRow] = useState(null);
   
-  // ✅ GET AUTH STATE
+  //  GET AUTH STATE
   const { user: currentUser } = useSelector((state) => state.auth);
   const { sessions, status, logoutStatus, error } = useSelector((state) => state.activity);
 
-  // ✅ FETCH ONLY WHEN USER IS AUTHENTICATED
+  //  FETCH ONLY WHEN USER IS AUTHENTICATED
   useEffect(() => {
     if (currentUser?.id) {
-      console.log('✅ User authenticated, fetching session history...');
+      console.log(' User authenticated, fetching session history...');
       dispatch(fetchSessionHistory());
     } else {
       console.log('⏳ Waiting for user authentication...');
@@ -95,7 +95,7 @@ const SessionHistory = () => {
     return `${hours}h ${minutes}m`;
   };
 
-  // ✅ SHOW LOADING WHILE WAITING FOR AUTH
+  //  SHOW LOADING WHILE WAITING FOR AUTH
   if (!currentUser) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">

@@ -43,7 +43,7 @@ export async function pauseBot(contactId, dentistId, reason = 'manual_interventi
 
     if (error) throw error;
 
-    console.log(`✅ Bot paused for contact ${contactId}`);
+    console.log(` Bot paused for contact ${contactId}`);
     return data;
   } catch (error) {
     console.error('Error pausing bot:', error);
@@ -69,7 +69,7 @@ export async function resumeBot(contactId, dentistId) {
 
     if (error) throw error;
 
-    console.log(`✅ Bot resumed for contact ${contactId}`);
+    console.log(` Bot resumed for contact ${contactId}`);
     return data;
   } catch (error) {
     console.error('Error resuming bot:', error);

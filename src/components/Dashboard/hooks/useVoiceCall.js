@@ -12,7 +12,7 @@ export const useVoiceCall = () => {
   const [callDuration, setCallDuration] = useState(0);
 
   const durationIntervalRef = useRef(null);
-  const deviceRef = useRef(null); // ✅ NEW: Track device instance
+  const deviceRef = useRef(null); //  NEW: Track device instance
 
   useEffect(() => {
     const initializeDevice = async () => {
@@ -22,7 +22,7 @@ export const useVoiceCall = () => {
         const response = await api.get("/api/voice/token");
         const { token } = response.data;
 
-        console.log("✅ Got token from backend");
+        console.log(" Got token from backend");
 
         const twilioDevice = new Device(token, {
           logLevel: "debug",
@@ -31,13 +31,13 @@ export const useVoiceCall = () => {
         });
 
         twilioDevice.on("registered", () => {
-          console.log("✅ Twilio Device registered");
+          console.log(" Twilio Device registered");
           setIsReady(true);
           setError(null);
         });
 
         twilioDevice.on("error", (twilioError) => {
-          console.error("❌ Twilio Device error:", twilioError);
+          console.error(" Twilio Device error:", twilioError);
           setError(twilioError?.message || "Device error occurred");
           setIsReady(false);
         });
@@ -49,11 +49,11 @@ export const useVoiceCall = () => {
 
         await twilioDevice.register();
 
-        // ✅ Store device in both state and ref
+        //  Store device in both state and ref
         setDevice(twilioDevice);
         deviceRef.current = twilioDevice;
       } catch (err) {
-        console.error("❌ Failed to initialize Twilio Device:", err);
+        console.error(" Failed to initialize Twilio Device:", err);
         setError(err?.message || "Failed to initialize device");
         setIsReady(false);
       }
@@ -61,7 +61,7 @@ export const useVoiceCall = () => {
 
     initializeDevice();
 
-    // ✅ FIXED CLEANUP - Check device state before unregistering
+    //  FIXED CLEANUP - Check device state before unregistering
     return () => {
       console.log("🧹 Cleaning up Twilio Device...");
 
@@ -80,7 +80,7 @@ export const useVoiceCall = () => {
           console.log("📴 Unregistering device...");
           currentDevice
             .unregister()
-            .then(() => console.log("✅ Device unregistered successfully"))
+            .then(() => console.log(" Device unregistered successfully"))
             .catch((err) =>
               console.warn("⚠️ Error unregistering device:", err.message)
             );
@@ -91,7 +91,7 @@ export const useVoiceCall = () => {
         // Destroy device
         try {
           currentDevice.destroy();
-          console.log("✅ Device destroyed");
+          console.log(" Device destroyed");
         } catch (err) {
           console.warn("⚠️ Error destroying device:", err.message);
         }
@@ -99,7 +99,7 @@ export const useVoiceCall = () => {
         deviceRef.current = null;
       }
     };
-  }, []); // ✅ Empty dependency array - only run once
+  }, []); //  Empty dependency array - only run once
 
   const handleIncomingCall = (call) => {
     setCurrentCall(call);
@@ -114,7 +114,7 @@ export const useVoiceCall = () => {
     }, 1000);
 
     call.on("accept", () => {
-      console.log("✅ Call accepted/connected");
+      console.log(" Call accepted/connected");
     });
 
     call.on("disconnect", () => {
@@ -123,17 +123,17 @@ export const useVoiceCall = () => {
     });
 
     call.on("cancel", () => {
-      console.log("❌ Call cancelled");
+      console.log(" Call cancelled");
       handleCallEnd();
     });
 
     call.on("reject", () => {
-      console.log("❌ Call rejected");
+      console.log(" Call rejected");
       handleCallEnd();
     });
 
     call.on("error", (callError) => {
-      console.error("❌ Call error:", callError);
+      console.error(" Call error:", callError);
       setError(callError?.message || "Call error occurred");
       handleCallEnd();
     });
@@ -149,7 +149,7 @@ export const useVoiceCall = () => {
     }
   }, []);
 
-  // ✅ Accept dentistId as third parameter
+  //  Accept dentistId as third parameter
   const makeCall = useCallback(
     async (patientId, patientPhone, dentistId) => {
       if (!device || !isReady) {
@@ -168,7 +168,7 @@ export const useVoiceCall = () => {
         setError(null);
         setCallDuration(0);
 
-        // ✅ Pass DentistId to Twilio
+        //  Pass DentistId to Twilio
         const call = await device.connect({
           params: {
             To: patientPhone,
@@ -177,7 +177,7 @@ export const useVoiceCall = () => {
           },
         });
 
-        console.log("✅ Call connecting via device.connect()");
+        console.log(" Call connecting via device.connect()");
         setCurrentCall(call);
         setIsCallInProgress(true);
 
@@ -185,7 +185,7 @@ export const useVoiceCall = () => {
 
         return call;
       } catch (err) {
-        console.error("❌ Error making call:", err);
+        console.error(" Error making call:", err);
         setError(err?.message || "Failed to make call");
         handleCallEnd();
       }

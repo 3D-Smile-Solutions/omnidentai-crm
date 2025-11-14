@@ -12,10 +12,10 @@ import {
 import { 
   getSessions, 
   getSessionDetails,
-  getSessionHistory,      // ✅ NEW
-  logActivity,            // ✅ NEW
-  logoutAllDevices,       // ✅ NEW
-  logoutSession           // ✅ NEW
+  getSessionHistory,      //  NEW
+  logActivity,            //  NEW
+  logoutAllDevices,       //  NEW
+  logoutSession           //  NEW
 } from "../controllers/sessionController.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 
@@ -36,7 +36,7 @@ router.put("/change-password", authMiddleware, changePassword);
 router.get("/sessions", authMiddleware, getSessions);
 router.get("/sessions/:sessionId", authMiddleware, getSessionDetails);
 
-// ✅ NEW: Session management routes (for frontend)
+//  NEW: Session management routes (for frontend)
 router.get("/session-history", authMiddleware, getSessionHistory);
 router.post("/log-activity", authMiddleware, logActivity);
 router.post("/logout-all", authMiddleware, logoutAllDevices);

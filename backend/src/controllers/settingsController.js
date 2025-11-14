@@ -46,18 +46,18 @@ export const updateProfile = async (req, res) => {
       .single();
 
     if (error) {
-      console.error('❌ Error updating profile:', error);
+      console.error(' Error updating profile:', error);
       return res.status(400).json({ error: error.message });
     }
 
-    console.log('✅ Profile updated successfully');
+    console.log(' Profile updated successfully');
     res.json({ 
       message: 'Profile updated successfully',
       user: data 
     });
 
   } catch (error) {
-    console.error('❌ Error in updateProfile:', error);
+    console.error(' Error in updateProfile:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -115,15 +115,15 @@ export const changePassword = async (req, res) => {
       .eq('id', userId);
 
     if (updateError) {
-      console.error('❌ Error updating password:', updateError);
+      console.error(' Error updating password:', updateError);
       return res.status(400).json({ error: updateError.message });
     }
 
-    console.log('✅ Password changed successfully');
+    console.log(' Password changed successfully');
     res.json({ message: 'Password changed successfully' });
 
   } catch (error) {
-    console.error('❌ Error in changePassword:', error);
+    console.error(' Error in changePassword:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -155,18 +155,18 @@ export const updateNotifications = async (req, res) => {
       .single();
 
     if (error) {
-      console.error('❌ Error updating notifications:', error);
+      console.error(' Error updating notifications:', error);
       return res.status(400).json({ error: error.message });
     }
 
-    console.log('✅ Notification preferences updated');
+    console.log(' Notification preferences updated');
     res.json({ 
       message: 'Notification preferences updated successfully',
       preferences: data.notification_preferences 
     });
 
   } catch (error) {
-    console.error('❌ Error in updateNotifications:', error);
+    console.error(' Error in updateNotifications:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -197,18 +197,18 @@ export const updateAppearance = async (req, res) => {
       .single();
 
     if (error) {
-      console.error('❌ Error updating appearance:', error);
+      console.error(' Error updating appearance:', error);
       return res.status(400).json({ error: error.message });
     }
 
-    console.log('✅ Appearance settings updated');
+    console.log(' Appearance settings updated');
     res.json({ 
       message: 'Appearance settings updated successfully',
       settings: data.appearance_settings 
     });
 
   } catch (error) {
-    console.error('❌ Error in updateAppearance:', error);
+    console.error(' Error in updateAppearance:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -231,11 +231,11 @@ export const logoutAll = async (req, res) => {
     res.clearCookie('accessToken');
     res.clearCookie('refreshToken');
 
-    console.log('✅ Logged out from all devices');
+    console.log(' Logged out from all devices');
     res.json({ message: 'Logged out from all devices successfully' });
 
   } catch (error) {
-    console.error('❌ Error in logoutAll:', error);
+    console.error(' Error in logoutAll:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -266,18 +266,18 @@ export const updateChatWidget = async (req, res) => {
       .single();
 
     if (error) {
-      console.error('❌ Error updating chat widget:', error);
+      console.error(' Error updating chat widget:', error);
       return res.status(400).json({ error: error.message });
     }
 
-    console.log('✅ Chat widget settings updated');
+    console.log(' Chat widget settings updated');
     res.json({ 
       message: 'Chat widget settings updated successfully',
       settings: data.chat_widget_settings 
     });
 
   } catch (error) {
-    console.error('❌ Error in updateChatWidget:', error);
+    console.error(' Error in updateChatWidget:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -310,18 +310,18 @@ export const updateIntegrations = async (req, res) => {
       .single();
 
     if (error) {
-      console.error('❌ Error updating integrations:', error);
+      console.error(' Error updating integrations:', error);
       return res.status(400).json({ error: error.message });
     }
 
-    console.log('✅ Integration settings updated');
+    console.log(' Integration settings updated');
     res.json({ 
       message: 'Integration settings updated successfully',
       settings: data.integration_settings 
     });
 
   } catch (error) {
-    console.error('❌ Error in updateIntegrations:', error);
+    console.error(' Error in updateIntegrations:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -360,7 +360,7 @@ export const testIntegration = async (req, res) => {
     }
 
   } catch (error) {
-    console.error(`❌ Error testing ${req.params.integration}:`, error);
+    console.error(` Error testing ${req.params.integration}:`, error);
     res.status(500).json({ error: error.message });
   }
 };

@@ -53,14 +53,14 @@ export async function generateToken(req, res) {
     });
     token.addGrant(voiceGrant);
 
-    console.log('✅ Generated voice token for dentist:', dentistId);
+    console.log(' Generated voice token for dentist:', dentistId);
 
     res.json({
       token: token.toJwt(),
       identity: dentistId
     });
   } catch (error) {
-    console.error('❌ Error generating voice token:', error);
+    console.error(' Error generating voice token:', error);
     res.status(500).json({ 
       error: 'Failed to generate token',
       details: error.message 
@@ -92,7 +92,7 @@ export async function makeCall(req, res) {
       .single();
 
     if (patientError || !patient) {
-      console.error('❌ Patient not found:', patientError);
+      console.error(' Patient not found:', patientError);
       return res.status(404).json({ error: 'Patient not found' });
     }
 
@@ -127,7 +127,7 @@ export async function makeCall(req, res) {
       timeout: 30
     });
 
-    console.log('✅ Call initiated:', call.sid);
+    console.log(' Call initiated:', call.sid);
 
     // Log call to database
     const { data: callLog, error: logError } = await supabase
@@ -148,7 +148,7 @@ export async function makeCall(req, res) {
     if (logError) {
       console.error('⚠️ Failed to log call:', logError);
     } else {
-      console.log('✅ Call logged to database:', callLog.id);
+      console.log(' Call logged to database:', callLog.id);
     }
 
     res.json({
@@ -161,7 +161,7 @@ export async function makeCall(req, res) {
       }
     });
   } catch (error) {
-    console.error('❌ Error making call:', error);
+    console.error(' Error making call:', error);
     res.status(500).json({ 
       error: 'Failed to initiate call',
       details: error.message 
@@ -184,7 +184,7 @@ export function generateOutboundTwiML(req, res) {
   console.log('All query params:', JSON.stringify(req.query, null, 2));
   console.log('═══════════════════════════════════════');
   
-  // ✅ LOG THE CALL TO DATABASE (async, non-blocking)
+  //  LOG THE CALL TO DATABASE (async, non-blocking)
   (async () => {
     try {
       console.log('🔄 Attempting to log call to database...');
@@ -199,7 +199,7 @@ export function generateOutboundTwiML(req, res) {
       console.log('📞 Using PatientId:', PatientId);
       
       if (!DentistId || !PatientId) {
-        console.error('❌ Missing DentistId or PatientId!');
+        console.error(' Missing DentistId or PatientId!');
         console.error('Available query params:', Object.keys(req.query));
         return;
       }
@@ -224,17 +224,17 @@ export function generateOutboundTwiML(req, res) {
         .single();
       
       if (logError) {
-        console.error('❌ Failed to log call to database!');
+        console.error(' Failed to log call to database!');
         console.error('Error code:', logError.code);
         console.error('Error message:', logError.message);
         console.error('Error details:', JSON.stringify(logError, null, 2));
       } else {
-        console.log('✅ Call logged to database successfully!');
+        console.log(' Call logged to database successfully!');
         console.log('Call log ID:', callLog.id);
         console.log('Call log data:', JSON.stringify(callLog, null, 2));
       }
     } catch (err) {
-      console.error('❌ Exception while logging call:');
+      console.error(' Exception while logging call:');
       console.error('Error name:', err.name);
       console.error('Error message:', err.message);
       console.error('Error stack:', err.stack);
@@ -252,7 +252,7 @@ export function generateOutboundTwiML(req, res) {
   
   dial.number(To);
 
-  console.log('✅ TwiML generated');
+  console.log(' TwiML generated');
 
   res.type('text/xml');
   res.send(twiml.toString());
@@ -314,15 +314,15 @@ export async function handleCallStatus(req, res) {
       .eq('call_sid', CallSid);
 
     if (error) {
-      console.error('❌ Failed to update call log:', error);
+      console.error(' Failed to update call log:', error);
       return res.sendStatus(500);
     }
 
-    console.log('✅ Call log updated:', CallSid);
+    console.log(' Call log updated:', CallSid);
 
     res.sendStatus(200);
   } catch (error) {
-    console.error('❌ Error updating call status:', error);
+    console.error(' Error updating call status:', error);
     res.sendStatus(500);
   }
 }
@@ -368,7 +368,7 @@ export async function getCallHistory(req, res) {
       offset
     });
   } catch (error) {
-    console.error('❌ Error fetching call history:', error);
+    console.error(' Error fetching call history:', error);
     res.status(500).json({ 
       error: 'Failed to fetch call history',
       details: error.message 

@@ -38,7 +38,7 @@ export const fetchSessionHistory = createAsyncThunk(
   "activity/fetchSessionHistory",
   async (_, { rejectWithValue, getState }) => {
     try {
-      // ✅ CHECK IF USER IS AUTHENTICATED
+      //  CHECK IF USER IS AUTHENTICATED
       const { auth } = getState();
       if (!auth.user) {
         throw new Error("Not authenticated");
@@ -180,7 +180,7 @@ const activitySlice = createSlice({
       // Fetch Session History
       .addCase(fetchSessionHistory.pending, (state) => {
         state.status = "loading";
-        state.error = null; // ✅ Clear previous errors
+        state.error = null; //  Clear previous errors
       })
       .addCase(fetchSessionHistory.fulfilled, (state, action) => {
         state.status = "succeeded";

@@ -1,7 +1,7 @@
 // frontend/src/components/Dashboard/hooks/useConversationControl.js
 
 import { useState, useEffect, useCallback } from 'react';
-import { useSelector } from 'react-redux'; // ✅ ADD THIS IMPORT
+import { useSelector } from 'react-redux'; //  ADD THIS IMPORT
 import api from '../../../api/axiosInstance';
 
 export const useConversationControl = (contactId) => {
@@ -9,7 +9,7 @@ export const useConversationControl = (contactId) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   
-  // ✅ GET DENTIST FROM REDUX (this was missing!)
+  //  GET DENTIST FROM REDUX (this was missing!)
   const currentUser = useSelector((state) => state.auth.user);
   const dentistId = currentUser?.id;
 
@@ -38,7 +38,7 @@ export const useConversationControl = (contactId) => {
     console.log('👤 currentUser:', currentUser);
     
     if (!contactId || !dentistId) {
-      console.error('❌ Missing contactId or dentistId:', { contactId, dentistId });
+      console.error(' Missing contactId or dentistId:', { contactId, dentistId });
       return false;
     }
     
@@ -55,20 +55,20 @@ export const useConversationControl = (contactId) => {
       
       const response = await api.post('/api/conversation-control/pause', payload);
       
-      console.log('✅ Backend response:', response.data);
+      console.log(' Backend response:', response.data);
       
       setBotPaused(true);
       setError(null);
       return true;
     } catch (err) {
-      console.error('❌ Error pausing bot:', err);
-      console.error('❌ Error response:', err.response?.data);
+      console.error(' Error pausing bot:', err);
+      console.error(' Error response:', err.response?.data);
       setError(err.message);
       return false;
     } finally {
       setLoading(false);
     }
-  }, [contactId, dentistId, currentUser]); // ✅ ADD DEPENDENCIES
+  }, [contactId, dentistId, currentUser]); //  ADD DEPENDENCIES
 
   // Resume bot (bot takes over)
   const resumeBot = useCallback(async () => {
@@ -77,7 +77,7 @@ export const useConversationControl = (contactId) => {
     console.log('👤 dentistId:', dentistId);
     
     if (!contactId || !dentistId) {
-      console.error('❌ Missing contactId or dentistId:', { contactId, dentistId });
+      console.error(' Missing contactId or dentistId:', { contactId, dentistId });
       return false;
     }
     
@@ -93,20 +93,20 @@ export const useConversationControl = (contactId) => {
       
       const response = await api.post('/api/conversation-control/resume', payload);
       
-      console.log('✅ Backend response:', response.data);
+      console.log(' Backend response:', response.data);
       
       setBotPaused(false);
       setError(null);
       return true;
     } catch (err) {
-      console.error('❌ Error resuming bot:', err);
-      console.error('❌ Error response:', err.response?.data);
+      console.error(' Error resuming bot:', err);
+      console.error(' Error response:', err.response?.data);
       setError(err.message);
       return false;
     } finally {
       setLoading(false);
     }
-  }, [contactId, dentistId]); // ✅ ADD DEPENDENCIES
+  }, [contactId, dentistId]); //  ADD DEPENDENCIES
 
   // Fetch status when contactId changes
   useEffect(() => {

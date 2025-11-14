@@ -4,8 +4,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from 'react-router-dom';
 import { logout } from "../../../redux/slices/authSlice";
 import { fetchPatients } from "../../../redux/slices/patientSlice";
-import { useActivityLogger } from '../../Dashboard/hooks/useActivityLogger'; // ✅ FIXED IMPORT
-import { setCurrentSession } from '../../../redux/slices/activitySlice'; // ✅ NEW
+import { useActivityLogger } from '../../Dashboard/hooks/useActivityLogger'; //  FIXED IMPORT
+import { setCurrentSession } from '../../../redux/slices/activitySlice'; //  NEW
 
 import { 
   fetchUnreadCounts, 
@@ -28,7 +28,7 @@ export const useDashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
-  // ✅ PROPERLY USE ACTIVITY LOGGER
+  //  PROPERLY USE ACTIVITY LOGGER
   const { logActivity } = useActivityLogger();
 
   // Initialize WebSocket hook
@@ -53,7 +53,7 @@ export const useDashboard = () => {
     sendStatus: messageSendStatus 
   } = useSelector((state) => state.messages);
   
-  // ✅ SET SESSION ID ON LOGIN
+  //  SET SESSION ID ON LOGIN
   useEffect(() => {
     if (currentUser?.sessionId) {
       dispatch(setCurrentSession(currentUser.sessionId));
@@ -119,7 +119,7 @@ export const useDashboard = () => {
     };
   });
 
-  // ✅ LOG ACTIVITY WHEN SELECTING PATIENT
+  //  LOG ACTIVITY WHEN SELECTING PATIENT
   const handleSelectPatient = (patient) => {
     // If there was a previous patient, leave their room
     if (selectedPatient?.id && isWebSocketConnected) {
@@ -130,7 +130,7 @@ export const useDashboard = () => {
     setSelectedPatient(patient);
     dispatch(setCurrentPatient(patient.id));
     
-    // ✅ LOG THE ACTIVITY
+    //  LOG THE ACTIVITY
     logActivity('viewed_patient', { 
       patientId: patient.id,
       patientName: `${patient.first_name} ${patient.last_name}`
@@ -156,7 +156,7 @@ export const useDashboard = () => {
     }
   };
 
-  // ✅ LOG ACTIVITY WHEN SENDING MESSAGE
+  //  LOG ACTIVITY WHEN SENDING MESSAGE
   const handleSendMessage = async (patientId, messageContent, channel = 'webchat') => {
     try {
       // Try WebSocket first for real-time delivery
@@ -184,14 +184,14 @@ export const useDashboard = () => {
           throw new Error('WebSocket send failed');
         }
 
-        // ✅ LOG THE ACTIVITY
+        //  LOG THE ACTIVITY
         logActivity('sent_message', { 
           patientId, 
           messageLength: messageContent.length,
           channel 
         });
 
-        console.log('✅ Message sent via WebSocket');
+        console.log(' Message sent via WebSocket');
         
       } else {
         // Fallback to HTTP
@@ -203,18 +203,18 @@ export const useDashboard = () => {
           channelType: channel 
         })).unwrap();
         
-        // ✅ LOG THE ACTIVITY
+        //  LOG THE ACTIVITY
         logActivity('sent_message', { 
           patientId, 
           messageLength: messageContent.length,
           channel 
         });
 
-        console.log('✅ Message sent via HTTP');
+        console.log(' Message sent via HTTP');
       }
 
     } catch (error) {
-      console.error('❌ Failed to send message:', error);
+      console.error(' Failed to send message:', error);
       
       // HTTP fallback
       if (isWebSocketConnected) {
@@ -233,9 +233,9 @@ export const useDashboard = () => {
             fallback: true 
           });
 
-          console.log('✅ Message sent via HTTP fallback');
+          console.log(' Message sent via HTTP fallback');
         } catch (httpError) {
-          console.error('❌ HTTP fallback also failed:', httpError);
+          console.error(' HTTP fallback also failed:', httpError);
         }
       }
     }
