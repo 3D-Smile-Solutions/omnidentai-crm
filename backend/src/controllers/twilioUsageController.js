@@ -41,10 +41,10 @@ export async function getUsageStats(req, res) {
     //  Get daily usage separately (but with same date range)
     const dailyUsage = await getDailyUsageData(dateRange);
     
-    console.log('📊 Final unified response:');
-    console.log('   Stats:', stats);
-    console.log('   Cost breakdown:', costBreakdown);
-    console.log('   Daily usage days:', dailyUsage.length);
+    // console.log('📊 Final unified response:');
+    // console.log('   Stats:', stats);
+    // console.log('   Cost breakdown:', costBreakdown);
+    // console.log('   Daily usage days:', dailyUsage.length);
     
     //  Return EVERYTHING in one response
     res.json({
@@ -74,7 +74,7 @@ async function getDailyUsageData(dateRange) {
     const startDate = new Date(dateRange.start);
     const endDate = new Date(dateRange.end);
     
-    console.log('📅 Fetching daily usage from', dateRange.start, 'to', dateRange.end);
+    // console.log('📅 Fetching daily usage from', dateRange.start, 'to', dateRange.end);
     
     const dailyRecords = await client.usage.records.daily.list({
       startDate: startDate,
@@ -313,7 +313,7 @@ function processUsageRecords(records) {
   stats.callDuration = Math.round(stats.callDuration / 60);
   stats.totalCost = Math.round(stats.totalCost * 100) / 100;
   
-  console.log(' FINAL PROCESSED STATS:', stats);
+  // console.log(' FINAL PROCESSED STATS:', stats);
   
   return stats;
 }
@@ -462,7 +462,7 @@ function calculateCostBreakdown(records) {
     .sort((a, b) => b[1].cost - a[1].cost);
   
   if (itemsWithCost.length > 0) {
-    console.log('📊 DETAILED COST BREAKDOWN (Top 10 items):');
+    // console.log('📊 DETAILED COST BREAKDOWN (Top 10 items):');
     console.table(Object.fromEntries(itemsWithCost.slice(0, 10)));
   }
   
@@ -472,7 +472,7 @@ function calculateCostBreakdown(records) {
   breakdown.other.cost = Math.round(breakdown.other.cost * 100) / 100;
   breakdown.totalCost = Math.round(breakdown.totalCost * 100) / 100;
   
-  console.log(' FINAL COST BREAKDOWN:', breakdown);
+  // console.log(' FINAL COST BREAKDOWN:', breakdown);
   
   return breakdown;
 }
