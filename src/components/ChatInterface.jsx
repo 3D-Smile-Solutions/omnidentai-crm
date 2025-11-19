@@ -1217,7 +1217,9 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
                           variant="body2"
                           sx={{ whiteSpace: "pre-wrap" }}
                         >
-                          {item.message}
+                          {typeof item.message === "object"
+                            ? Object.values(item.message).join("\n\n")
+                            : item.message}
                         </Typography>
                       )}
                     </Paper>
@@ -1688,7 +1690,7 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
                 color: isDarkMode ? "#34d399" : "#388E3C",
               }}
             >
-               SMS sent successfully!
+              SMS sent successfully!
             </Alert>
           )}
         </DialogContent>

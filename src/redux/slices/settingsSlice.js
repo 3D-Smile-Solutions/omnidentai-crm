@@ -1,8 +1,8 @@
 // frontend/src/store/slices/settingsSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-
-const API_URL = "https://omnidentai-crm.onrender.com";
+import { API_URL } from "../../config/api";
+// const API_URL = "https://omnidentai-crm.onrender.com";
 
 // Update profile
 export const updateProfile = createAsyncThunk(

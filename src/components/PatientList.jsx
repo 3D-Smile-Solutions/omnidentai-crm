@@ -92,12 +92,15 @@ const PatientList = ({
     return colors[Math.abs(hash) % colors.length];
   };
 
-  const truncateMessage = (message = "", maxLength = 40) => {
-    if (!message) return "No messages yet";
-    if (message.length <= maxLength) return message;
-    return message.substring(0, maxLength) + "...";
-  };
-
+const truncateMessage = (message = "", maxLength = 40) => {
+  if (!message) return "No messages yet";
+  
+  // ✅ Convert to string if it's an object
+  const messageStr = typeof message === 'string' ? message : String(message);
+  
+  if (messageStr.length <= maxLength) return messageStr;
+  return messageStr.substring(0, maxLength) + "...";
+};
   const getTimeAgo = (timestamp) => {
     if (!timestamp) return "";
     const now = new Date();

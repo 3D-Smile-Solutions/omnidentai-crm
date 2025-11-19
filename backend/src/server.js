@@ -21,19 +21,24 @@ dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
+const ALLOWED_ORIGINS = process.env.CORS_ORIGINS 
+  ? process.env.CORS_ORIGINS.split(',')
+  : [
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'http://localhost:8080',
+      'http://localhost:5500',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:8080',
+      'http://127.0.0.1:5500',
+    ];
 
+console.log('🔒 CORS allowed origins:', ALLOWED_ORIGINS);
 // Socket.io setup with CORS
 const io = new Server(httpServer, {
   cors: {
-    origin: [
-      'http://localhost:3000',      // React frontend (CRM)
-      'http://localhost:8080',      // Vite dev server (chat widget)  ADD THIS
-      'http://localhost:5500',      // Live Server (chat widget)
-      'http://localhost:5501',      // Live Server alternative
-      'http://127.0.0.1:8080',      // Alternative localhost  ADD THIS
-      'http://127.0.0.1:5500',      // Alternative localhost
-      'http://127.0.0.1:5501',      // Alternative localhost
-    ],
+    origin: ALLOWED_ORIGINS,
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -41,15 +46,7 @@ const io = new Server(httpServer, {
 
 // Regular middleware
 app.use(cors({
-   origin: [
-      'http://localhost:3000',      // React frontend (CRM)
-      'http://localhost:8080',      // Vite dev server (chat widget)  ADD THIS
-      'http://localhost:5500',      // Live Server (chat widget)
-      'http://localhost:5501',      // Live Server alternative
-      'http://127.0.0.1:8080',      // Alternative localhost  ADD THIS
-      'http://127.0.0.1:5500',      // Alternative localhost
-      'http://127.0.0.1:5501',      // Alternative localhost
-    ],
+  origin: ALLOWED_ORIGINS,
   credentials: true
 }));
 app.use(express.json());

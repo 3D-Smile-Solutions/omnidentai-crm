@@ -1,8 +1,8 @@
 //src/redux/slices/messageSlice.js - Enhanced for WebSocket
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-
-const API_URL = "https://omnidentai-crm.onrender.com";
+import { API_URL } from "../../config/api";
+// const API_URL = "https://omnidentai-crm.onrender.com";
 
 // ==========================================
 // EXISTING ASYNC THUNKS (UNCHANGED)

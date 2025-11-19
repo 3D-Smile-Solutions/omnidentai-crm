@@ -3,8 +3,8 @@ import { useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
 import { addMessage } from '../../../redux/slices/messageSlice';
-
-const API_URL =  'https://omnidentai-crm.onrender.com';
+import { API_URL } from "../../../config/api";
+// const API_URL =  'https://omnidentai-crm.onrender.com';
 
 export const useSMS = () => {
   const [isSending, setIsSending] = useState(false);

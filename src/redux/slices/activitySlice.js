@@ -1,7 +1,7 @@
 // src/redux/slices/activitySlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-
-const API_URL = "https://omnidentai-crm.onrender.com/auth";
+import { API_URL } from "../../config/api";
+// const API_URL = "https://omnidentai-crm.onrender.com/auth";
 
 // ==========================================
 // ASYNC THUNKS
