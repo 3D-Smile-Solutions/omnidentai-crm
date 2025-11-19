@@ -174,7 +174,7 @@ const IntegrationSettings = () => {
     setTestingConnection({ ...testingConnection, [integration]: true });
     
     try {
-      const response = await fetch(`http://localhost:5000/api/settings/test/${integration}`, {
+      const response = await fetch(`https://omnidentai-crm.onrender.com/api/settings/test/${integration}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -199,7 +199,7 @@ const IntegrationSettings = () => {
 
   const handleSave = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/settings/integrations', {
+      const response = await fetch('https://omnidentai-crm.onrender.com/api/settings/integrations', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'

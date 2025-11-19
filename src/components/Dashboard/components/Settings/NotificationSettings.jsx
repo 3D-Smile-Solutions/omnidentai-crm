@@ -97,7 +97,7 @@ const NotificationSettings = () => {
   const handleSave = async () => {
     // TODO: Save notification preferences to backend
     try {
-      const response = await fetch('http://localhost:5000/api/settings/notifications', {
+      const response = await fetch('https://omnidentai-crm.onrender.com/api/settings/notifications', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'

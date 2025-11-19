@@ -56,7 +56,7 @@ const ChatWidgetSettings = () => {
   const handleSave = async () => {
     try {
       // TODO: Save to backend
-      const response = await fetch('http://localhost:5000/api/settings/chat-widget', {
+      const response = await fetch('https://omnidentai-crm.onrender.com/api/settings/chat-widget', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'

@@ -67,7 +67,7 @@ export async function sendSMS(req, res) {
       body: content.trim(),
       from: twilioPhoneNumber,
       to: formattedPhone,
-      statusCallback: `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/sms/status`
+      statusCallback: `${process.env.BACKEND_URL || 'https://omnidentai-crm.onrender.com'}/api/sms/status`
     });
 
     console.log(' SMS sent via Twilio:', twilioMessage.sid);

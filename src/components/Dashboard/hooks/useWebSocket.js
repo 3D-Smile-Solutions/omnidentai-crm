@@ -27,7 +27,7 @@ const useWebSocket = () => {
     console.log('🔌 Initializing WebSocket connection...');
 
     // Create socket connection with Supabase token
-    socket.current = io('http://localhost:5000', {
+    socket.current = io('https://omnidentai-crm.onrender.com', {
       auth: {
         token: session.access_token // Send your existing Supabase token
       },

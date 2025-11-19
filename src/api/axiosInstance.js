@@ -3,7 +3,7 @@ import axios from "axios";
 import store from "../redux/store";
 import { fetchMe } from "../redux/slices/authSlice";
 
-const API_URL = "http://localhost:5000";
+const API_URL = "https://omnidentai-crm.onrender.com";
 
 const api = axios.create({
   baseURL: API_URL,

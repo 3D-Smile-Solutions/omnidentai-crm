@@ -3,7 +3,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const API_URL = "http://localhost:5000";
+const API_URL = "https://omnidentai-crm.onrender.com";
 
 // --- Thunks 
 // export const signup = createAsyncThunk("auth/signup", async (formData, { rejectWithValue }) => {
