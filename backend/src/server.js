@@ -361,11 +361,28 @@ export { io };
 
 app.post("/api/bot-response", express.json(), async (req, res) => {
   try {
-    const { contact_id, message, sender = 'bot' } = req.body;
+    let { contact_id, message, sender = 'bot' } = req.body;
 
-    console.log('📩 Bot response received for contact:', contact_id);
+    console.log('📩 Bot response received:', { contact_id, message: typeof message });
 
-    if (!contact_id || !message) {
+    // ✅ Handle all possible message formats from N8N
+    let finalMessage = '';
+    
+    if (typeof message === 'string') {
+      // Format 1: Plain string "Hello"
+      finalMessage = message;
+    } else if (typeof message === 'object' && message !== null) {
+      // Format 2: Object {message1: "Hello", message2: "World"}
+      finalMessage = Object.values(message).filter(v => v).join('\n\n');
+    } else {
+      console.error('❌ Invalid message format:', message);
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid message format' 
+      });
+    }
+
+    if (!contact_id || !finalMessage.trim()) {
       return res.status(400).json({ 
         success: false, 
         error: 'contact_id and message are required' 
@@ -380,33 +397,27 @@ app.post("/api/bot-response", express.json(), async (req, res) => {
       .single();
 
     if (patientError || !patient) {
-      console.error('Patient not found:', patientError);
+      console.error('❌ Patient not found:', patientError);
       return res.status(404).json({ 
         success: false, 
         error: 'Patient not found' 
       });
     }
 
-    // Create transformed message for WebSocket broadcast
     const transformedMessage = {
-      message: message,
-      sender: sender, // 'bot'
+      message: finalMessage.trim(),
+      sender: sender,
       channel: 'webchat',
       timestamp: new Date().toISOString(),
       patientId: patient.id,
       contact_id: contact_id
     };
 
-    //  BROADCAST TO CRM (Dentist's room)
     io.to(`dentist_${patient.dentist_id}`).emit('new_message', transformedMessage);
-    
-    //  BROADCAST TO PATIENT'S ROOM (for multi-user CRM)
     io.to(`patient_${patient.id}`).emit('new_message', transformedMessage);
-
-    //  BROADCAST TO WIDGET (if widget is connected)
     io.to(`contact_${contact_id}`).emit('new_message', transformedMessage);
 
-    console.log(' Bot response broadcasted via WebSocket to CRM and widget');
+    console.log('✅ Bot response broadcasted:', finalMessage.substring(0, 50) + '...');
 
     res.json({ 
       success: true, 
@@ -414,7 +425,7 @@ app.post("/api/bot-response", express.json(), async (req, res) => {
     });
 
   } catch (error) {
-    console.error(' Error handling bot response:', error);
+    console.error('❌ Error handling bot response:', error);
     res.status(500).json({ 
       success: false, 
       error: 'Internal server error',
