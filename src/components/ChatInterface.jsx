@@ -39,7 +39,7 @@ import { SmartToy as BotIcon, Person as PersonIcon } from "@mui/icons-material";
 import { Tooltip, Switch, FormControlLabel } from "@mui/material";
 import CustomCheckbox from "./CustomCheckbox";
 import TypingIndicator from "./Dashboard/TypingIndicator";
-import UnifiedUploadModal from "./Dashboard/components/UploadModal/UnifiedUploadModal";
+import UnifiedUploadModal from "./Dashboard/components/uploadModal/UnifiedUploadModal";
 import PatientDetailsModal from "./Dashboard/components/PatientDetails/PatientDetailsModal";
 import useWebSocket from "./Dashboard/hooks/useWebSocket";
 import { useVoiceCall } from "./Dashboard/hooks/useVoiceCall";
