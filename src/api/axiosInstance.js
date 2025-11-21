@@ -7,6 +7,7 @@ import { API_URL } from "../config/api";
 const api = axios.create({
   baseURL: API_URL,
   withCredentials: true, // allows HttpOnly cookie usage
+  timeout: 60000, // 60 second timeout
 });
 
 api.interceptors.response.use(
