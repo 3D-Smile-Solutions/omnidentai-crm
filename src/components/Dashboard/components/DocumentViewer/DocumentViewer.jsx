@@ -40,7 +40,7 @@ import {
   fetchDocuments,
   deleteDocument,
 } from "../../../../redux/slices/uploadsSlice";
-import UnifiedUploadModal from "../UploadModal/UnifiedUploadModal";
+import UnifiedUploadModal from "../uploadModal/UnifiedUploadModal";
 import { useTheme } from "../../../../context/ThemeContext";
 
 const DocumentViewer = ({
