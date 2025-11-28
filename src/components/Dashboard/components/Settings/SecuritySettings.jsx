@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import useWebSocket from '../../Dashboard/hooks/useWebSocket';
 import {
   Box,
   Typography,
@@ -176,6 +177,7 @@ const SecuritySettings = ({ onViewSessions }) => {
   const { isDarkMode } = useTheme();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { disconnect } = useWebSocket();
   const { changePasswordStatus, error: settingsError } = useSelector((state) => state.settings);
   
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
@@ -230,6 +232,7 @@ const SecuritySettings = ({ onViewSessions }) => {
     }
 
     try {
+      disconnect();
       await dispatch(logout()).unwrap();
       navigate('/login');
     } catch (error) {

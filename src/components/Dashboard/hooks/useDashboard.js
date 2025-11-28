@@ -39,7 +39,8 @@ export const useDashboard = () => {
     sendMessageViaWebSocket,
     startTyping,
     stopTyping,
-    markMessagesAsRead: markMessagesAsReadWS
+    markMessagesAsRead: markMessagesAsReadWS,
+    disconnect
   } = useWebSocket();
 
   // Get data from Redux store
@@ -103,6 +104,8 @@ export const useDashboard = () => {
   };
 
   const handleLogout = async () => {
+    // Disconnect WebSocket BEFORE logging out
+  disconnect();
     await dispatch(logout());
     navigate("/login");
   };

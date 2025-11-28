@@ -1,212 +1,234 @@
 // frontend/src/components/Dashboard/hooks/useWebSocket.js
-import { useEffect, useRef } from "react";
+import { useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { io } from "socket.io-client";
 import { WEBSOCKET_URL } from "../../../config/api";
 import { addMessage } from "../../../redux/slices/messageSlice";
-import { updatePatientLastMessage } from "../../../redux/slices/patientSlice"; // 🆕 Import new action
+import { updatePatientLastMessage } from "../../../redux/slices/patientSlice";
 import { setUserTyping } from "../../../redux/slices/typingSlice";
 
-const useWebSocket = () => {
-  const socket = useRef(null);
-  const dispatch = useDispatch();
+// ✅ SINGLETON: Global socket instance (outside component)
+let globalSocket = null;
+let globalSocketToken = null;
+let isConnecting = false;
+let listenersAttached = false; // ✅ NEW: Prevent duplicate listeners
+let connectionId = 0;
 
-  // Get auth session from your existing Redux
+// ✅ Store dispatch reference globally for event handlers
+let globalDispatch = null;
+
+const useWebSocket = () => {
+  const dispatch = useDispatch();
   const { session } = useSelector((state) => state.auth);
 
-  // Initialize WebSocket connection
+  // ✅ Update global dispatch reference
+  globalDispatch = dispatch;
+
   useEffect(() => {
-    console.log("Session:", session);
-    console.log("Access Token:", session?.access_token ? "Present" : "Missing");
-    // ✅ Prevent multiple connections
-    if (socket.current?.connected) {
-      console.log("⚠️ WebSocket already connected");
+    const token = session?.access_token;
+    
+    // No token - don't connect
+    if (!token) {
+      console.log("⏳ No access token - WebSocket not connecting");
       return;
     }
-    // Only connect if user is authenticated
-    if (!session?.access_token) {
-      console.log(" No access token - WebSocket not connecting");
+
+    // ✅ Already connected with same token - just return (don't add more listeners)
+    if (globalSocket?.connected && globalSocketToken === token) {
+      console.log("♻️ Reusing existing WebSocket connection");
       return;
     }
-    console.log("🔌 Connecting to WebSocket:", WEBSOCKET_URL);
 
-    // console.log('🔌 Initializing WebSocket connection...');
-    // const WEBSOCKET_URL = import.meta.env.VITE_WEBSOCKET_URL || 'https://omnidentai-crm.onrender.com';
-    // Create socket connection with Supabase token
-    socket.current = io(WEBSOCKET_URL, {
-      auth: {
-        token: session.access_token, // Send your existing Supabase token
-      },
-      transports: ["websocket", "polling"], // Fallback to polling if needed
+    // Currently connecting - skip
+    if (isConnecting) {
+      console.log("⏳ Connection already in progress, skipping...");
+      return;
+    }
+
+    // Token changed - disconnect old socket first
+    if (globalSocket && globalSocketToken !== token) {
+      console.log("🔄 Token changed, disconnecting old socket...");
+      globalSocket.disconnect();
+      globalSocket = null;
+      globalSocketToken = null;
+      listenersAttached = false; // ✅ Reset listeners flag
+    }
+
+    // ✅ Socket exists but not connected - wait for reconnection
+    if (globalSocket && !globalSocket.connected) {
+      console.log("⏳ Socket exists, waiting for reconnection...");
+      return;
+    }
+
+    isConnecting = true;
+    connectionId++;
+    const currentConnectionId = connectionId;
+    
+    console.log(`🔌 Creating WebSocket connection #${currentConnectionId} to:`, WEBSOCKET_URL);
+
+    const socket = io(WEBSOCKET_URL, {
+      auth: { token },
+      transports: ["websocket", "polling"],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
     });
 
-    // ==========================================
-    // CONNECTION EVENT HANDLERS
-    // ==========================================
-
-    socket.current.on("connect", () => {
-      console.log(" Connected to WebSocket server");
+    socket.on("connect", () => {
+      console.log(`✅ WebSocket #${currentConnectionId} connected:`, socket.id);
+      isConnecting = false;
+      globalSocket = socket;
+      globalSocketToken = token;
     });
 
-    socket.current.on("disconnect", (reason) => {
-      console.log("🔌 Disconnected from WebSocket server:", reason);
+    socket.on("disconnect", (reason) => {
+      console.log(`🔌 WebSocket #${currentConnectionId} disconnected:`, reason);
+      isConnecting = false;
     });
 
-    socket.current.on("connect_error", (error) => {
-      console.error(" WebSocket connection error:", error.message);
+    socket.on("connect_error", (error) => {
+      console.error(`❌ WebSocket #${currentConnectionId} error:`, error.message);
+      isConnecting = false;
     });
 
-    // ==========================================
-    // MESSAGE EVENT HANDLERS
-    // ==========================================
+    // ✅ ATTACH LISTENERS ONLY ONCE
+    if (!listenersAttached) {
+      console.log("📡 Attaching WebSocket event listeners (once)");
+      
+      socket.on("new_message", (message) => {
+        console.log("📨 New message received via WebSocket:", message);
 
-    // Listen for new messages from other users or systems
-    socket.current.on("new_message", (message) => {
-      console.log("📨 New message received via WebSocket:", message);
-      console.log("📨 PatientId from message:", message.patientId);
+        if (globalDispatch) {
+          globalDispatch(
+            addMessage({
+              patientId: message.patientId,
+              message: message,
+            })
+          );
 
-      // Add message to Redux store (your existing addMessage action)
-      dispatch(
-        addMessage({
-          patientId: message.patientId,
-          message: message,
-        })
-      );
+          globalDispatch(
+            updatePatientLastMessage({
+              patientId: message.patientId,
+              lastMessage: message.message,
+              lastMessageTime: message.timestamp,
+              lastMessageChannel: message.channel,
+            })
+          );
+        }
+      });
 
-      // 🆕 NEW: Update patient's last message in the patient list
-      dispatch(
-        updatePatientLastMessage({
-          patientId: message.patientId,
-          lastMessage: message.message,
-          lastMessageTime: message.timestamp,
-          lastMessageChannel: message.channel,
-        })
-      );
-    });
+      socket.on("message_sent", (message) => {
+        console.log("✅ Message sent confirmation:", message);
 
-    // Listen for confirmation that your message was sent
-    socket.current.on("message_sent", (message) => {
-      console.log(" Message sent confirmation:", message);
+        if (globalDispatch) {
+          globalDispatch(
+            updatePatientLastMessage({
+              patientId: message.patientId,
+              lastMessage: message.message,
+              lastMessageTime: message.timestamp,
+              lastMessageChannel: message.channel,
+            })
+          );
+        }
+      });
 
-      // 🆕 NEW: Update patient's last message for sender too
-      dispatch(
-        updatePatientLastMessage({
-          patientId: message.patientId,
-          lastMessage: message.message,
-          lastMessageTime: message.timestamp,
-          lastMessageChannel: message.channel,
-        })
-      );
-    });
+      socket.on("message_error", (error) => {
+        console.error("❌ Message error:", error);
+      });
 
-    // Listen for message errors
-    socket.current.on("message_error", (error) => {
-      console.error(" Message error:", error);
-      // You could dispatch an error action here if needed
-    });
+      socket.on("user_typing", (data) => {
+        const { userId, userEmail, isTyping, patientId } = data;
+        if (globalDispatch) {
+          globalDispatch(setUserTyping({ patientId, userId, userEmail, isTyping }));
+        }
+      });
 
-    // ==========================================
-    // TYPING INDICATORS (OPTIONAL)
-    // ==========================================
+      socket.on("messages_read", (data) => {
+        console.log("👁️ Messages read:", data);
+      });
 
-    socket.current.on("user_typing", (data) => {
-      console.log("👤 User typing:", data);
-      const { userId, userEmail, isTyping, patientId } = data;
-      dispatch(
-        setUserTyping({
-          patientId,
-          userId,
-          userEmail,
-          isTyping,
-        })
-      );
-    });
+      listenersAttached = true; // ✅ Mark listeners as attached
+    }
 
-    // ==========================================
-    // READ STATUS (OPTIONAL)
-    // ==========================================
+    // Store reference
+    globalSocket = socket;
+    globalSocketToken = token;
 
-    socket.current.on("messages_read", (data) => {
-      console.log("👁️ Messages read:", data);
-      // You can update read status in Redux here later
-    });
-
-    // Cleanup on unmount or auth change
+    // Cleanup - DON'T disconnect, just log
     return () => {
-      if (socket.current) {
-        console.log("🔌 Cleaning up WebSocket connection");
-        socket.current.disconnect();
-        socket.current = null;
-      }
+      console.log(`🧹 Cleanup called for connection #${currentConnectionId}`);
+      // Don't disconnect or reset listenersAttached here
     };
-  }, [session?.access_token, dispatch]);
+  }, [session?.access_token]);
 
   // ==========================================
   // SOCKET UTILITY FUNCTIONS
   // ==========================================
 
-  const isConnected = socket.current?.connected || false;
+  const isConnected = globalSocket?.connected || false;
 
-  const joinPatientConversation = (patientId) => {
-    if (socket.current && patientId) {
-      socket.current.emit("join_patient_conversation", patientId);
-      // console.log(`👥 Joined conversation with patient ${patientId}`);
+  const joinPatientConversation = useCallback((patientId) => {
+    if (globalSocket?.connected && patientId) {
+      globalSocket.emit("join_patient_conversation", patientId);
     }
-  };
+  }, []);
 
-  const leavePatientConversation = (patientId) => {
-    if (socket.current && patientId) {
-      socket.current.emit("leave_patient_conversation", patientId);
-      // console.log(`👋 Left conversation with patient ${patientId}`);
+  const leavePatientConversation = useCallback((patientId) => {
+    if (globalSocket?.connected && patientId) {
+      globalSocket.emit("leave_patient_conversation", patientId);
     }
-  };
+  }, []);
 
-  const sendMessageViaWebSocket = (
-    patientId,
-    content,
-    channelType = "webchat"
-  ) => {
-    if (!socket.current || !isConnected) {
+  const sendMessageViaWebSocket = useCallback((patientId, content, channelType = "webchat") => {
+    if (!globalSocket?.connected) {
       console.warn("⚠️ WebSocket not connected, message not sent");
       return false;
     }
 
     if (!patientId || !content?.trim()) {
-      console.error(" Invalid message data");
+      console.error("❌ Invalid message data");
       return false;
     }
 
     console.log(`📤 Sending message via WebSocket to patient ${patientId}`);
-
-    // Send message via WebSocket
-    socket.current.emit("send_message", {
+    globalSocket.emit("send_message", {
       patientId,
       content: content.trim(),
       channelType,
     });
 
     return true;
-  };
+  }, []);
 
-  const startTyping = (patientId) => {
-    if (socket.current && isConnected && patientId) {
-      socket.current.emit("typing_start", { patientId });
+  const startTyping = useCallback((patientId) => {
+    if (globalSocket?.connected && patientId) {
+      globalSocket.emit("typing_start", { patientId });
     }
-  };
+  }, []);
 
-  const stopTyping = (patientId) => {
-    if (socket.current && isConnected && patientId) {
-      socket.current.emit("typing_stop", { patientId });
+  const stopTyping = useCallback((patientId) => {
+    if (globalSocket?.connected && patientId) {
+      globalSocket.emit("typing_stop", { patientId });
     }
-  };
+  }, []);
 
-  const markMessagesAsRead = (patientId) => {
-    if (socket.current && isConnected && patientId) {
-      socket.current.emit("mark_messages_read", { patientId });
+  const markMessagesAsRead = useCallback((patientId) => {
+    if (globalSocket?.connected && patientId) {
+      globalSocket.emit("mark_messages_read", { patientId });
     }
-  };
+  }, []);
 
-  // Return all the functions your components need
+  // Force disconnect (call on logout)
+  const disconnect = useCallback(() => {
+    if (globalSocket) {
+      console.log("🔌 Force disconnecting WebSocket");
+      globalSocket.disconnect();
+      globalSocket = null;
+      globalSocketToken = null;
+      listenersAttached = false; // ✅ Reset for next login
+    }
+  }, []);
+
   return {
     isConnected,
     joinPatientConversation,
@@ -215,6 +237,7 @@ const useWebSocket = () => {
     startTyping,
     stopTyping,
     markMessagesAsRead,
+    disconnect,
   };
 };
 
