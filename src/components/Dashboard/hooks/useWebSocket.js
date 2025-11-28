@@ -63,6 +63,7 @@ const useWebSocket = () => {
     // Listen for new messages from other users or systems
     socket.current.on("new_message", (message) => {
       console.log("📨 New message received via WebSocket:", message);
+      console.log("📨 PatientId from message:", message.patientId);
 
       // Add message to Redux store (your existing addMessage action)
       dispatch(

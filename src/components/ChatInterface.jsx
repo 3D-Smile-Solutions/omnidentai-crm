@@ -121,7 +121,10 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
       setMessage("");
     }
   };
-
+useEffect(() => {
+  console.log("🔄 currentMessages updated:", currentMessages.length, "messages");
+  console.log("🔄 Last message:", currentMessages[currentMessages.length - 1]);
+}, [currentMessages]);
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();

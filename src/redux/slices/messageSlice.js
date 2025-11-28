@@ -157,38 +157,52 @@ const messageSlice = createSlice({
     // ==========================================
     // ENHANCED: Add message (from WebSocket or HTTP)
     // ==========================================
-    addMessage: (state, action) => {
-      const { patientId, message } = action.payload;
-      
-      // Initialize patient messages if not exists
-      if (!state.messagesByPatient[patientId]) {
-        state.messagesByPatient[patientId] = { messages: [], unreadCount: 0 };
-      }
-      
-      // Check for duplicate messages (avoid adding same message twice)
-      const existingMessage = state.messagesByPatient[patientId].messages.find(
+  addMessage: (state, action) => {
+  const { patientId, message } = action.payload;
+   // 🔍 DEBUG: Log the comparison
+  console.log("🔍 addMessage Debug:", {
+    incomingPatientId: patientId,
+    currentPatientId: state.currentPatientId,
+    doTheyMatch: state.currentPatientId === patientId,
+    messageContent: message.message?.substring(0, 30)
+  });
+  // Initialize patient messages if not exists
+  if (!state.messagesByPatient[patientId]) {
+    state.messagesByPatient[patientId] = { messages: [], unreadCount: 0 };
+  }
+  
+  // Check for duplicate messages
+  const existingMessage = state.messagesByPatient[patientId].messages.find(
+    msg => msg.id === message.id || 
+    (msg.timestamp === message.timestamp && msg.message === message.message)
+  );
+  
+  if (!existingMessage) {
+    // Add to messagesByPatient
+    state.messagesByPatient[patientId].messages.push(message);
+    
+    // ✅ FIX: Always sync currentMessages if this is the selected patient
+    if (state.currentPatientId === patientId) {
+      // Check if message already exists in currentMessages
+      const existsInCurrent = state.currentMessages.find(
         msg => msg.id === message.id || 
-        (msg.isOptimistic && message.isOptimistic && msg.message === message.message)
+        (msg.timestamp === message.timestamp && msg.message === message.message)
       );
       
-      if (!existingMessage) {
-        // Add to messagesByPatient
-        state.messagesByPatient[patientId].messages.push(message);
-        
-        // Add to current messages if this is the selected patient
-        if (state.currentPatientId === patientId) {
-          state.currentMessages.push(message);
-        }
-        
-        // Update unread count if message is from patient
-        if (message.sender === 'patient') {
-          state.unreadCounts[patientId] = (state.unreadCounts[patientId] || 0) + 1;
-          if (state.messagesByPatient[patientId]) {
-            state.messagesByPatient[patientId].unreadCount = state.unreadCounts[patientId];
-          }
-        }
+      if (!existsInCurrent) {
+        state.currentMessages = [...state.currentMessages, message];
       }
-    },
+    }
+    
+    // Update unread count if message is from patient
+    if (message.sender === 'user' || message.sender === 'patient') {
+      state.unreadCounts[patientId] = (state.unreadCounts[patientId] || 0) + 1;
+      if (state.messagesByPatient[patientId]) {
+        state.messagesByPatient[patientId].unreadCount = state.unreadCounts[patientId];
+      }
+    }
+  }
+},
     
     // ==========================================
     // NEW: Update optimistic message with real one
