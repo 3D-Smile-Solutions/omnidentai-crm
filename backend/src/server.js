@@ -414,7 +414,7 @@ app.post("/api/bot-response", express.json(), async (req, res) => {
     };
 
     io.to(`dentist_${patient.dentist_id}`).emit('new_message', transformedMessage);
-    io.to(`patient_${patient.id}`).emit('new_message', transformedMessage);
+    // io.to(`patient_${patient.id}`).emit('new_message', transformedMessage);
     io.to(`contact_${contact_id}`).emit('new_message', transformedMessage);
 
     console.log('✅ Bot response broadcasted:', finalMessage.substring(0, 50) + '...');
