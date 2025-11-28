@@ -157,32 +157,39 @@ const messageSlice = createSlice({
     // ==========================================
     // ENHANCED: Add message (from WebSocket or HTTP)
     // ==========================================
- addMessage: (state, action) => {
+addMessage: (state, action) => {
   const { patientId, message } = action.payload;
   
-  console.log("🔍 addMessage Debug:", {
-    incomingPatientId: patientId,
-    currentPatientId: state.currentPatientId,
-    doTheyMatch: state.currentPatientId === patientId,
-    messageContent: message.message?.substring(0, 30)
-  });
-  
-  // Initialize patient messages if not exists
   if (!state.messagesByPatient[patientId]) {
     state.messagesByPatient[patientId] = { messages: [], unreadCount: 0 };
   }
   
   const currentMessages = state.messagesByPatient[patientId].messages;
+  const messageTime = new Date(message.timestamp).getTime();
+  const now = Date.now();
+  const isRecentMessage = (now - messageTime) < 10000; // Within 10 seconds
   
-  // Check for duplicate messages
-  const isDuplicate = currentMessages.some(
-    msg => msg.id === message.id || 
-    (msg.timestamp === message.timestamp && msg.message === message.message)
-  );
+  // For recent messages, use stricter duplicate check (exact ID only)
+  // For older messages, also check timestamp+content
+  const isDuplicate = currentMessages.some(msg => {
+    // Always check ID if available
+    if (message.id && msg.id && msg.id === message.id) {
+      return true;
+    }
+    
+    // For NON-recent messages, also check content match
+    if (!isRecentMessage) {
+      if (msg.timestamp === message.timestamp && 
+          msg.message === message.message && 
+          msg.sender === message.sender) {
+        return true;
+      }
+    }
+    
+    return false;
+  });
   
   if (!isDuplicate) {
-    // ✅ CRITICAL FIX: Create entirely new object references
-    // This forces React-Redux to detect the change and re-render
     const newMessages = [...currentMessages, message];
     
     state.messagesByPatient = {
@@ -196,7 +203,6 @@ const messageSlice = createSlice({
       }
     };
     
-    // Update unread counts
     if (message.sender === 'user' || message.sender === 'patient') {
       state.unreadCounts = {
         ...state.unreadCounts,
@@ -204,9 +210,9 @@ const messageSlice = createSlice({
       };
     }
     
-    console.log("✅ Message added, new messages count:", newMessages.length);
+    console.log("✅ Message added, count:", newMessages.length);
   } else {
-    console.log("⚠️ Duplicate message ignored");
+    console.log("⚠️ Duplicate ignored");
   }
 },
     
