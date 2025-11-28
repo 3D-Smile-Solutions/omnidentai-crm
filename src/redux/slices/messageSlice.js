@@ -157,50 +157,56 @@ const messageSlice = createSlice({
     // ==========================================
     // ENHANCED: Add message (from WebSocket or HTTP)
     // ==========================================
-  addMessage: (state, action) => {
+ addMessage: (state, action) => {
   const { patientId, message } = action.payload;
-   // 🔍 DEBUG: Log the comparison
+  
   console.log("🔍 addMessage Debug:", {
     incomingPatientId: patientId,
     currentPatientId: state.currentPatientId,
     doTheyMatch: state.currentPatientId === patientId,
     messageContent: message.message?.substring(0, 30)
   });
+  
   // Initialize patient messages if not exists
   if (!state.messagesByPatient[patientId]) {
     state.messagesByPatient[patientId] = { messages: [], unreadCount: 0 };
   }
   
+  const currentMessages = state.messagesByPatient[patientId].messages;
+  
   // Check for duplicate messages
-  const existingMessage = state.messagesByPatient[patientId].messages.find(
+  const isDuplicate = currentMessages.some(
     msg => msg.id === message.id || 
     (msg.timestamp === message.timestamp && msg.message === message.message)
   );
   
-  if (!existingMessage) {
-    // Add to messagesByPatient
-    state.messagesByPatient[patientId].messages.push(message);
+  if (!isDuplicate) {
+    // ✅ CRITICAL FIX: Create entirely new object references
+    // This forces React-Redux to detect the change and re-render
+    const newMessages = [...currentMessages, message];
     
-    // ✅ FIX: Always sync currentMessages if this is the selected patient
-    if (state.currentPatientId === patientId) {
-      // Check if message already exists in currentMessages
-      const existsInCurrent = state.currentMessages.find(
-        msg => msg.id === message.id || 
-        (msg.timestamp === message.timestamp && msg.message === message.message)
-      );
-      
-      if (!existsInCurrent) {
-        state.currentMessages = [...state.currentMessages, message];
+    state.messagesByPatient = {
+      ...state.messagesByPatient,
+      [patientId]: {
+        ...state.messagesByPatient[patientId],
+        messages: newMessages,
+        unreadCount: (message.sender === 'user' || message.sender === 'patient')
+          ? (state.messagesByPatient[patientId].unreadCount || 0) + 1
+          : state.messagesByPatient[patientId].unreadCount
       }
-    }
+    };
     
-    // Update unread count if message is from patient
+    // Update unread counts
     if (message.sender === 'user' || message.sender === 'patient') {
-      state.unreadCounts[patientId] = (state.unreadCounts[patientId] || 0) + 1;
-      if (state.messagesByPatient[patientId]) {
-        state.messagesByPatient[patientId].unreadCount = state.unreadCounts[patientId];
-      }
+      state.unreadCounts = {
+        ...state.unreadCounts,
+        [patientId]: (state.unreadCounts[patientId] || 0) + 1
+      };
     }
+    
+    console.log("✅ Message added, new messages count:", newMessages.length);
+  } else {
+    console.log("⚠️ Duplicate message ignored");
   }
 },
     
