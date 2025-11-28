@@ -98,9 +98,11 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     });
   }, [isReady, isCallInProgress, currentCall, callError, callDuration]);
 
-  const { currentMessages, fetchStatus, sendStatus, error } = useSelector(
-    (state) => state.messages
-  );
+ // ✅ FIX: Select each property separately to ensure React detects changes
+const currentMessages = useSelector((state) => state.messages.currentMessages);
+const fetchStatus = useSelector((state) => state.messages.fetchStatus);
+const sendStatus = useSelector((state) => state.messages.sendStatus);
+const error = useSelector((state) => state.messages.error);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
