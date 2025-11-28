@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import useWebSocket from '../../Dashboard/hooks/useWebSocket';
+import useWebSocket from '../hooks/useWebSocket';
 import {
   Box,
   Typography,
