@@ -98,8 +98,16 @@ const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
     });
   }, [isReady, isCallInProgress, currentCall, callError, callDuration]);
 
- // ✅ FIX: Select each property separately to ensure React detects changes
-const currentMessages = useSelector((state) => state.messages.currentMessages);
+  // const { currentMessages, fetchStatus, sendStatus, error } = useSelector(
+  //   (state) => state.messages
+  // );
+  // FIX: Get messages directly from messagesByPatient to ensure real-time sync
+const currentMessages = useSelector(
+  (state) => {
+    if (!patient?.id) return [];
+    return state.messages.messagesByPatient[patient.id]?.messages || [];
+  }
+);
 const fetchStatus = useSelector((state) => state.messages.fetchStatus);
 const sendStatus = useSelector((state) => state.messages.sendStatus);
 const error = useSelector((state) => state.messages.error);
