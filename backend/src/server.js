@@ -165,7 +165,7 @@ socket.on('send_message', async (data) => {
 
     //  SEND TO CRM (dentist's room AND patient's room) - REAL-TIME ONLY
     io.to(`dentist_${patient.dentist_id}`).emit('new_message', transformedMessage);
-    io.to(`patient_${patient.id}`).emit('new_message', transformedMessage);
+    // io.to(`patient_${patient.id}`).emit('new_message', transformedMessage);
     
     //  CONFIRMATION TO WIDGET
     socket.emit('message_sent', transformedMessage);
