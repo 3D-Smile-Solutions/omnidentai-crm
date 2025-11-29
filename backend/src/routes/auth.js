@@ -1,4 +1,4 @@
-// backend/src/routes/authRoutes.js
+// backend/src/routes/auth.js
 import express from "express";
 import { 
   // signup, 

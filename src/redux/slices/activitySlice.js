@@ -12,7 +12,7 @@ export const logActivity = createAsyncThunk(
   "activity/logActivity",
   async ({ sessionId, activityType, details = {} }, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${API_URL}/log-activity`, {
+      const response = await fetch(`${API_URL}/auth/log-activity`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -44,7 +44,7 @@ export const fetchSessionHistory = createAsyncThunk(
         throw new Error("Not authenticated");
       }
 
-      const response = await fetch(`${API_URL}/session-history`, {
+      const response = await fetch(`${API_URL}/auth/session-history`, {
         method: "GET",
         credentials: "include",
       });
@@ -76,7 +76,7 @@ export const logoutAllDevices = createAsyncThunk(
         throw new Error("Not authenticated");
       }
 
-      const response = await fetch(`${API_URL}/logout-all`, {
+      const response = await fetch(`${API_URL}/auth/logout-all`, {
         method: "POST",
         credentials: "include",
       });
@@ -105,7 +105,7 @@ export const logoutSession = createAsyncThunk(
         throw new Error("Not authenticated");
       }
 
-      const response = await fetch(`${API_URL}/logout-session/${sessionId}`, {
+      const response = await fetch(`${API_URL}/auth/logout-session/${sessionId}`, {
         method: "POST",
         credentials: "include",
       });
