@@ -1352,11 +1352,13 @@ useEffect(() => {
             checked={localSelectedChannels.sms}
             onChange={(e) => handleLocalChannelChange("sms", e.target.checked)}
             label="SMS"
+            isDarkMode={isDarkMode}
           />
           <CustomCheckbox
             checked={localSelectedChannels.call}
             onChange={(e) => handleLocalChannelChange("call", e.target.checked)}
             label="Call"
+            isDarkMode={isDarkMode}
           />
           <CustomCheckbox
             checked={localSelectedChannels.webchat}
@@ -1364,6 +1366,7 @@ useEffect(() => {
               handleLocalChannelChange("webchat", e.target.checked)
             }
             label="Webchat"
+            isDarkMode={isDarkMode}
           />
         </Box>
         <Box

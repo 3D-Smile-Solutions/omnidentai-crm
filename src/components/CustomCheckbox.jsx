@@ -1,7 +1,7 @@
 import React from 'react';
 import { styled } from '@mui/material/styles';
 
-const CheckboxContainer = styled('label')({
+const CheckboxContainer = styled('label')(({ isDarkMode }) => ({
   cursor: 'pointer',
   display: 'inline-flex',
   alignItems: 'center',
@@ -14,7 +14,7 @@ const CheckboxContainer = styled('label')({
   },
   '& .path': {
     fill: 'none',
-    stroke: '#3EE4C8',
+    stroke: isDarkMode ? '#64ffda' : '#3EE4C8',
     strokeWidth: 6,
     strokeLinecap: 'round',
     strokeLinejoin: 'round',
@@ -26,11 +26,11 @@ const CheckboxContainer = styled('label')({
     strokeDasharray: '70.5096664428711 9999999',
     strokeDashoffset: '-262.2723388671875',
   },
-});
+}));
 
-const CustomCheckbox = ({ checked, onChange, label }) => {
+const CustomCheckbox = ({ checked, onChange, label, isDarkMode = false }) => {
   return (
-    <CheckboxContainer>
+    <CheckboxContainer isDarkMode={isDarkMode}>
       <input 
         type="checkbox" 
         checked={checked}
@@ -47,7 +47,7 @@ const CustomCheckbox = ({ checked, onChange, label }) => {
         <span style={{ 
           marginLeft: '8px', 
           fontSize: '0.875rem',
-          color: '#0B1929',
+          color: isDarkMode ? 'rgba(255, 255, 255, 0.8)' : '#0B1929',
           fontWeight: 500
         }}>
           {label}
