@@ -113,11 +113,11 @@ const AppearanceSettings = () => {
   const [success, setSuccess] = useState(false);
 
   const backgroundOptions = [
-    //{ value: 'none', label: 'None', description: 'Clean interface without animations' },
-    //{ value: 'lightRays', label: 'Light Rays', description: 'Dynamic light rays effect' },
+    { value: 'none', label: 'None', description: 'Clean interface without animations' },
+    { value: 'lightRays', label: 'Light Rays', description: 'Dynamic light rays effect' },
     { value: 'gradientBlinds', label: 'Gradient Blinds', description: 'Animated gradient blinds' },
-    //{ value: 'threads', label: 'Threads', description: 'Flowing threads animation' },
-    //{ value: 'orb', label: 'Orb', description: 'Floating orb effect' },
+    { value: 'threads', label: 'Threads', description: 'Flowing threads animation' },
+    { value: 'orb', label: 'Orb', description: 'Floating orb effect' },
   ];
 
   const handleDensityChange = (density) => {
