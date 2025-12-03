@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { Typography, Box, CircularProgress } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchOverviewMetrics } from '../../../../redux/slices/metricsSlice';
+import { useTheme } from '../../../../context/ThemeContext';
 import OverviewMetrics from './OverviewMetrics';
 import OverviewCharts from './OverviewCharts';
 import GoogleMapComponent from '../../../GoogleMapComponent';
@@ -10,6 +11,7 @@ import TwilioUsage from '../../../TwilioUsage';
 
 const Overview = ({ isMobile }) => {
   const dispatch = useDispatch();
+  const { isDarkMode } = useTheme();
   const { loading, error, lastFetched, summary, charts } = useSelector((state) => state.metrics);
 
   useEffect(() => {
@@ -17,18 +19,10 @@ const Overview = ({ isMobile }) => {
     dispatch(fetchOverviewMetrics());
   }, [dispatch]);
 
-  // DEBUG: Log the entire metrics state
   useEffect(() => {
-    console.log('🔍 METRICS STATE DEBUG:');
-    // console.log('Summary:', summary);
-    // console.log('Charts:', charts);
-    // console.log('Charts keys:', Object.keys(charts));
-    // console.log('Loading:', loading);
-    // console.log('Error:', error);
-    
-    // Check each chart array
+    console.log('📈 METRICS STATE DEBUG:');
     Object.keys(charts).forEach(key => {
-      // console.log(`📊 ${key}:`, charts[key]);
+      // console.log(`📉 ${key}:`, charts[key]);
     });
   }, [summary, charts, loading, error]);
 
@@ -46,7 +40,7 @@ const Overview = ({ isMobile }) => {
         <Typography color="error">
           Error loading metrics: {error}
         </Typography>
-        <Typography variant="body2" sx={{ mt: 2 }}>
+        <Typography variant="body2" sx={{ mt: 2, color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(11,25,41,0.7)' }}>
           Check browser console for details
         </Typography>
       </Box>
@@ -55,16 +49,28 @@ const Overview = ({ isMobile }) => {
 
   return (
     <>
-      <Typography variant="h4" gutterBottom sx={{ fontWeight: 600 }}>
+      <Typography 
+        variant="h4" 
+        gutterBottom 
+        sx={{ 
+          fontWeight: 600,
+          color: isDarkMode ? '#ffffff' : '#0B1929',
+        }}
+      >
         Practice Overview
       </Typography>
-      <Typography paragraph color="text.secondary">
+      <Typography 
+        paragraph 
+        sx={{
+          color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(11, 25, 41, 0.7)',
+        }}
+      >
         Welcome to OmniDent AI. Monitor your practice performance, track patient metrics, and manage daily operations.
       </Typography>
       <OverviewMetrics />
       <OverviewCharts isMobile={isMobile} />
-      <GoogleMapComponent/>
-      <TwilioUsage/>
+      <GoogleMapComponent />
+      <TwilioUsage />
     </>
   );
 };

@@ -2,6 +2,7 @@
 import React from 'react';
 import { Box, Paper, Typography, Skeleton } from '@mui/material';
 import { useSelector } from 'react-redux';
+import { useTheme } from '../../../../context/ThemeContext';
 import {
   BarChart,
   Bar,
@@ -18,18 +19,39 @@ import {
   Legend
 } from 'recharts';
 
-const ChartContainer = ({ title, children, height = 250, loading = false, ...props }) => (
+const ChartContainer = ({ title, children, height = 250, loading = false, isDarkMode, ...props }) => (
   <Paper elevation={0} sx={{ 
     p: 3,
-    background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
-    border: '1px solid rgba(62, 228, 200, 0.2)',
+    background: isDarkMode 
+      ? 'rgba(17, 24, 39, 0.5)'
+      : 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
+    backdropFilter: 'blur(20px)',
+    border: isDarkMode 
+      ? '1px solid rgba(100, 255, 218, 0.2)'
+      : '1px solid rgba(62, 228, 200, 0.2)',
+    borderRadius: 2,
     ...props.sx
   }}>
-    <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: '#0B1929' }}>
+    <Typography 
+      variant="h6" 
+      gutterBottom 
+      sx={{ 
+        fontWeight: 600, 
+        color: isDarkMode ? '#ffffff' : '#0B1929' 
+      }}
+    >
       {title}
     </Typography>
     {loading ? (
-      <Skeleton variant="rectangular" width="100%" height={height} sx={{ borderRadius: 2 }} />
+      <Skeleton 
+        variant="rectangular" 
+        width="100%" 
+        height={height} 
+        sx={{ 
+          borderRadius: 2,
+          bgcolor: isDarkMode ? 'rgba(255,255,255,0.1)' : undefined 
+        }} 
+      />
     ) : (
       <ResponsiveContainer width="100%" height={height}>
         {children}
@@ -39,31 +61,49 @@ const ChartContainer = ({ title, children, height = 250, loading = false, ...pro
 );
 
 const OverviewCharts = ({ isMobile }) => {
+  const { isDarkMode } = useTheme();
   const { charts, loading } = useSelector((state) => state.metrics);
 
+  const axisColor = isDarkMode ? 'rgba(255, 255, 255, 0.7)' : '#0B1929';
+  const gridColor = isDarkMode ? 'rgba(100, 255, 218, 0.1)' : 'rgba(62, 228, 200, 0.1)';
+
   const tooltipStyle = {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-    border: '1px solid rgba(62, 228, 200, 0.3)',
-    borderRadius: 8
+    backgroundColor: isDarkMode ? 'rgba(17, 24, 39, 0.95)' : 'rgba(255, 255, 255, 0.95)', 
+    border: isDarkMode ? '1px solid rgba(100, 255, 218, 0.3)' : '1px solid rgba(62, 228, 200, 0.3)',
+    borderRadius: 8,
+    color: isDarkMode ? '#ffffff' : '#0B1929'
   };
 
   const COLORS = ['#3EE4C8', '#45B7D1', '#96CEB4', '#F7B801', '#FF6B6B', '#9B59B6', '#3498DB', '#DDA77B'];
 
+  const labelStyle = {
+    fill: isDarkMode ? '#ffffff' : '#0B1929',
+    fontSize: 12
+  };
+
   return (
     <Box sx={{ mt: 4 }}>
-      <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
+      <Typography 
+        variant="h5" 
+        gutterBottom 
+        sx={{ 
+          fontWeight: 600, 
+          mb: 3,
+          color: isDarkMode ? '#ffffff' : '#0B1929'
+        }}
+      >
         Detailed Analytics
       </Typography>
 
       {/* ROW 1: Monthly Revenue */}
       {charts.monthlyRevenue && charts.monthlyRevenue.length > 0 && (
-        <ChartContainer title="Monthly Revenue Trend" height={300} sx={{ mb: 3 }} loading={loading}>
+        <ChartContainer title="Monthly Revenue Trend" height={300} sx={{ mb: 3 }} loading={loading} isDarkMode={isDarkMode}>
           <LineChart data={charts.monthlyRevenue}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(62, 228, 200, 0.1)" />
-            <XAxis dataKey="month" stroke="#0B1929" tick={{ fontSize: 12 }} />
-            <YAxis stroke="#0B1929" tick={{ fontSize: 12 }} />
+            <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+            <XAxis dataKey="month" stroke={axisColor} tick={{ fontSize: 12, fill: axisColor }} />
+            <YAxis stroke={axisColor} tick={{ fontSize: 12, fill: axisColor }} />
             <Tooltip contentStyle={tooltipStyle} formatter={(value) => `$${value.toLocaleString()}`} />
-            <Legend />
+            <Legend wrapperStyle={{ color: axisColor }} />
             <Line type="monotone" dataKey="revenue" stroke="#3EE4C8" strokeWidth={3} name="Revenue ($)" />
           </LineChart>
         </ChartContainer>
@@ -72,7 +112,7 @@ const OverviewCharts = ({ isMobile }) => {
       {/* ROW 2: Appointment Status & Type */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3, mb: 3 }}>
         {charts.appointmentBooked && charts.appointmentBooked.length > 0 && (
-          <ChartContainer title="Appointment Booking Status" loading={loading}>
+          <ChartContainer title="Appointment Booking Status" loading={loading} isDarkMode={isDarkMode}>
             <PieChart>
               <Pie
                 data={charts.appointmentBooked}
@@ -82,6 +122,7 @@ const OverviewCharts = ({ isMobile }) => {
                 label={({ name, value }) => `${name}: ${value}`}
                 outerRadius={isMobile ? 60 : 80}
                 dataKey="value"
+                labelStyle={labelStyle}
               >
                 {charts.appointmentBooked.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -93,18 +134,18 @@ const OverviewCharts = ({ isMobile }) => {
         )}
 
         {charts.appointmentType && charts.appointmentType.length > 0 && (
-          <ChartContainer title="Appointment Types" loading={loading}>
+          <ChartContainer title="Appointment Types" loading={loading} isDarkMode={isDarkMode}>
             <BarChart data={charts.appointmentType}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(62, 228, 200, 0.1)" />
+              <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
               <XAxis 
                 dataKey="type" 
-                stroke="#0B1929" 
+                stroke={axisColor} 
                 angle={-45} 
                 textAnchor="end" 
                 height={80}
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 10, fill: axisColor }}
               />
-              <YAxis stroke="#0B1929" tick={{ fontSize: 12 }} />
+              <YAxis stroke={axisColor} tick={{ fontSize: 12, fill: axisColor }} />
               <Tooltip contentStyle={tooltipStyle} />
               <Bar dataKey="count" fill="#3EE4C8" radius={[8, 8, 0, 0]} />
             </BarChart>
@@ -115,7 +156,7 @@ const OverviewCharts = ({ isMobile }) => {
       {/* ROW 3: Treatment & Case Status */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3, mb: 3 }}>
         {charts.treatmentPlan && charts.treatmentPlan.length > 0 && (
-          <ChartContainer title="Treatment Plan Presented" loading={loading}>
+          <ChartContainer title="Treatment Plan Presented" loading={loading} isDarkMode={isDarkMode}>
             <PieChart>
               <Pie
                 data={charts.treatmentPlan}
@@ -136,7 +177,7 @@ const OverviewCharts = ({ isMobile }) => {
         )}
 
         {charts.caseAccepted && charts.caseAccepted.length > 0 && (
-          <ChartContainer title="Case Acceptance Status" loading={loading}>
+          <ChartContainer title="Case Acceptance Status" loading={loading} isDarkMode={isDarkMode}>
             <PieChart>
               <Pie
                 data={charts.caseAccepted}
@@ -160,7 +201,7 @@ const OverviewCharts = ({ isMobile }) => {
       {/* ROW 4: Patient Type & Channel */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3, mb: 3 }}>
         {charts.patientType && charts.patientType.length > 0 && (
-          <ChartContainer title="Patient Type Distribution" loading={loading}>
+          <ChartContainer title="Patient Type Distribution" loading={loading} isDarkMode={isDarkMode}>
             <PieChart>
               <Pie
                 data={charts.patientType}
@@ -181,11 +222,11 @@ const OverviewCharts = ({ isMobile }) => {
         )}
 
         {charts.conversationChannel && charts.conversationChannel.length > 0 && (
-          <ChartContainer title="Conversation Channels" loading={loading}>
+          <ChartContainer title="Conversation Channels" loading={loading} isDarkMode={isDarkMode}>
             <BarChart data={charts.conversationChannel}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(62, 228, 200, 0.1)" />
-              <XAxis dataKey="channel" stroke="#0B1929" tick={{ fontSize: 12 }} />
-              <YAxis stroke="#0B1929" tick={{ fontSize: 12 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+              <XAxis dataKey="channel" stroke={axisColor} tick={{ fontSize: 12, fill: axisColor }} />
+              <YAxis stroke={axisColor} tick={{ fontSize: 12, fill: axisColor }} />
               <Tooltip contentStyle={tooltipStyle} />
               <Bar dataKey="count" fill="#45B7D1" radius={[8, 8, 0, 0]} />
             </BarChart>
@@ -196,7 +237,7 @@ const OverviewCharts = ({ isMobile }) => {
       {/* ROW 5: AI Metrics */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 3, mb: 3 }}>
         {charts.aiHandled && charts.aiHandled.length > 0 && (
-          <ChartContainer title="AI Handled vs Manual" loading={loading}>
+          <ChartContainer title="AI Handled vs Manual" loading={loading} isDarkMode={isDarkMode}>
             <PieChart>
               <Pie
                 data={charts.aiHandled}
@@ -217,7 +258,7 @@ const OverviewCharts = ({ isMobile }) => {
         )}
 
         {charts.humanHandoff && charts.humanHandoff.length > 0 && (
-          <ChartContainer title="Human Handoff Rate" loading={loading}>
+          <ChartContainer title="Human Handoff Rate" loading={loading} isDarkMode={isDarkMode}>
             <PieChart>
               <Pie
                 data={charts.humanHandoff}
@@ -238,7 +279,7 @@ const OverviewCharts = ({ isMobile }) => {
         )}
 
         {charts.conversationResolved && charts.conversationResolved.length > 0 && (
-          <ChartContainer title="Resolution Rate" loading={loading}>
+          <ChartContainer title="Resolution Rate" loading={loading} isDarkMode={isDarkMode}>
             <PieChart>
               <Pie
                 data={charts.conversationResolved}
@@ -262,7 +303,7 @@ const OverviewCharts = ({ isMobile }) => {
       {/* ROW 6: Insurance & Payment */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3, mb: 3 }}>
         {charts.insuranceMentioned && charts.insuranceMentioned.length > 0 && (
-          <ChartContainer title="Insurance Discussed" loading={loading}>
+          <ChartContainer title="Insurance Discussed" loading={loading} isDarkMode={isDarkMode}>
             <PieChart>
               <Pie
                 data={charts.insuranceMentioned}
@@ -283,7 +324,7 @@ const OverviewCharts = ({ isMobile }) => {
         )}
 
         {charts.paymentPlan && charts.paymentPlan.length > 0 && (
-          <ChartContainer title="Payment Plan Discussed" loading={loading}>
+          <ChartContainer title="Payment Plan Discussed" loading={loading} isDarkMode={isDarkMode}>
             <PieChart>
               <Pie
                 data={charts.paymentPlan}
@@ -307,18 +348,18 @@ const OverviewCharts = ({ isMobile }) => {
       {/* ROW 7: Procedures & Outcomes */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3, mb: 3 }}>
         {charts.insuranceProvider && charts.insuranceProvider.length > 0 && (
-          <ChartContainer title="Insurance Providers" loading={loading}>
+          <ChartContainer title="Insurance Providers" loading={loading} isDarkMode={isDarkMode}>
             <BarChart data={charts.insuranceProvider}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(62, 228, 200, 0.1)" />
+              <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
               <XAxis 
                 dataKey="provider" 
-                stroke="#0B1929" 
+                stroke={axisColor} 
                 angle={-45} 
                 textAnchor="end" 
                 height={80}
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 10, fill: axisColor }}
               />
-              <YAxis stroke="#0B1929" tick={{ fontSize: 12 }} />
+              <YAxis stroke={axisColor} tick={{ fontSize: 12, fill: axisColor }} />
               <Tooltip contentStyle={tooltipStyle} />
               <Bar dataKey="count" fill="#96CEB4" radius={[8, 8, 0, 0]} />
             </BarChart>
@@ -326,18 +367,18 @@ const OverviewCharts = ({ isMobile }) => {
         )}
 
         {charts.procedurePrimary && charts.procedurePrimary.length > 0 && (
-          <ChartContainer title="Most Common Procedures" loading={loading}>
+          <ChartContainer title="Most Common Procedures" loading={loading} isDarkMode={isDarkMode}>
             <BarChart data={charts.procedurePrimary}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(62, 228, 200, 0.1)" />
+              <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
               <XAxis 
                 dataKey="name" 
-                stroke="#0B1929" 
+                stroke={axisColor} 
                 angle={-45} 
                 textAnchor="end" 
                 height={80}
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 10, fill: axisColor }}
               />
-              <YAxis stroke="#0B1929" tick={{ fontSize: 12 }} />
+              <YAxis stroke={axisColor} tick={{ fontSize: 12, fill: axisColor }} />
               <Tooltip contentStyle={tooltipStyle} />
               <Bar dataKey="value" fill="#F7B801" radius={[8, 8, 0, 0]} />
             </BarChart>
@@ -348,18 +389,18 @@ const OverviewCharts = ({ isMobile }) => {
       {/* ROW 8: Booking Outcomes & Avg Messages */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3, mb: 3 }}>
         {charts.bookingOutcome && charts.bookingOutcome.length > 0 && (
-          <ChartContainer title="Booking Outcomes" loading={loading}>
+          <ChartContainer title="Booking Outcomes" loading={loading} isDarkMode={isDarkMode}>
             <BarChart data={charts.bookingOutcome}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(62, 228, 200, 0.1)" />
+              <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
               <XAxis 
                 dataKey="outcome" 
-                stroke="#0B1929" 
+                stroke={axisColor} 
                 angle={-45} 
                 textAnchor="end" 
                 height={80}
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 10, fill: axisColor }}
               />
-              <YAxis stroke="#0B1929" tick={{ fontSize: 12 }} />
+              <YAxis stroke={axisColor} tick={{ fontSize: 12, fill: axisColor }} />
               <Tooltip contentStyle={tooltipStyle} />
               <Bar dataKey="count" fill="#FF6B6B" radius={[8, 8, 0, 0]} />
             </BarChart>
@@ -367,11 +408,11 @@ const OverviewCharts = ({ isMobile }) => {
         )}
 
         {charts.avgMessagesByChannel && charts.avgMessagesByChannel.length > 0 && (
-          <ChartContainer title="Avg Messages per Conversation by Channel" loading={loading}>
+          <ChartContainer title="Avg Messages per Conversation by Channel" loading={loading} isDarkMode={isDarkMode}>
             <BarChart data={charts.avgMessagesByChannel}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(62, 228, 200, 0.1)" />
-              <XAxis dataKey="channel" stroke="#0B1929" tick={{ fontSize: 12 }} />
-              <YAxis stroke="#0B1929" tick={{ fontSize: 12 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+              <XAxis dataKey="channel" stroke={axisColor} tick={{ fontSize: 12, fill: axisColor }} />
+              <YAxis stroke={axisColor} tick={{ fontSize: 12, fill: axisColor }} />
               <Tooltip contentStyle={tooltipStyle} />
               <Bar dataKey="avgMessages" fill="#9B59B6" radius={[8, 8, 0, 0]} />
             </BarChart>
