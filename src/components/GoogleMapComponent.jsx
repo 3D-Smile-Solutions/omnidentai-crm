@@ -372,15 +372,21 @@ const GoogleMapComponent = ({ isMobile }) => {
         border: isDarkMode 
           ? '1px solid rgba(100, 255, 218, 0.1)'
           : '1px solid rgba(62, 228, 200, 0.2)',
-        display: 'grid',
-        gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-        gap: 2
+        display: 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        gap: 3,
+        textAlign: 'center',
       }}>
-        <Box>
+        <Box sx={{ minWidth: 100 }}>
           <Typography 
             variant="caption" 
             component="div" 
-            sx={{ color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.7)' }}
+            sx={{ 
+              color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.7)',
+              whiteSpace: 'nowrap',
+            }}
           >
             Total States
           </Typography>
@@ -393,16 +399,22 @@ const GoogleMapComponent = ({ isMobile }) => {
           <Typography 
             variant="caption" 
             component="div" 
-            sx={{ color: isDarkMode ? '#64ffda' : '#3EE4C8' }}
+            sx={{ 
+              color: isDarkMode ? '#64ffda' : '#3EE4C8',
+              whiteSpace: 'nowrap',
+            }}
           >
             Active states
           </Typography>
         </Box>
-        <Box>
+        <Box sx={{ minWidth: 100 }}>
           <Typography 
             variant="caption" 
             component="div" 
-            sx={{ color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.7)' }}
+            sx={{ 
+              color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.7)',
+              whiteSpace: 'nowrap',
+            }}
           >
             Total Patients
           </Typography>
@@ -415,16 +427,22 @@ const GoogleMapComponent = ({ isMobile }) => {
           <Typography 
             variant="caption" 
             component="div" 
-            sx={{ color: isDarkMode ? '#64ffda' : '#3EE4C8' }}
+            sx={{ 
+              color: isDarkMode ? '#64ffda' : '#3EE4C8',
+              whiteSpace: 'nowrap',
+            }}
           >
             Nationwide
           </Typography>
         </Box>
-        <Box>
+        <Box sx={{ minWidth: 100 }}>
           <Typography 
             variant="caption" 
             component="div" 
-            sx={{ color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.7)' }}
+            sx={{ 
+              color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.7)',
+              whiteSpace: 'nowrap',
+            }}
           >
             Locations
           </Typography>
@@ -437,7 +455,10 @@ const GoogleMapComponent = ({ isMobile }) => {
           <Typography 
             variant="caption" 
             component="div" 
-            sx={{ color: isDarkMode ? '#64ffda' : '#3EE4C8' }}
+            sx={{ 
+              color: isDarkMode ? '#64ffda' : '#3EE4C8',
+              whiteSpace: 'nowrap',
+            }}
           >
             Clustered markers
           </Typography>
