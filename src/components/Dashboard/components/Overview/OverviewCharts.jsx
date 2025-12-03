@@ -19,7 +19,7 @@ import {
   Legend
 } from 'recharts';
 
-const ChartContainer = ({ title, children, height = 250, loading = false, isDarkMode, ...props }) => (
+const ChartContainer = ({ title, children, height = 300, loading = false, isDarkMode, ...props }) => (
   <Paper elevation={0} sx={{ 
     p: 3,
     background: isDarkMode 
@@ -66,6 +66,7 @@ const OverviewCharts = ({ isMobile }) => {
 
   const axisColor = isDarkMode ? 'rgba(255, 255, 255, 0.7)' : '#0B1929';
   const gridColor = isDarkMode ? 'rgba(100, 255, 218, 0.1)' : 'rgba(62, 228, 200, 0.1)';
+  const labelColor = isDarkMode ? '#ffffff' : '#0B1929';
 
   const tooltipStyle = {
     backgroundColor: isDarkMode ? 'rgba(17, 24, 39, 0.95)' : 'rgba(255, 255, 255, 0.95)', 
@@ -76,10 +77,10 @@ const OverviewCharts = ({ isMobile }) => {
 
   const COLORS = ['#3EE4C8', '#45B7D1', '#96CEB4', '#F7B801', '#FF6B6B', '#9B59B6', '#3498DB', '#DDA77B'];
 
-  const labelStyle = {
-    fill: isDarkMode ? '#ffffff' : '#0B1929',
-    fontSize: 12
-  };
+  // Custom legend formatter
+  const legendFormatter = (value) => (
+    <span style={{ color: labelColor, fontSize: '12px' }}>{value}</span>
+  );
 
   return (
     <Box sx={{ mt: 4 }}>
@@ -103,7 +104,7 @@ const OverviewCharts = ({ isMobile }) => {
             <XAxis dataKey="month" stroke={axisColor} tick={{ fontSize: 12, fill: axisColor }} />
             <YAxis stroke={axisColor} tick={{ fontSize: 12, fill: axisColor }} />
             <Tooltip contentStyle={tooltipStyle} formatter={(value) => `$${value.toLocaleString()}`} />
-            <Legend wrapperStyle={{ color: axisColor }} />
+            <Legend formatter={legendFormatter} />
             <Line type="monotone" dataKey="revenue" stroke="#3EE4C8" strokeWidth={3} name="Revenue ($)" />
           </LineChart>
         </ChartContainer>
@@ -117,18 +118,18 @@ const OverviewCharts = ({ isMobile }) => {
               <Pie
                 data={charts.appointmentBooked}
                 cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value }) => `${name}: ${value}`}
-                outerRadius={isMobile ? 60 : 80}
+                cy="40%"
+                outerRadius={isMobile ? 50 : 70}
                 dataKey="value"
-                labelStyle={labelStyle}
+                label={({ value }) => `${value}`}
+                labelLine={false}
               >
                 {charts.appointmentBooked.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip contentStyle={tooltipStyle} />
+              <Legend verticalAlign="bottom" height={50} formatter={legendFormatter} />
             </PieChart>
           </ChartContainer>
         )}
@@ -161,17 +162,18 @@ const OverviewCharts = ({ isMobile }) => {
               <Pie
                 data={charts.treatmentPlan}
                 cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value }) => `${name}: ${value}`}
-                outerRadius={isMobile ? 60 : 80}
+                cy="40%"
+                outerRadius={isMobile ? 50 : 70}
                 dataKey="value"
+                label={({ value }) => `${value}`}
+                labelLine={false}
               >
                 {charts.treatmentPlan.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip contentStyle={tooltipStyle} />
+              <Legend verticalAlign="bottom" height={50} formatter={legendFormatter} />
             </PieChart>
           </ChartContainer>
         )}
@@ -182,17 +184,18 @@ const OverviewCharts = ({ isMobile }) => {
               <Pie
                 data={charts.caseAccepted}
                 cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value }) => `${name}: ${value}`}
-                outerRadius={isMobile ? 60 : 80}
+                cy="40%"
+                outerRadius={isMobile ? 50 : 70}
                 dataKey="value"
+                label={({ value }) => `${value}`}
+                labelLine={false}
               >
                 {charts.caseAccepted.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip contentStyle={tooltipStyle} />
+              <Legend verticalAlign="bottom" height={50} formatter={legendFormatter} />
             </PieChart>
           </ChartContainer>
         )}
@@ -206,17 +209,18 @@ const OverviewCharts = ({ isMobile }) => {
               <Pie
                 data={charts.patientType}
                 cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value }) => `${name}: ${value}`}
-                outerRadius={isMobile ? 60 : 80}
+                cy="40%"
+                outerRadius={isMobile ? 50 : 70}
                 dataKey="value"
+                label={({ value }) => `${value}`}
+                labelLine={false}
               >
                 {charts.patientType.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip contentStyle={tooltipStyle} />
+              <Legend verticalAlign="bottom" height={50} formatter={legendFormatter} />
             </PieChart>
           </ChartContainer>
         )}
@@ -242,17 +246,18 @@ const OverviewCharts = ({ isMobile }) => {
               <Pie
                 data={charts.aiHandled}
                 cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value }) => `${name}: ${value}`}
-                outerRadius={isMobile ? 50 : 70}
+                cy="40%"
+                outerRadius={isMobile ? 45 : 60}
                 dataKey="value"
+                label={({ value }) => `${value}`}
+                labelLine={false}
               >
                 {charts.aiHandled.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip contentStyle={tooltipStyle} />
+              <Legend verticalAlign="bottom" height={50} formatter={legendFormatter} />
             </PieChart>
           </ChartContainer>
         )}
@@ -263,17 +268,18 @@ const OverviewCharts = ({ isMobile }) => {
               <Pie
                 data={charts.humanHandoff}
                 cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value }) => `${name}: ${value}`}
-                outerRadius={isMobile ? 50 : 70}
+                cy="40%"
+                outerRadius={isMobile ? 45 : 60}
                 dataKey="value"
+                label={({ value }) => `${value}`}
+                labelLine={false}
               >
                 {charts.humanHandoff.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip contentStyle={tooltipStyle} />
+              <Legend verticalAlign="bottom" height={50} formatter={legendFormatter} />
             </PieChart>
           </ChartContainer>
         )}
@@ -284,17 +290,18 @@ const OverviewCharts = ({ isMobile }) => {
               <Pie
                 data={charts.conversationResolved}
                 cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value }) => `${name}: ${value}`}
-                outerRadius={isMobile ? 50 : 70}
+                cy="40%"
+                outerRadius={isMobile ? 45 : 60}
                 dataKey="value"
+                label={({ value }) => `${value}`}
+                labelLine={false}
               >
                 {charts.conversationResolved.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip contentStyle={tooltipStyle} />
+              <Legend verticalAlign="bottom" height={50} formatter={legendFormatter} />
             </PieChart>
           </ChartContainer>
         )}
@@ -308,17 +315,18 @@ const OverviewCharts = ({ isMobile }) => {
               <Pie
                 data={charts.insuranceMentioned}
                 cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value }) => `${name}: ${value}`}
-                outerRadius={isMobile ? 60 : 80}
+                cy="40%"
+                outerRadius={isMobile ? 50 : 70}
                 dataKey="value"
+                label={({ value }) => `${value}`}
+                labelLine={false}
               >
                 {charts.insuranceMentioned.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip contentStyle={tooltipStyle} />
+              <Legend verticalAlign="bottom" height={50} formatter={legendFormatter} />
             </PieChart>
           </ChartContainer>
         )}
@@ -329,17 +337,18 @@ const OverviewCharts = ({ isMobile }) => {
               <Pie
                 data={charts.paymentPlan}
                 cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value }) => `${name}: ${value}`}
-                outerRadius={isMobile ? 60 : 80}
+                cy="40%"
+                outerRadius={isMobile ? 50 : 70}
                 dataKey="value"
+                label={({ value }) => `${value}`}
+                labelLine={false}
               >
                 {charts.paymentPlan.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip contentStyle={tooltipStyle} />
+              <Legend verticalAlign="bottom" height={50} formatter={legendFormatter} />
             </PieChart>
           </ChartContainer>
         )}
