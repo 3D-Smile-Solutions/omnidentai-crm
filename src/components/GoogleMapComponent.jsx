@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useCallback } from 'react';
 import { Box, Paper, Typography, CircularProgress } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchPatientMapData } from '../redux/slices/mapSlice';
+import { useTheme } from '../context/ThemeContext';
 
 // Global flag to track script loading
 let isScriptLoading = false;
@@ -10,10 +11,11 @@ let isScriptLoaded = false;
 
 const GoogleMapComponent = ({ isMobile }) => {
   const dispatch = useDispatch();
+  const { isDarkMode } = useTheme();
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   
-  //  Get map data from Redux store
+  // Get map data from Redux store
   const { 
     locations, 
     procedureSummary, 
@@ -28,13 +30,13 @@ const GoogleMapComponent = ({ isMobile }) => {
   // Google Maps API key from environment variable
   const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 
-  //  Fetch data on component mount
+  // Fetch data on component mount
   useEffect(() => {
-    console.log('🗺️ GoogleMapComponent mounted - fetching data');
+    console.log('📍 GoogleMapComponent mounted - fetching data');
     dispatch(fetchPatientMapData());
   }, [dispatch]);
 
-  //  Helper function to get procedure colors
+  // Helper function to get procedure colors
   const getProcedureColor = useCallback((procedure) => {
     const colorMap = {
       'Cleanings': '#3EE4C8',
@@ -51,7 +53,7 @@ const GoogleMapComponent = ({ isMobile }) => {
     return colorMap[procedure] || '#64748b';
   }, []);
 
-  //  Initialize map once data is loaded
+  // Initialize map once data is loaded
   const initializeMap = useCallback(async () => {
     try {
       if (!mapContainerRef.current || mapInstanceRef.current) {
@@ -60,7 +62,7 @@ const GoogleMapComponent = ({ isMobile }) => {
 
       // Check if API key is configured
       if (!API_KEY) {
-        console.error(' Google Maps API key not configured');
+        console.error('❌ Google Maps API key not configured');
         return;
       }
 
@@ -96,7 +98,7 @@ const GoogleMapComponent = ({ isMobile }) => {
 
       mapInstanceRef.current = map;
 
-      //  Add markers from backend data
+      // Add markers from backend data
       locations.forEach((location) => {
         const pinElement = new PinElement({
           background: getProcedureColor(location.top_procedure),
@@ -148,16 +150,16 @@ const GoogleMapComponent = ({ isMobile }) => {
         });
       });
 
-      console.log(' Map initialized with', locations.length, 'markers');
+      console.log('✅ Map initialized with', locations.length, 'markers');
     } catch (error) {
-      console.error(' Error initializing map:', error);
+      console.error('❌ Error initializing map:', error);
     }
   }, [locations, center, zoom, isMobile, API_KEY, getProcedureColor]);
 
-  //  Load Google Maps script
+  // Load Google Maps script
   const loadGoogleMapsScript = useCallback(() => {
     if (!API_KEY) {
-      console.error(' Google Maps API key not configured');
+      console.error('❌ Google Maps API key not configured');
       return;
     }
 
@@ -197,36 +199,48 @@ const GoogleMapComponent = ({ isMobile }) => {
     };
     
     script.onerror = () => {
-      console.error(' Failed to load Google Maps');
+      console.error('❌ Failed to load Google Maps');
       isScriptLoading = false;
     };
     
     document.head.appendChild(script);
   }, [initializeMap, API_KEY]);
 
-  //  Load script when data is ready
+  // Load script when data is ready
   useEffect(() => {
     if (!loading && locations && locations.length > 0) {
       loadGoogleMapsScript();
     }
   }, [loadGoogleMapsScript, loading, locations]);
 
-  //  Cleanup on unmount
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       mapInstanceRef.current = null;
     };
   }, []);
 
-  //  Show loading spinner
+  // Common Paper styles
+  const paperStyles = {
+    p: 3,
+    mt: 3,
+    background: isDarkMode 
+      ? 'rgba(17, 24, 39, 0.5)'
+      : 'rgba(255, 255, 255, 0.95)',
+    backdropFilter: 'blur(20px)',
+    border: isDarkMode 
+      ? '1px solid rgba(100, 255, 218, 0.2)'
+      : '1px solid rgba(62, 228, 200, 0.3)',
+    borderRadius: 2,
+    boxShadow: isDarkMode
+      ? '0 4px 20px rgba(0, 0, 0, 0.2)'
+      : '0 4px 20px rgba(62, 228, 200, 0.15)',
+  };
+
+  // Show loading spinner
   if (loading) {
     return (
-      <Paper elevation={0} sx={{ 
-        p: 3,
-        mt: 3,
-        background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
-        border: '1px solid rgba(62, 228, 200, 0.2)'
-      }}>
+      <Paper elevation={0} sx={paperStyles}>
         <Box sx={{ 
           display: 'flex',
           justifyContent: 'center',
@@ -239,63 +253,72 @@ const GoogleMapComponent = ({ isMobile }) => {
     );
   }
 
-  //  Show error message
+  // Show error message
   if (error) {
     return (
-      <Paper elevation={0} sx={{ 
-        p: 3,
-        mt: 3,
-        background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
-        border: '1px solid rgba(62, 228, 200, 0.2)',
-        textAlign: 'center'
-      }}>
+      <Paper elevation={0} sx={{ ...paperStyles, textAlign: 'center' }}>
         <Typography variant="h6" color="error" sx={{ mb: 1 }}>
           {error}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography 
+          variant="body2" 
+          sx={{ color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.7)' }}
+        >
           Please check your configuration and try again
         </Typography>
       </Paper>
     );
   }
 
-  //  Show empty state
+  // Show empty state
   if (!locations || locations.length === 0) {
     return (
-      <Paper elevation={0} sx={{ 
-        p: 3,
-        mt: 3,
-        background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
-        border: '1px solid rgba(62, 228, 200, 0.2)',
-        textAlign: 'center'
-      }}>
-        <Typography variant="h6" sx={{ mb: 1, color: 'rgba(11, 25, 41, 0.4)' }}>
+      <Paper elevation={0} sx={{ ...paperStyles, textAlign: 'center' }}>
+        <Typography 
+          variant="h6" 
+          sx={{ 
+            mb: 1, 
+            color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)' 
+          }}
+        >
           No Patient Location Data
         </Typography>
-        <Typography variant="body2" sx={{ color: 'rgba(11, 25, 41, 0.3)' }}>
+        <Typography 
+          variant="body2" 
+          sx={{ color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(11, 25, 41, 0.5)' }}
+        >
           Patient locations will appear here once latitude/longitude data is available
         </Typography>
       </Paper>
     );
   }
 
-  //  Render map
+  // Render map
   return (
-    <Paper elevation={0} sx={{ 
-      p: 3,
-      mt: 3,
-      background: 'linear-gradient(135deg, #ffffff 0%, #f8fffe 100%)',
-      border: '1px solid rgba(62, 228, 200, 0.2)'
-    }}>
-      <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: '#0B1929' }}>
+    <Paper elevation={0} sx={paperStyles}>
+      <Typography 
+        variant="h6" 
+        gutterBottom 
+        sx={{ 
+          fontWeight: 600, 
+          color: isDarkMode ? '#ffffff' : '#0B1929' 
+        }}
+      >
         Patient Distribution Map
       </Typography>
       
-      <Typography variant="caption" sx={{ color: 'rgba(11, 25, 41, 0.6)', display: 'block', mb: 2 }}>
+      <Typography 
+        variant="caption" 
+        sx={{ 
+          color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.7)', 
+          display: 'block', 
+          mb: 2 
+        }}
+      >
         Hover over markers to see patient details
       </Typography>
       
-      {/*  Dynamic legend from backend data */}
+      {/* Dynamic legend from backend data */}
       <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
         {procedureSummary.map((proc) => (
           <Box key={proc.procedure} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -305,7 +328,11 @@ const GoogleMapComponent = ({ isMobile }) => {
               borderRadius: '50%', 
               bgcolor: getProcedureColor(proc.procedure) 
             }} />
-            <Typography variant="caption" component="span">
+            <Typography 
+              variant="caption" 
+              component="span"
+              sx={{ color: isDarkMode ? 'rgba(255, 255, 255, 0.8)' : '#0B1929' }}
+            >
               {proc.procedure} ({proc.count})
             </Typography>
           </Box>
@@ -319,8 +346,10 @@ const GoogleMapComponent = ({ isMobile }) => {
           height: isMobile ? 300 : 400,
           borderRadius: 2,
           overflow: 'hidden',
-          border: '1px solid rgba(62, 228, 200, 0.2)',
-          bgcolor: '#f0f0f0',
+          border: isDarkMode 
+            ? '1px solid rgba(100, 255, 218, 0.2)'
+            : '1px solid rgba(62, 228, 200, 0.2)',
+          bgcolor: isDarkMode ? '#1a1a2e' : '#f0f0f0',
         }} 
       >
         <Box
@@ -332,46 +361,84 @@ const GoogleMapComponent = ({ isMobile }) => {
         />
       </Box>
 
-      {/*  Summary stats from backend */}
+      {/* Summary stats from backend */}
       <Box sx={{ 
         mt: 3, 
         p: 2, 
-        bgcolor: 'rgba(62, 228, 200, 0.05)',
+        bgcolor: isDarkMode 
+          ? 'rgba(100, 255, 218, 0.05)'
+          : 'rgba(62, 228, 200, 0.08)',
         borderRadius: 2,
+        border: isDarkMode 
+          ? '1px solid rgba(100, 255, 218, 0.1)'
+          : '1px solid rgba(62, 228, 200, 0.2)',
         display: 'grid',
         gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
         gap: 2
       }}>
         <Box>
-          <Typography variant="caption" component="div" sx={{ color: 'rgba(11, 25, 41, 0.6)' }}>
+          <Typography 
+            variant="caption" 
+            component="div" 
+            sx={{ color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.7)' }}
+          >
             Total States
           </Typography>
-          <Typography variant="h6" sx={{ color: '#0B1929', fontWeight: 600 }}>
+          <Typography 
+            variant="h6" 
+            sx={{ color: isDarkMode ? '#ffffff' : '#0B1929', fontWeight: 600 }}
+          >
             {totalStates}
           </Typography>
-          <Typography variant="caption" component="div" sx={{ color: '#3EE4C8' }}>
+          <Typography 
+            variant="caption" 
+            component="div" 
+            sx={{ color: isDarkMode ? '#64ffda' : '#3EE4C8' }}
+          >
             Active states
           </Typography>
         </Box>
         <Box>
-          <Typography variant="caption" component="div" sx={{ color: 'rgba(11, 25, 41, 0.6)' }}>
+          <Typography 
+            variant="caption" 
+            component="div" 
+            sx={{ color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.7)' }}
+          >
             Total Patients
           </Typography>
-          <Typography variant="h6" sx={{ color: '#0B1929', fontWeight: 600 }}>
+          <Typography 
+            variant="h6" 
+            sx={{ color: isDarkMode ? '#ffffff' : '#0B1929', fontWeight: 600 }}
+          >
             {totalPatients.toLocaleString()}
           </Typography>
-          <Typography variant="caption" component="div" sx={{ color: '#3EE4C8' }}>
+          <Typography 
+            variant="caption" 
+            component="div" 
+            sx={{ color: isDarkMode ? '#64ffda' : '#3EE4C8' }}
+          >
             Nationwide
           </Typography>
         </Box>
         <Box>
-          <Typography variant="caption" component="div" sx={{ color: 'rgba(11, 25, 41, 0.6)' }}>
+          <Typography 
+            variant="caption" 
+            component="div" 
+            sx={{ color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.7)' }}
+          >
             Locations
           </Typography>
-          <Typography variant="h6" sx={{ color: '#0B1929', fontWeight: 600 }}>
+          <Typography 
+            variant="h6" 
+            sx={{ color: isDarkMode ? '#ffffff' : '#0B1929', fontWeight: 600 }}
+          >
             {locations.length}
           </Typography>
-          <Typography variant="caption" component="div" sx={{ color: '#3EE4C8' }}>
+          <Typography 
+            variant="caption" 
+            component="div" 
+            sx={{ color: isDarkMode ? '#64ffda' : '#3EE4C8' }}
+          >
             Clustered markers
           </Typography>
         </Box>
