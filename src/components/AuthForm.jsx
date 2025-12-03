@@ -47,14 +47,17 @@ const AuthForm = ({
         sx={{
           backgroundColor: isDarkMode 
             ? 'rgba(17, 24, 39, 0.8)' 
-            : 'rgba(255, 255, 255, 0.8)',
+            : 'rgba(255, 255, 255, 0.95)',
           backdropFilter: 'blur(20px)',
           borderBottom: isDarkMode
             ? '1px solid rgba(100, 255, 218, 0.1)'
-            : '1px solid rgba(62, 228, 200, 0.1)',
+            : '1px solid rgba(62, 228, 200, 0.3)',
+          boxShadow: isDarkMode
+            ? 'none'
+            : '0 4px 20px rgba(62, 228, 200, 0.15)',
         }}
       >
-        <Toolbar sx={{ justifyContent: 'space-between' }}>
+        <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, sm: 3 } }}>
           {/* Logo/Brand */}
           <Box
             component={RouterLink}
@@ -131,11 +134,11 @@ const AuthForm = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: 3,
+          padding: { xs: 2, sm: 3 },
           paddingTop: { xs: 10, sm: 12 }, // Account for fixed header
         }}
       >
-        {/* Animated gradient orbs for background effect */}
+        {/* Animated gradient orbs for background effect - hidden on mobile */}
         <Box
           sx={{
             position: 'absolute',
@@ -154,6 +157,7 @@ const AuthForm = ({
               '50%': { transform: 'translateY(-20px)' },
             },
             zIndex: 0,
+            display: { xs: 'none', md: 'block' },
           }}
         />
         <Box
@@ -170,6 +174,7 @@ const AuthForm = ({
             filter: 'blur(40px)',
             animation: 'float 8s ease-in-out infinite reverse',
             zIndex: 0,
+            display: { xs: 'none', md: 'block' },
           }}
         />
 
@@ -179,24 +184,24 @@ const AuthForm = ({
             position: 'relative',
             maxWidth: 440,
             width: '100%',
-            padding: 4,
+            padding: { xs: 3, sm: 4 },
             backdropFilter: 'blur(20px)',
             backgroundColor: isDarkMode 
               ? 'rgba(17, 24, 39, 0.5)' 
               : 'rgba(255, 255, 255, 0.9)',
             border: isDarkMode 
               ? '1px solid rgba(100, 255, 218, 0.2)' 
-              : '1px solid rgba(11, 25, 41, 0.15)',
+              : '1px solid rgba(62, 228, 200, 0.3)',
             borderRadius: 3,
             boxShadow: isDarkMode
               ? '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06)'
-              : '0 8px 32px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.05)',
+              : '0 8px 40px rgba(62, 228, 200, 0.25), 0 4px 20px rgba(59, 130, 246, 0.15)',
             transition: 'all 0.3s ease',
             zIndex: 1,
             '&:hover': {
               boxShadow: isDarkMode
                 ? '0 12px 48px rgba(100, 255, 218, 0.2)'
-                : '0 12px 48px rgba(62, 228, 200, 0.15)',
+                : '0 12px 56px rgba(62, 228, 200, 0.35), 0 8px 28px rgba(59, 130, 246, 0.2)',
               transform: 'translateY(-2px)',
             }
           }}
@@ -208,6 +213,7 @@ const AuthForm = ({
               fontWeight: 700,
               textAlign: 'center',
               mb: 1,
+              fontSize: { xs: '1.75rem', sm: '2.125rem' },
               background: isDarkMode
                 ? 'linear-gradient(135deg, #64ffda 0%, #a78bfa 100%)'
                 : 'linear-gradient(135deg, #0B1929 0%, #3EE4C8 100%)',
@@ -223,9 +229,8 @@ const AuthForm = ({
             variant="body2"
             sx={{
               textAlign: 'center',
-              mb: 3,
-              color: 'text.secondary',
-              opacity: 0.8,
+              mb: { xs: 2, sm: 3 },
+              color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(11, 25, 41, 0.7)',
             }}
           >
             Welcome to Dental Records System
@@ -295,6 +300,14 @@ const AuthForm = ({
                       },
                       '& input': {
                         color: isDarkMode ? '#ffffff' : '#0B1929',
+                        '&:-webkit-autofill, &:-webkit-autofill:hover, &:-webkit-autofill:focus, &:-webkit-autofill:active': {
+                          WebkitBoxShadow: isDarkMode 
+                            ? '0 0 0 30px rgba(17, 24, 39, 0.9) inset !important'
+                            : '0 0 0 30px rgba(255, 255, 255, 0.95) inset !important',
+                          WebkitTextFillColor: isDarkMode ? '#ffffff !important' : '#0B1929 !important',
+                          caretColor: isDarkMode ? '#ffffff' : '#0B1929',
+                          transition: 'background-color 5000s ease-in-out 0s',
+                        },
                       },
                       '&:hover': {
                         backgroundColor: isDarkMode
@@ -333,7 +346,7 @@ const AuthForm = ({
               variant="contained"
               disabled={submitting}
               sx={{
-                mt: 3,
+                mt: { xs: 2, sm: 3 },
                 py: 1.5,
                 position: 'relative',
                 background: isDarkMode
@@ -367,14 +380,14 @@ const AuthForm = ({
             </Button>
           </form>
 
-          <Box sx={{ mt: 3, textAlign: 'center' }}>
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          <Box sx={{ mt: { xs: 2, sm: 3 }, textAlign: 'center' }}>
+            <Typography variant="body2" sx={{ color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(11, 25, 41, 0.7)' }}>
               {redirectText.split('?')[0]}?{' '}
               <Link
                 component={RouterLink}
                 to={redirectPath}
                 sx={{
-                  color: isDarkMode ? '#64ffda' : '#263532ff',
+                  color: isDarkMode ? '#64ffda' : '#0B1929',
                   textDecoration: 'none',
                   fontWeight: 600,
                   transition: 'all 0.2s ease',
