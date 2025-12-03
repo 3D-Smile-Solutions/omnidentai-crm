@@ -68,14 +68,14 @@ const Header = ({
         ml: { sm: `${DRAWER_WIDTH}px` },
         background: isDarkMode 
           ? 'rgba(17, 24, 39, 0.25)'
-          : 'rgba(255, 255, 255, 0.25)',
+          : 'rgba(255, 255, 255, 0.95)',
         backdropFilter: 'blur(20px)',
         borderBottom: isDarkMode 
           ? '1px solid rgba(100, 255, 218, 0.1)' 
-          : '1px solid rgba(62, 228, 200, 0.1)',
+          : '1px solid rgba(62, 228, 200, 0.3)',
         boxShadow: isDarkMode
           ? '0 4px 20px rgba(0, 0, 0, 0.15)'
-          : '0 4px 20px rgba(0, 0, 0, 0.05)',
+          : '0 4px 20px rgba(62, 228, 200, 0.15)',
       }}
     >
       <Toolbar sx={{ 
@@ -109,12 +109,7 @@ const Header = ({
             sx={{ 
               fontWeight: 600,
               fontSize: '1.125rem',
-              background: isDarkMode
-                ? 'rgba(0, 255, 213, 0.84)'
-                : 'rgba(255, 255, 255, 0.8)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
+              color: isDarkMode ? '#64ffda' : '#0B1929',
             }}
           >
             Welcome, {getDisplayName()}
