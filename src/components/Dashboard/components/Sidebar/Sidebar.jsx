@@ -57,6 +57,8 @@ const Sidebar = ({
         : '1px solid rgba(62, 228, 200, 0.2)',
       position: 'relative',
       overflow: 'hidden',
+      // Prevent scroll propagation
+      overscrollBehavior: 'contain',
     }}>
       {/* Subtle background gradient */}
       <Box
@@ -111,6 +113,8 @@ const Sidebar = ({
         '&::-webkit-scrollbar': {
           display: 'none', // Chrome, Safari, Opera
         },
+        // Prevent scroll from propagating to parent
+        overscrollBehavior: 'contain',
       }}>
         {SIDEBAR_ITEMS.map((item, index) => {
           const isSelected = selectedIndex === item.index;
