@@ -105,6 +105,12 @@ const Sidebar = ({
         zIndex: 1,
         flex: 1,
         overflow: 'auto',
+        // Hide scrollbar but keep functionality
+        scrollbarWidth: 'none', // Firefox
+        msOverflowStyle: 'none', // IE/Edge
+        '&::-webkit-scrollbar': {
+          display: 'none', // Chrome, Safari, Opera
+        },
       }}>
         {SIDEBAR_ITEMS.map((item, index) => {
           const isSelected = selectedIndex === item.index;
