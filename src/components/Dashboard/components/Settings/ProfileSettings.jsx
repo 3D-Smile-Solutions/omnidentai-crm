@@ -17,9 +17,11 @@ import {
 } from '@mui/icons-material';
 import { updateProfile } from '../../../../redux/slices/settingsSlice';
 import { fetchMe } from '../../../../redux/slices/authSlice';
+import { useTheme } from '../../../../context/ThemeContext';
 
 const ProfileSettings = () => {
   const dispatch = useDispatch();
+  const { isDarkMode } = useTheme();
   const { user } = useSelector((state) => state.auth);
   const { updateProfileStatus, error: settingsError } = useSelector((state) => state.settings);
   
@@ -28,6 +30,13 @@ const ProfileSettings = () => {
     firstName: '',
     lastName: ''
   });
+
+  // Theme-aware colors
+  const accentColor = isDarkMode ? '#64ffda' : '#3EE4C8';
+  const accentHover = isDarkMode ? '#4fd1b0' : '#2BC4A8';
+  const textPrimary = isDarkMode ? '#ffffff' : '#0B1929';
+  const textSecondary = isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(11, 25, 41, 0.6)';
+  const dividerColor = isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)';
 
   useEffect(() => {
     if (user) {
@@ -72,23 +81,95 @@ const ProfileSettings = () => {
     return (first + last).toUpperCase() || 'D';
   };
 
+  // Common TextField styles for theme support
+  const textFieldStyles = {
+    '& .MuiOutlinedInput-root': {
+      color: textPrimary,
+      '& fieldset': {
+        borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.23)' : 'rgba(0, 0, 0, 0.23)',
+      },
+      '&:hover fieldset': {
+        borderColor: accentColor,
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: accentColor,
+      },
+      '&.Mui-disabled': {
+        '& fieldset': {
+          borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)',
+        },
+      },
+    },
+    '& .MuiInputLabel-root': {
+      color: textSecondary,
+      '&.Mui-focused': {
+        color: accentColor,
+      },
+      '&.Mui-disabled': {
+        color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.38)',
+      },
+    },
+    '& .MuiOutlinedInput-input': {
+      color: textPrimary,
+      '&.Mui-disabled': {
+        WebkitTextFillColor: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.38)',
+      },
+    },
+    '& .MuiFormHelperText-root': {
+      color: textSecondary,
+    },
+  };
+
   return (
     <Box>
-      <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+      <Typography 
+        variant="h6" 
+        gutterBottom 
+        sx={{ 
+          fontWeight: 600,
+          color: textPrimary
+        }}
+      >
         Profile Information
       </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+      <Typography 
+        variant="body2" 
+        sx={{ 
+          mb: 3,
+          color: textSecondary
+        }}
+      >
         Update your personal information
       </Typography>
 
       {success && (
-        <Alert severity="success" sx={{ mb: 2 }}>
+        <Alert 
+          severity="success" 
+          sx={{ 
+            mb: 2,
+            backgroundColor: isDarkMode ? 'rgba(46, 125, 50, 0.15)' : 'rgba(46, 125, 50, 0.1)',
+            color: isDarkMode ? '#81c784' : '#2e7d32',
+            '& .MuiAlert-icon': {
+              color: isDarkMode ? '#81c784' : '#2e7d32',
+            },
+          }}
+        >
           Profile updated successfully!
         </Alert>
       )}
 
       {settingsError && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert 
+          severity="error" 
+          sx={{ 
+            mb: 2,
+            backgroundColor: isDarkMode ? 'rgba(211, 47, 47, 0.15)' : 'rgba(211, 47, 47, 0.1)',
+            color: isDarkMode ? '#ef5350' : '#d32f2f',
+            '& .MuiAlert-icon': {
+              color: isDarkMode ? '#ef5350' : '#d32f2f',
+            },
+          }}
+        >
           {settingsError}
         </Alert>
       )}
@@ -98,26 +179,38 @@ const ProfileSettings = () => {
           sx={{
             width: 80,
             height: 80,
-            bgcolor: '#3EE4C8',
+            bgcolor: accentColor,
             color: '#0B1929',
             fontSize: '2rem',
             fontWeight: 600,
-            mr: 2
+            mr: 2,
+            boxShadow: isDarkMode 
+              ? '0 4px 14px rgba(100, 255, 218, 0.25)' 
+              : '0 4px 14px rgba(62, 228, 200, 0.3)',
           }}
         >
           {getInitials()}
         </Avatar>
         <Box>
-          <Typography variant="body1" sx={{ fontWeight: 500 }}>
+          <Typography 
+            variant="body1" 
+            sx={{ 
+              fontWeight: 500,
+              color: textPrimary
+            }}
+          >
             {formData.firstName} {formData.lastName}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography 
+            variant="body2" 
+            sx={{ color: textSecondary }}
+          >
             {user?.email}
           </Typography>
         </Box>
       </Box>
 
-      <Divider sx={{ mb: 3 }} />
+      <Divider sx={{ mb: 3, borderColor: dividerColor }} />
 
       <form onSubmit={handleSubmit}>
         <Grid container spacing={3}>
@@ -129,6 +222,7 @@ const ProfileSettings = () => {
               value={formData.firstName}
               onChange={handleChange}
               required
+              sx={textFieldStyles}
             />
           </Grid>
 
@@ -140,6 +234,7 @@ const ProfileSettings = () => {
               value={formData.lastName}
               onChange={handleChange}
               required
+              sx={textFieldStyles}
             />
           </Grid>
 
@@ -150,6 +245,7 @@ const ProfileSettings = () => {
               value={user?.email || ''}
               disabled
               helperText="Email is managed through Supabase Auth and cannot be changed here"
+              sx={textFieldStyles}
             />
           </Grid>
 
@@ -157,15 +253,26 @@ const ProfileSettings = () => {
             <Button
               type="submit"
               variant="contained"
-              startIcon={updateProfileStatus === 'loading' ? <CircularProgress size={20} /> : <SaveIcon />}
+              startIcon={updateProfileStatus === 'loading' ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
               disabled={updateProfileStatus === 'loading'}
               sx={{
-                bgcolor: '#3EE4C8',
+                bgcolor: accentColor,
                 color: '#0B1929',
                 px: 4,
+                fontWeight: 600,
+                boxShadow: isDarkMode 
+                  ? '0 4px 14px rgba(100, 255, 218, 0.25)' 
+                  : '0 4px 14px rgba(62, 228, 200, 0.3)',
                 '&:hover': {
-                  bgcolor: '#2BC4A8'
-                }
+                  bgcolor: accentHover,
+                  boxShadow: isDarkMode 
+                    ? '0 6px 20px rgba(100, 255, 218, 0.35)' 
+                    : '0 6px 20px rgba(62, 228, 200, 0.4)',
+                },
+                '&.Mui-disabled': {
+                  bgcolor: isDarkMode ? 'rgba(100, 255, 218, 0.3)' : 'rgba(62, 228, 200, 0.4)',
+                  color: isDarkMode ? 'rgba(11, 25, 41, 0.5)' : 'rgba(11, 25, 41, 0.6)',
+                },
               }}
             >
               {updateProfileStatus === 'loading' ? 'Saving...' : 'Save Changes'}
