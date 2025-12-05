@@ -1,5 +1,4 @@
-// 7. src/components/Dashboard/components/Sidebar/Sidebar.jsx
-// ===========================================
+// src/components/Dashboard/components/Sidebar/Sidebar.jsx
 import React from 'react';
 import {
   Box,
@@ -11,7 +10,6 @@ import {
   ListItemText,
   Typography,
   IconButton,
-  Divider
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -52,11 +50,11 @@ const Sidebar = ({
       flexDirection: 'column',
       background: isDarkMode 
         ? 'rgba(17, 24, 39, 0.25)'
-        : 'rgba(255, 255, 255, 0.25)',
+        : 'rgba(255, 255, 255, 0.85)',
       backdropFilter: 'blur(20px)',
       borderRight: isDarkMode 
         ? '1px solid rgba(100, 255, 218, 0.1)' 
-        : '1px solid rgba(62, 228, 200, 0.1)',
+        : '1px solid rgba(62, 228, 200, 0.2)',
       position: 'relative',
       overflow: 'hidden',
     }}>
@@ -70,7 +68,7 @@ const Sidebar = ({
           bottom: 0,
           background: isDarkMode
             ? 'linear-gradient(180deg, rgba(100, 255, 218, 0.02) 0%, rgba(167, 139, 250, 0.02) 100%)'
-            : 'linear-gradient(180deg, rgba(62, 228, 200, 0.03) 0%, rgba(43, 196, 168, 0.03) 100%)',
+            : 'linear-gradient(180deg, rgba(62, 228, 200, 0.05) 0%, rgba(43, 196, 168, 0.02) 100%)',
           pointerEvents: 'none',
         }}
       />
@@ -79,7 +77,7 @@ const Sidebar = ({
       <Toolbar sx={{ 
         borderBottom: isDarkMode 
           ? '1px solid rgba(100, 255, 218, 0.1)'
-          : '1px solid rgba(62, 228, 200, 0.1)',
+          : '1px solid rgba(62, 228, 200, 0.15)',
         display: 'flex',
         justifyContent: 'flex-start',
         py: 2,
@@ -131,19 +129,19 @@ const Sidebar = ({
                 backgroundColor: isSelected 
                   ? (isDarkMode 
                     ? 'rgba(100, 255, 218, 0.12)' 
-                    : 'rgba(62, 228, 200, 0.15)')
+                    : 'rgba(62, 228, 200, 0.18)')
                   : 'transparent',
                 
-                // Text color
+                // Text color - FIXED for light mode
                 color: isSelected 
-                  ? (isDarkMode ? '#64ffda' : '#181818ff')
-                  : (isDarkMode ? 'rgba(255, 255, 255, 0.65)' : 'rgba(107, 255, 248, 1)'),
+                  ? (isDarkMode ? '#64ffda' : '#0B1929')
+                  : (isDarkMode ? 'rgba(255, 255, 255, 0.65)' : 'rgba(11, 25, 41, 0.7)'),
                 
                 // Border for selected state
                 border: isSelected 
                   ? (isDarkMode 
                     ? '1px solid rgba(100, 255, 218, 0.2)' 
-                    : '1px solid rgba(62, 228, 200, 0.2)')
+                    : '1px solid rgba(62, 228, 200, 0.3)')
                   : '1px solid transparent',
                 
                 // Hover effects
@@ -151,10 +149,10 @@ const Sidebar = ({
                   backgroundColor: isSelected 
                     ? (isDarkMode 
                       ? 'rgba(100, 255, 218, 0.15)' 
-                      : 'rgba(62, 228, 200, 0.18)')
+                      : 'rgba(62, 228, 200, 0.22)')
                     : (isDarkMode 
                       ? 'rgba(100, 255, 218, 0.05)' 
-                      : 'rgba(62, 228, 200, 0.08)'),
+                      : 'rgba(62, 228, 200, 0.1)'),
                   color: isDarkMode ? '#64ffda' : '#0B1929',
                   '& .MuiListItemIcon-root': {
                     color: isDarkMode ? '#64ffda' : '#3EE4C8',
@@ -166,7 +164,7 @@ const Sidebar = ({
                   minWidth: 40,
                   color: isSelected 
                     ? (isDarkMode ? '#64ffda' : '#3EE4C8')
-                    : (isDarkMode ? 'rgba(255, 255, 255, 0.55)' : 'rgba(11, 25, 41, 0.55)'),
+                    : (isDarkMode ? 'rgba(255, 255, 255, 0.55)' : 'rgba(11, 25, 41, 0.6)'),
                   transition: 'color 0.25s ease',
                 },
 
@@ -213,7 +211,7 @@ const Sidebar = ({
         p: 2,
         borderTop: isDarkMode 
           ? '1px solid rgba(100, 255, 218, 0.1)'
-          : '1px solid rgba(62, 228, 200, 0.1)',
+          : '1px solid rgba(62, 228, 200, 0.15)',
         position: 'relative',
         zIndex: 1,
       }}>
@@ -226,10 +224,10 @@ const Sidebar = ({
             borderRadius: '10px',
             backgroundColor: isDarkMode 
               ? 'rgba(100, 255, 218, 0.05)' 
-              : 'rgba(62, 228, 200, 0.08)',
+              : 'rgba(62, 228, 200, 0.1)',
             border: isDarkMode 
               ? '1px solid rgba(100, 255, 218, 0.1)' 
-              : '1px solid rgba(62, 228, 200, 0.1)',
+              : '1px solid rgba(62, 228, 200, 0.15)',
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -247,7 +245,7 @@ const Sidebar = ({
             <Typography sx={{ 
               fontSize: '0.875rem',
               fontWeight: 500,
-              color: isDarkMode ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.7)',
+              color: isDarkMode ? 'rgba(255, 255, 255, 0.8)' : 'rgba(11, 25, 41, 0.8)',
             }}>
               {isDarkMode ? 'Dark' : 'Light'} Mode
             </Typography>
@@ -295,7 +293,7 @@ const Sidebar = ({
             backgroundColor: 'transparent',
             boxShadow: isDarkMode
               ? '0 8px 32px rgba(0, 0, 0, 0.4)'
-              : '0 8px 32px rgba(0, 0, 0, 0.1)',
+              : '0 8px 32px rgba(62, 228, 200, 0.15)',
           },
         }}
       >
@@ -312,7 +310,7 @@ const Sidebar = ({
             border: 'none',
             boxShadow: isDarkMode
               ? '4px 0 24px rgba(0, 0, 0, 0.15)'
-              : '4px 0 24px rgba(0, 0, 0, 0.05)',
+              : '4px 0 24px rgba(62, 228, 200, 0.1)',
           },
         }}
         open
