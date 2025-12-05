@@ -1,3 +1,4 @@
+// src/components/CustomCheckbox.jsx
 import React from 'react';
 import { styled } from '@mui/material/styles';
 
@@ -6,6 +7,14 @@ const CheckboxContainer = styled('label')(({ isDarkMode }) => ({
   display: 'inline-flex',
   alignItems: 'center',
   userSelect: 'none',
+  padding: '4px 8px',
+  borderRadius: '6px',
+  transition: 'background-color 0.2s ease',
+  '&:hover': {
+    backgroundColor: isDarkMode 
+      ? 'rgba(100, 255, 218, 0.08)' 
+      : 'rgba(62, 228, 200, 0.1)',
+  },
   '& input': {
     display: 'none',
   },
@@ -48,7 +57,8 @@ const CustomCheckbox = ({ checked, onChange, label, isDarkMode = false }) => {
           marginLeft: '8px', 
           fontSize: '0.875rem',
           color: isDarkMode ? 'rgba(255, 255, 255, 0.8)' : '#0B1929',
-          fontWeight: 500
+          fontWeight: 500,
+          transition: 'color 0.2s ease',
         }}>
           {label}
         </span>
