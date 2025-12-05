@@ -46,7 +46,7 @@ import { useVoiceCall } from "./Dashboard/hooks/useVoiceCall";
 import { useSMS } from "./Dashboard/hooks/useSMS";
 import { useTheme } from "../context/ThemeContext";
 
-console.log("🔥 ChatInterface.jsx LOADED - FIXED BOT ALIGNMENT VERSION");
+console.log("📦 ChatInterface.jsx LOADED - FIXED BOT ALIGNMENT VERSION");
 
 const ChatInterface = ({ patient, onSendMessage, isMobile }) => {
   const { isDarkMode } = useTheme();
@@ -132,8 +132,8 @@ const error = useSelector((state) => state.messages.error);
     }
   };
 useEffect(() => {
-  console.log("🔄 currentMessages updated:", currentMessages.length, "messages");
-  console.log("🔄 Last message:", currentMessages[currentMessages.length - 1]);
+  console.log("💬 currentMessages updated:", currentMessages.length, "messages");
+  console.log("📨 Last message:", currentMessages[currentMessages.length - 1]);
 }, [currentMessages]);
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -177,7 +177,7 @@ useEffect(() => {
     const result = await sendSMS(patient.id, smsContent);
 
     if (result.success) {
-      console.log(" SMS sent successfully");
+      console.log("✅ SMS sent successfully");
       setSmsSuccess(true);
 
       setTimeout(() => {
@@ -186,14 +186,14 @@ useEffect(() => {
         setSmsSuccess(false);
       }, 1500);
     } else {
-      console.error(" Failed to send SMS:", result.error);
+      console.error("❌ Failed to send SMS:", result.error);
     }
   };
 
   const handlePhoneClick = () => {
-    console.log("═══════════════════════════════════════");
+    console.log("---------------------------------------");
     console.log("📞 PHONE ICON CLICKED");
-    console.log("═══════════════════════════════════════");
+    console.log("---------------------------------------");
     console.log("Patient:", patient);
     console.log("Patient ID:", patient?.id);
     console.log("Patient Name:", patient?.first_name, patient?.last_name);
@@ -202,34 +202,34 @@ useEffect(() => {
     console.log("Dentist ID:", currentUser?.id);
     console.log("isReady:", isReady);
     console.log("isCallInProgress:", isCallInProgress);
-    console.log("═══════════════════════════════════════");
+    console.log("---------------------------------------");
 
     if (!patient) {
-      console.log(" No patient selected");
+      console.log("❌ No patient selected");
       alert("No patient selected");
       return;
     }
 
     if (!patient.phone) {
-      console.log(" Patient has no phone number");
+      console.log("❌ Patient has no phone number");
       alert("This patient has no phone number on file.");
       return;
     }
 
     if (!currentUser?.id) {
-      console.log(" No current user/dentist ID");
+      console.log("❌ No current user/dentist ID");
       alert("Authentication error. Please refresh the page.");
       return;
     }
 
     if (!isReady) {
-      console.log(" Voice device not ready");
+      console.log("❌ Voice device not ready");
       alert("Voice calling is not ready. Please refresh the page.");
       return;
     }
 
     if (isCallInProgress) {
-      console.log("📞 Call already in progress, opening dialog");
+      console.log("🔄 Call already in progress, opening dialog");
       setCallDialogOpen(true);
       return;
     }
@@ -241,23 +241,23 @@ useEffect(() => {
     console.log("User confirmation:", confirmed);
 
     if (confirmed) {
-      console.log(" User confirmed - Attempting to make call...");
+      console.log("✅ User confirmed - Attempting to make call...");
 
       try {
         const result = makeCall(patient.id, patient.phone, currentUser.id);
-        console.log(" makeCall executed, result:", result);
+        console.log("✅ makeCall executed, result:", result);
         setCallDialogOpen(true);
       } catch (err) {
-        console.error(" Error calling makeCall:", err);
+        console.error("❌ Error calling makeCall:", err);
         alert(`Error making call: ${err.message}`);
       }
     } else {
-      console.log(" User cancelled call");
+      console.log("❌ User cancelled call");
     }
   };
 
   const handleEndCall = () => {
-    console.log("📴 Ending call...");
+    console.log("🔴 Ending call...");
     endCall();
     setCallDialogOpen(false);
     setIsMuted(false);
@@ -270,41 +270,41 @@ useEffect(() => {
     console.log("New mute state:", newMuteState);
   };
   useEffect(() => {
-    console.log("🔍 Current patient:", patient);
-    console.log("📋 Patient contact_id:", patient?.contact_id);
+    console.log("👤 Current patient:", patient);
+    console.log("🔑 Patient contact_id:", patient?.contact_id);
   }, [patient]);
-  //  NEW: Add conversation control hook (uses contact_id)
+  // ✅ NEW: Add conversation control hook (uses contact_id)
   const {
     botPaused,
     loading: controlLoading,
     pauseBot,
     resumeBot,
-  } = useConversationControl(patient?.contact_id); //  Using contact_id
+  } = useConversationControl(patient?.contact_id); // ✅ Using contact_id
   useEffect(() => {
-    console.log("🎛️ Bot control state:", {
+    console.log("🤖 Bot control state:", {
       botPaused,
       controlLoading,
       hasContactId: !!patient?.contact_id,
     });
   }, [botPaused, controlLoading, patient?.contact_id]);
-  //  NEW: Handle bot control toggle
+  // ✅ NEW: Handle bot control toggle
   const handleBotControlToggle = async (event) => {
     const shouldPause = event.target.checked;
 
     if (shouldPause) {
       const success = await pauseBot("manual_intervention");
       if (success) {
-        console.log(" Bot paused - you are now in control");
+        console.log("✅ Bot paused - you are now in control");
       }
     } else {
       const success = await resumeBot();
       if (success) {
-        console.log(" Bot resumed - bot will respond automatically");
+        console.log("✅ Bot resumed - bot will respond automatically");
       }
     }
   };
   const handleFileUploadComplete = (document) => {
-    console.log(" File uploaded:", document);
+    console.log("✅ File uploaded:", document);
 
     const fileMessage = JSON.stringify({
       type: "file",
@@ -391,7 +391,7 @@ useEffect(() => {
                   cursor: "pointer",
                 }}
                 onError={async (e) => {
-                  //  ADD THIS: Auto-refresh URL when image fails to load
+                  // ✅ ADD THIS: Auto-refresh URL when image fails to load
                   if (fileData.documentId) {
                     console.log("🔄 Chat image failed to load, refreshing URL");
                     const newUrl = await refreshUrl(fileData.documentId);
@@ -600,13 +600,13 @@ useEffect(() => {
     }));
   };
 
-  //  FIXED: Determine if message should appear on RIGHT side
+  // ✅ FIXED: Determine if message should appear on RIGHT side
   // Bot messages AND dentist messages go on the right
   const isOwnMessage = (sender) => {
     return sender === "dentist" || sender === "bot";
   };
 
-  //  NEW: Get background color based on sender
+  // ✅ NEW: Get background color based on sender
   const getMessageBackgroundColor = (sender) => {
     if (sender === "dentist") {
       // Dentist messages - Teal
@@ -624,7 +624,7 @@ useEffect(() => {
     }
   };
 
-  //  NEW: Get border color based on sender
+  // ✅ NEW: Get border color based on sender
   const getMessageBorderColor = (sender) => {
     if (sender === "dentist") {
       return isDarkMode
@@ -807,7 +807,7 @@ useEffect(() => {
         }}
       >
         {/* Left side - Patient info */}
-        <Box sx={{ display: "flex", alignItems: "center", flex: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center", flex: 1, minWidth: 0 }}>
           <Avatar
             sx={{
               bgcolor: getAvatarColor(patient.id),
@@ -815,6 +815,7 @@ useEffect(() => {
               height: isMobile ? 36 : 40,
               mr: isMobile ? 1.5 : 2,
               fontSize: isMobile ? "0.9rem" : "1rem",
+              flexShrink: 0,
               border: isDarkMode
                 ? "2px solid rgba(100, 255, 218, 0.2)"
                 : "2px solid rgba(62, 228, 200, 0.2)",
@@ -825,12 +826,15 @@ useEffect(() => {
               patient.last_name || patient.lastName
             )}
           </Avatar>
-          <Box sx={{ flex: 1 }}>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography
               variant={isMobile ? "body2" : "subtitle1"}
               sx={{
                 fontWeight: 600,
                 color: isDarkMode ? "#64ffda" : "#0B1929",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
               }}
             >
               {patient.first_name || patient.firstName}{" "}
@@ -856,9 +860,10 @@ useEffect(() => {
             display: "flex",
             gap: isMobile ? 0.5 : 1,
             alignItems: "center",
+            flexShrink: 0,
           }}
         >
-          {/*  NEW: Bot Control Toggle */}
+          {/* ✅ NEW: Bot Control Toggle */}
           <Tooltip
             title={
               botPaused
@@ -1145,7 +1150,7 @@ useEffect(() => {
               );
             }
 
-            //  FIXED: Check if message is from bot OR dentist for positioning
+            // ✅ FIXED: Check if message is from bot OR dentist for positioning
             const isStaff = isOwnMessage(item.sender);
             const isFile = isFileMessage(item.message);
             const fileData = isFile ? parseFileMessage(item.message) : null;
@@ -1163,8 +1168,9 @@ useEffect(() => {
                   sx={{
                     display: "flex",
                     alignItems: "flex-end",
-                    maxWidth: "70%",
+                    maxWidth: isMobile ? "85%" : "70%",
                     flexDirection: isStaff ? "row-reverse" : "row",
+                    minWidth: 0, // Allow flex item to shrink below content size
                   }}
                 >
                   {!isStaff && (
@@ -1175,6 +1181,7 @@ useEffect(() => {
                         height: 32,
                         mr: 1,
                         fontSize: "0.9rem",
+                        flexShrink: 0,
                         border: isDarkMode
                           ? "1px solid rgba(100, 255, 218, 0.2)"
                           : "1px solid rgba(62, 228, 200, 0.2)",
@@ -1186,7 +1193,7 @@ useEffect(() => {
                       )}
                     </Avatar>
                   )}
-                  <Box>
+                  <Box sx={{ minWidth: 0, maxWidth: "100%" }}>
                     <Paper
                       elevation={0}
                       sx={{
@@ -1204,9 +1211,12 @@ useEffect(() => {
                         borderRadius: 2,
                         borderTopLeftRadius: isStaff ? 16 : 4,
                         borderTopRightRadius: isStaff ? 4 : 16,
+                        // ✅ FIX: Ensure long content doesn't overflow
+                        overflow: "hidden",
+                        wordBreak: "break-word",
                       }}
                     >
-                      {/*  NEW: Bot label */}
+                      {/* ✅ NEW: Bot label */}
                       {item.sender === "bot" && (
                         <Typography
                           variant="caption"
@@ -1228,7 +1238,18 @@ useEffect(() => {
                       ) : (
                         <Typography
                           variant="body2"
-                          sx={{ whiteSpace: "pre-wrap" }}
+                          sx={{ 
+                            whiteSpace: "pre-wrap",
+                            // ✅ FIX: Break long links and words
+                            wordBreak: "break-word",
+                            overflowWrap: "anywhere",
+                            // ✅ FIX: Make links look clickable
+                            "& a": {
+                              color: isDarkMode ? "#64ffda" : "#3EE4C8",
+                              textDecoration: "underline",
+                              wordBreak: "break-all",
+                            },
+                          }}
                         >
                           {typeof item.message === "object"
                             ? Object.values(item.message).join("\n\n")
@@ -1244,6 +1265,7 @@ useEffect(() => {
                         gap: 1,
                         mt: 0.5,
                         px: 0.5,
+                        flexWrap: "wrap",
                       }}
                     >
                       <Typography
@@ -1257,7 +1279,7 @@ useEffect(() => {
                       >
                         {formatTime(item.timestamp)}
                       </Typography>
-                      {/*  ENHANCED: Channel badge with icons */}
+                      {/* ✅ ENHANCED: Channel badge with icons */}
                       <Chip
                         label={
                           item.channel === "sms"
@@ -1333,7 +1355,7 @@ useEffect(() => {
             gap: isMobile ? 0.75 : 1.5,
             mb: isMobile ? 0.75 : 1.5,
             alignItems: "center",
-            flexWrap: isMobile ? "wrap" : "nowrap",
+            flexWrap: "wrap",
           }}
         >
           <Typography

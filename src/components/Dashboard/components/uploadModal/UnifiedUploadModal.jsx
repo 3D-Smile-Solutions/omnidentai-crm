@@ -24,6 +24,7 @@ import {
   Description as DocIcon
 } from '@mui/icons-material';
 import { uploadDocument, resetUploadState } from '../../../../redux/slices/uploadsSlice';
+import { useTheme } from '../../../../context/ThemeContext';
 
 const UnifiedUploadModal = ({ 
   open, 
@@ -36,6 +37,7 @@ const UnifiedUploadModal = ({
   patientId = null
 }) => {
   const dispatch = useDispatch();
+  const { isDarkMode } = useTheme();
   const { uploading, uploadProgress, uploadError } = useSelector((state) => state.uploads);
   
   const [selectedFile, setSelectedFile] = useState(null);
@@ -131,7 +133,7 @@ const UnifiedUploadModal = ({
         }
       })).unwrap();
 
-      console.log(' Upload successful:', result);
+      console.log('✅ Upload successful:', result);
       
       if (onUploadComplete) {
         onUploadComplete(result);
@@ -143,7 +145,7 @@ const UnifiedUploadModal = ({
       }, 500);
 
     } catch (error) {
-      console.error(' Upload failed:', error);
+      console.error('❌ Upload failed:', error);
       // Error is in Redux state
     }
   };
@@ -159,7 +161,7 @@ const UnifiedUploadModal = ({
 
   const getFileIcon = (file) => {
     if (!file) return <FileIcon />;
-    if (file.type.startsWith('image/')) return <ImageIcon sx={{ color: '#4ECDC4' }} />;
+    if (file.type.startsWith('image/')) return <ImageIcon sx={{ color: isDarkMode ? '#64ffda' : '#4ECDC4' }} />;
     if (file.type === 'application/pdf') return <PdfIcon sx={{ color: '#FF6B6B' }} />;
     return <DocIcon sx={{ color: '#45B7D1' }} />;
   };
@@ -183,7 +185,16 @@ const UnifiedUploadModal = ({
       PaperProps={{
         sx: {
           borderRadius: 3,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.12)'
+          background: isDarkMode 
+            ? 'rgba(17, 24, 39, 0.95)' 
+            : 'rgba(255, 255, 255, 0.98)',
+          backdropFilter: 'blur(20px)',
+          border: isDarkMode 
+            ? '1px solid rgba(100, 255, 218, 0.15)' 
+            : '1px solid rgba(62, 228, 200, 0.2)',
+          boxShadow: isDarkMode 
+            ? '0 8px 32px rgba(0, 0, 0, 0.4)' 
+            : '0 8px 32px rgba(62, 228, 200, 0.15)',
         }
       }}
     >
@@ -192,19 +203,52 @@ const UnifiedUploadModal = ({
         justifyContent: 'space-between', 
         alignItems: 'center',
         pb: 2,
-        borderBottom: '1px solid rgba(62, 228, 200, 0.15)'
+        borderBottom: isDarkMode 
+          ? '1px solid rgba(100, 255, 218, 0.1)' 
+          : '1px solid rgba(62, 228, 200, 0.15)',
       }}>
-        <Typography variant="h6" sx={{ fontWeight: 600, color: '#0B1929' }}>
+        <Typography 
+          variant="h6" 
+          sx={{ 
+            fontWeight: 600, 
+            color: isDarkMode ? '#ffffff' : '#0B1929' 
+          }}
+        >
           {title}
         </Typography>
-        <IconButton onClick={handleClose} size="small" disabled={uploading}>
+        <IconButton 
+          onClick={handleClose} 
+          size="small" 
+          disabled={uploading}
+          sx={{
+            color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)',
+            '&:hover': {
+              color: isDarkMode ? '#64ffda' : '#3EE4C8',
+              backgroundColor: isDarkMode 
+                ? 'rgba(100, 255, 218, 0.1)' 
+                : 'rgba(62, 228, 200, 0.1)',
+            },
+          }}
+        >
           <CloseIcon />
         </IconButton>
       </DialogTitle>
 
       <DialogContent sx={{ pt: 3 }}>
         {displayError && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert 
+            severity="error" 
+            sx={{ 
+              mb: 2,
+              backgroundColor: isDarkMode 
+                ? 'rgba(248, 113, 113, 0.1)' 
+                : 'rgba(239, 68, 68, 0.1)',
+              color: isDarkMode ? '#f87171' : '#dc2626',
+              border: isDarkMode 
+                ? '1px solid rgba(248, 113, 113, 0.2)' 
+                : '1px solid rgba(239, 68, 68, 0.2)',
+            }}
+          >
             {displayError}
           </Alert>
         )}
@@ -212,24 +256,49 @@ const UnifiedUploadModal = ({
         {!selectedFile ? (
           <Box
             sx={{
-              border: '2px dashed rgba(62, 228, 200, 0.3)',
+              border: isDarkMode 
+                ? '2px dashed rgba(100, 255, 218, 0.3)' 
+                : '2px dashed rgba(62, 228, 200, 0.4)',
               borderRadius: 2,
               p: 4,
               textAlign: 'center',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
+              backgroundColor: isDarkMode 
+                ? 'rgba(100, 255, 218, 0.02)' 
+                : 'rgba(62, 228, 200, 0.02)',
               '&:hover': {
-                borderColor: '#3EE4C8',
-                backgroundColor: 'rgba(62, 228, 200, 0.05)'
+                borderColor: isDarkMode ? '#64ffda' : '#3EE4C8',
+                backgroundColor: isDarkMode 
+                  ? 'rgba(100, 255, 218, 0.05)' 
+                  : 'rgba(62, 228, 200, 0.08)',
               }
             }}
             onClick={() => document.getElementById(`unified-file-input-${documentType}-${category}`).click()}
           >
-            <CloudUploadIcon sx={{ fontSize: 48, color: '#3EE4C8', mb: 2 }} />
-            <Typography variant="body1" sx={{ mb: 1, fontWeight: 500 }}>
+            <CloudUploadIcon 
+              sx={{ 
+                fontSize: 48, 
+                color: isDarkMode ? '#64ffda' : '#3EE4C8', 
+                mb: 2 
+              }} 
+            />
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                mb: 1, 
+                fontWeight: 500,
+                color: isDarkMode ? '#ffffff' : '#0B1929',
+              }}
+            >
               Click to browse or drag and drop
             </Typography>
-            <Typography variant="caption" sx={{ color: 'rgba(11, 25, 41, 0.6)' }}>
+            <Typography 
+              variant="caption" 
+              sx={{ 
+                color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(11, 25, 41, 0.6)' 
+              }}
+            >
               {allowedTypes === 'images' && 'Images only (Max 50MB)'}
               {allowedTypes === 'pdf' && 'PDF files only (Max 50MB)'}
               {allowedTypes === 'documents' && 'Documents: PDF, Word, Excel (Max 50MB)'}
@@ -254,7 +323,12 @@ const UnifiedUploadModal = ({
                   maxHeight: 200,
                   display: 'flex',
                   justifyContent: 'center',
-                  backgroundColor: 'rgba(0,0,0,0.05)'
+                  backgroundColor: isDarkMode 
+                    ? 'rgba(0, 0, 0, 0.3)' 
+                    : 'rgba(0, 0, 0, 0.05)',
+                  border: isDarkMode 
+                    ? '1px solid rgba(100, 255, 218, 0.1)' 
+                    : '1px solid rgba(62, 228, 200, 0.1)',
                 }}
               >
                 <img 
@@ -274,9 +348,14 @@ const UnifiedUploadModal = ({
               alignItems: 'center', 
               gap: 2,
               p: 2,
-              backgroundColor: 'rgba(62, 228, 200, 0.05)',
+              backgroundColor: isDarkMode 
+                ? 'rgba(100, 255, 218, 0.05)' 
+                : 'rgba(62, 228, 200, 0.08)',
               borderRadius: 2,
-              mb: 2
+              mb: 2,
+              border: isDarkMode 
+                ? '1px solid rgba(100, 255, 218, 0.1)' 
+                : '1px solid rgba(62, 228, 200, 0.15)',
             }}>
               <Box sx={{ fontSize: 40 }}>
                 {getFileIcon(selectedFile)}
@@ -286,7 +365,7 @@ const UnifiedUploadModal = ({
                   variant="body2" 
                   sx={{ 
                     fontWeight: 500,
-                    color: '#0B1929',
+                    color: isDarkMode ? '#ffffff' : '#0B1929',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap'
@@ -301,8 +380,10 @@ const UnifiedUploadModal = ({
                     sx={{ 
                       height: 20,
                       fontSize: '0.7rem',
-                      backgroundColor: 'rgba(62, 228, 200, 0.2)',
-                      color: '#0B1929'
+                      backgroundColor: isDarkMode 
+                        ? 'rgba(100, 255, 218, 0.15)' 
+                        : 'rgba(62, 228, 200, 0.2)',
+                      color: isDarkMode ? '#64ffda' : '#0B1929',
                     }}
                   />
                   <Chip 
@@ -311,8 +392,10 @@ const UnifiedUploadModal = ({
                     sx={{ 
                       height: 20,
                       fontSize: '0.7rem',
-                      backgroundColor: 'rgba(62, 228, 200, 0.2)',
-                      color: '#0B1929'
+                      backgroundColor: isDarkMode 
+                        ? 'rgba(100, 255, 218, 0.15)' 
+                        : 'rgba(62, 228, 200, 0.2)',
+                      color: isDarkMode ? '#64ffda' : '#0B1929',
                     }}
                   />
                 </Box>
@@ -324,7 +407,12 @@ const UnifiedUploadModal = ({
                     setSelectedFile(null);
                     setPreview(null);
                   }}
-                  sx={{ color: 'rgba(11, 25, 41, 0.6)' }}
+                  sx={{ 
+                    color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)',
+                    '&:hover': {
+                      color: isDarkMode ? '#64ffda' : '#3EE4C8',
+                    },
+                  }}
                 >
                   <CloseIcon fontSize="small" />
                 </IconButton>
@@ -340,7 +428,29 @@ const UnifiedUploadModal = ({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               disabled={uploading}
-              sx={{ mb: 2 }}
+              sx={{ 
+                mb: 2,
+                '& .MuiOutlinedInput-root': {
+                  color: isDarkMode ? '#ffffff' : '#0B1929',
+                  '& fieldset': {
+                    borderColor: isDarkMode 
+                      ? 'rgba(100, 255, 218, 0.2)' 
+                      : 'rgba(62, 228, 200, 0.3)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: isDarkMode ? '#64ffda' : '#3EE4C8',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: isDarkMode ? '#64ffda' : '#3EE4C8',
+                  },
+                },
+                '& .MuiInputLabel-root': {
+                  color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)',
+                  '&.Mui-focused': {
+                    color: isDarkMode ? '#64ffda' : '#3EE4C8',
+                  },
+                },
+              }}
             />
 
             {uploading && (
@@ -351,9 +461,11 @@ const UnifiedUploadModal = ({
                   sx={{
                     height: 8,
                     borderRadius: 4,
-                    backgroundColor: 'rgba(62, 228, 200, 0.1)',
+                    backgroundColor: isDarkMode 
+                      ? 'rgba(100, 255, 218, 0.1)' 
+                      : 'rgba(62, 228, 200, 0.15)',
                     '& .MuiLinearProgress-bar': {
-                      backgroundColor: '#3EE4C8'
+                      backgroundColor: isDarkMode ? '#64ffda' : '#3EE4C8',
                     }
                   }}
                 />
@@ -363,7 +475,7 @@ const UnifiedUploadModal = ({
                     display: 'block', 
                     textAlign: 'center', 
                     mt: 1,
-                    color: 'rgba(11, 25, 41, 0.7)'
+                    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(11, 25, 41, 0.7)',
                   }}
                 >
                   Uploading... {uploadProgress}%
@@ -374,13 +486,24 @@ const UnifiedUploadModal = ({
         )}
       </DialogContent>
 
-      <DialogActions sx={{ p: 3, pt: 2 }}>
+      <DialogActions sx={{ 
+        p: 3, 
+        pt: 2,
+        borderTop: isDarkMode 
+          ? '1px solid rgba(100, 255, 218, 0.1)' 
+          : '1px solid rgba(62, 228, 200, 0.1)',
+      }}>
         <Button 
           onClick={handleClose}
           disabled={uploading}
           sx={{ 
-            color: 'rgba(11, 25, 41, 0.7)',
-            textTransform: 'none'
+            color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.7)',
+            textTransform: 'none',
+            '&:hover': {
+              backgroundColor: isDarkMode 
+                ? 'rgba(255, 255, 255, 0.05)' 
+                : 'rgba(11, 25, 41, 0.05)',
+            },
           }}
         >
           Cancel
@@ -390,15 +513,20 @@ const UnifiedUploadModal = ({
           disabled={!selectedFile || uploading}
           variant="contained"
           sx={{
-            backgroundColor: '#3EE4C8',
-            color: '#0B1929',
+            backgroundColor: isDarkMode ? '#64ffda' : '#3EE4C8',
+            color: isDarkMode ? '#0B1929' : '#ffffff',
             textTransform: 'none',
             px: 3,
             '&:hover': {
-              backgroundColor: '#35ccb3'
+              backgroundColor: isDarkMode ? '#52d4c2' : '#2BC4A8',
             },
             '&.Mui-disabled': {
-              backgroundColor: 'rgba(62, 228, 200, 0.3)'
+              backgroundColor: isDarkMode 
+                ? 'rgba(100, 255, 218, 0.2)' 
+                : 'rgba(62, 228, 200, 0.3)',
+              color: isDarkMode 
+                ? 'rgba(11, 25, 41, 0.5)' 
+                : 'rgba(255, 255, 255, 0.5)',
             }
           }}
         >
