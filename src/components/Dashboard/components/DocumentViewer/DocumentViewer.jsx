@@ -177,12 +177,15 @@ const DocumentViewer = ({
             minHeight: "70vh",
             background: isDarkMode
               ? "linear-gradient(135deg, rgba(17, 24, 39, 0.98) 0%, rgba(17, 24, 39, 0.95) 100%)"
-              : "linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%)",
+              : "linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 100%)",
             backdropFilter: "blur(20px)",
             border: isDarkMode
               ? "1px solid rgba(100, 255, 218, 0.1)"
-              : "1px solid rgba(62, 228, 200, 0.1)",
+              : "1px solid rgba(62, 228, 200, 0.2)",
             overflow: "hidden",
+            boxShadow: isDarkMode
+              ? "0 20px 60px rgba(0, 0, 0, 0.4)"
+              : "0 20px 60px rgba(62, 228, 200, 0.15)",
           },
         }}
       >
@@ -194,11 +197,11 @@ const DocumentViewer = ({
             alignItems: "center",
             borderBottom: isDarkMode
               ? "1px solid rgba(100, 255, 218, 0.1)"
-              : "1px solid rgba(62, 228, 200, 0.1)",
+              : "1px solid rgba(62, 228, 200, 0.15)",
             pb: 2,
             background: isDarkMode
               ? "rgba(17, 24, 39, 0.5)"
-              : "rgba(255, 255, 255, 0.5)",
+              : "rgba(255, 255, 255, 0.8)",
             backdropFilter: "blur(10px)",
             position: "relative",
             "&::after": {
@@ -223,13 +226,13 @@ const DocumentViewer = ({
                 borderRadius: "10px",
                 backgroundColor: isDarkMode
                   ? "rgba(100, 255, 218, 0.1)"
-                  : "rgba(62, 228, 200, 0.1)",
+                  : "rgba(62, 228, 200, 0.15)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 border: isDarkMode
                   ? "1px solid rgba(100, 255, 218, 0.2)"
-                  : "1px solid rgba(62, 228, 200, 0.2)",
+                  : "1px solid rgba(62, 228, 200, 0.25)",
               }}
             >
               <FolderIcon
@@ -246,6 +249,7 @@ const DocumentViewer = ({
                   fontWeight: 600,
                   color: isDarkMode ? "#ffffff" : "#0B1929",
                   letterSpacing: "-0.01em",
+                  fontSize: { xs: "1.25rem", sm: "1.5rem" },
                 }}
               >
                 {title}
@@ -261,9 +265,10 @@ const DocumentViewer = ({
                     fontSize: "0.75rem",
                     backgroundColor: isDarkMode
                       ? "rgba(100, 255, 218, 0.1)"
-                      : "rgba(62, 228, 200, 0.1)",
-                    color: isDarkMode ? "#64ffda" : "#3EE4C8",
+                      : "rgba(62, 228, 200, 0.15)",
+                    color: isDarkMode ? "#64ffda" : "#2BC4A8",
                     border: "none",
+                    fontWeight: 500,
                   }}
                 />
                 <Typography
@@ -271,7 +276,7 @@ const DocumentViewer = ({
                   sx={{
                     color: isDarkMode
                       ? "rgba(255, 255, 255, 0.5)"
-                      : "rgba(11, 25, 41, 0.5)",
+                      : "rgba(11, 25, 41, 0.6)",
                   }}
                 >
                   {formatFileSize(
@@ -314,11 +319,11 @@ const DocumentViewer = ({
                   backgroundColor: isDarkMode ? "#64ffda" : "#3EE4C8",
                   color: isDarkMode ? "#0B1929" : "#ffffff",
                   fontWeight: 600,
-                  px: 2.5,
+                  px: { xs: 1.5, sm: 2.5 },
                   py: 1,
                   borderRadius: "10px",
                   textTransform: "none",
-                  fontSize: "0.9rem",
+                  fontSize: { xs: "0.8rem", sm: "0.9rem" },
                   boxShadow: isDarkMode
                     ? "0 4px 20px rgba(100, 255, 218, 0.3)"
                     : "0 4px 20px rgba(62, 228, 200, 0.3)",
@@ -344,8 +349,8 @@ const DocumentViewer = ({
                 "&:hover": {
                   color: isDarkMode ? "#64ffda" : "#3EE4C8",
                   backgroundColor: isDarkMode
-                    ? "rgba(100, 255, 218, 0.05)"
-                    : "rgba(62, 228, 200, 0.05)",
+                    ? "rgba(100, 255, 218, 0.1)"
+                    : "rgba(62, 228, 200, 0.1)",
                 },
               }}
             >
@@ -399,7 +404,7 @@ const DocumentViewer = ({
                   borderRadius: "24px",
                   background: isDarkMode
                     ? "linear-gradient(135deg, rgba(100, 255, 218, 0.1) 0%, rgba(167, 139, 250, 0.1) 100%)"
-                    : "linear-gradient(135deg, rgba(62, 228, 200, 0.1) 0%, rgba(43, 196, 168, 0.1) 100%)",
+                    : "linear-gradient(135deg, rgba(62, 228, 200, 0.15) 0%, rgba(43, 196, 168, 0.1) 100%)",
                   backdropFilter: "blur(10px)",
                   display: "flex",
                   alignItems: "center",
@@ -407,7 +412,7 @@ const DocumentViewer = ({
                   margin: "0 auto 32px",
                   border: isDarkMode
                     ? "1px solid rgba(100, 255, 218, 0.2)"
-                    : "1px solid rgba(62, 228, 200, 0.2)",
+                    : "1px solid rgba(62, 228, 200, 0.25)",
                   position: "relative",
                 }}
               >
@@ -437,7 +442,7 @@ const DocumentViewer = ({
                 sx={{
                   color: isDarkMode
                     ? "rgba(255, 255, 255, 0.7)"
-                    : "rgba(11, 25, 41, 0.7)",
+                    : "rgba(11, 25, 41, 0.8)",
                   mb: 1,
                   fontWeight: 600,
                 }}
@@ -449,7 +454,7 @@ const DocumentViewer = ({
                 sx={{
                   color: isDarkMode
                     ? "rgba(255, 255, 255, 0.5)"
-                    : "rgba(11, 25, 41, 0.5)",
+                    : "rgba(11, 25, 41, 0.6)",
                   mb: 4,
                   maxWidth: 400,
                   mx: "auto",
@@ -512,7 +517,7 @@ const DocumentViewer = ({
               </Button>
             </Box>
           ) : (
-            <Grid container spacing={3}>
+            <Grid container spacing={{ xs: 2, sm: 3 }}>
               {categoryDocuments.map((doc) => (
                 <Grid item xs={12} sm={6} md={4} key={doc.id}>
                   <Card
@@ -522,16 +527,19 @@ const DocumentViewer = ({
                     sx={{
                       position: "relative",
                       background: isDarkMode
-                        ? "rgba(17, 24, 39, 0.4)"
-                        : "rgba(255, 255, 255, 0.4)",
+                        ? "rgba(17, 24, 39, 0.5)"
+                        : "rgba(255, 255, 255, 0.9)",
                       backdropFilter: "blur(20px)",
                       border: isDarkMode
-                        ? "1px solid rgba(100, 255, 218, 0.1)"
-                        : "1px solid rgba(62, 228, 200, 0.1)",
+                        ? "1px solid rgba(100, 255, 218, 0.15)"
+                        : "1px solid rgba(62, 228, 200, 0.2)",
                       borderRadius: "12px",
                       transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                       cursor: "pointer",
                       overflow: "hidden",
+                      boxShadow: isDarkMode
+                        ? "0 4px 20px rgba(0, 0, 0, 0.2)"
+                        : "0 4px 20px rgba(62, 228, 200, 0.1)",
                       transform:
                         hoveredCard === doc.id
                           ? "translateY(-8px)"
@@ -539,7 +547,7 @@ const DocumentViewer = ({
                       "&:hover": {
                         border: isDarkMode
                           ? "1px solid rgba(100, 255, 218, 0.3)"
-                          : "1px solid rgba(62, 228, 200, 0.3)",
+                          : "1px solid rgba(62, 228, 200, 0.4)",
                         boxShadow: isDarkMode
                           ? "0 20px 40px rgba(100, 255, 218, 0.2)"
                           : "0 20px 40px rgba(62, 228, 200, 0.2)",
@@ -577,7 +585,7 @@ const DocumentViewer = ({
                           alt={doc.filename}
                           sx={{ objectFit: "cover" }}
                           onError={async (e) => {
-                            //  ADD THIS: Auto-refresh URL when image fails to load
+                            // ADD THIS: Auto-refresh URL when image fails to load
                             console.log(
                               "🔄 Image failed to load, refreshing URL for:",
                               doc.id
@@ -613,10 +621,10 @@ const DocumentViewer = ({
                           justifyContent: "center",
                           backgroundColor: isDarkMode
                             ? "rgba(100, 255, 218, 0.03)"
-                            : "rgba(62, 228, 200, 0.05)",
+                            : "rgba(62, 228, 200, 0.08)",
                           borderBottom: isDarkMode
                             ? "1px solid rgba(100, 255, 218, 0.1)"
-                            : "1px solid rgba(62, 228, 200, 0.1)",
+                            : "1px solid rgba(62, 228, 200, 0.15)",
                           position: "relative",
                         }}
                       >
@@ -684,8 +692,9 @@ const DocumentViewer = ({
                                 fontSize: "0.65rem",
                                 backgroundColor: isDarkMode
                                   ? "rgba(100, 255, 218, 0.1)"
-                                  : "rgba(62, 228, 200, 0.1)",
-                                color: isDarkMode ? "#64ffda" : "#3EE4C8",
+                                  : "rgba(62, 228, 200, 0.15)",
+                                color: isDarkMode ? "#64ffda" : "#2BC4A8",
+                                fontWeight: 500,
                                 "& .MuiChip-label": { px: 1 },
                               }}
                             />
@@ -697,10 +706,10 @@ const DocumentViewer = ({
                                 fontSize: "0.65rem",
                                 backgroundColor: isDarkMode
                                   ? "rgba(255, 255, 255, 0.05)"
-                                  : "rgba(0, 0, 0, 0.05)",
+                                  : "rgba(11, 25, 41, 0.08)",
                                 color: isDarkMode
                                   ? "rgba(255, 255, 255, 0.6)"
-                                  : "rgba(11, 25, 41, 0.6)",
+                                  : "rgba(11, 25, 41, 0.65)",
                                 "& .MuiChip-label": { px: 1 },
                               }}
                             />
@@ -718,7 +727,8 @@ const DocumentViewer = ({
                             "&:hover": {
                               backgroundColor: isDarkMode
                                 ? "rgba(100, 255, 218, 0.1)"
-                                : "rgba(62, 228, 200, 0.1)",
+                                : "rgba(62, 228, 200, 0.15)",
+                              color: isDarkMode ? "#64ffda" : "#3EE4C8",
                             },
                           }}
                         >
@@ -732,7 +742,7 @@ const DocumentViewer = ({
                           sx={{
                             color: isDarkMode
                               ? "rgba(255, 255, 255, 0.5)"
-                              : "rgba(11, 25, 41, 0.5)",
+                              : "rgba(11, 25, 41, 0.6)",
                             fontSize: "0.75rem",
                             overflow: "hidden",
                             textOverflow: "ellipsis",
@@ -762,16 +772,20 @@ const DocumentViewer = ({
           sx: {
             background: isDarkMode
               ? "rgba(17, 24, 39, 0.95)"
-              : "rgba(255, 255, 255, 0.95)",
+              : "rgba(255, 255, 255, 0.98)",
             backdropFilter: "blur(20px)",
             border: isDarkMode
               ? "1px solid rgba(100, 255, 218, 0.1)"
-              : "1px solid rgba(62, 228, 200, 0.1)",
+              : "1px solid rgba(62, 228, 200, 0.2)",
+            borderRadius: "10px",
             boxShadow: isDarkMode
               ? "0 8px 32px rgba(0, 0, 0, 0.3)"
-              : "0 8px 32px rgba(0, 0, 0, 0.1)",
+              : "0 8px 32px rgba(62, 228, 200, 0.15)",
+            minWidth: 160,
             "& .MuiMenuItem-root": {
               color: isDarkMode ? "#ffffff" : "#0B1929",
+              fontSize: "0.9rem",
+              py: 1.25,
               transition: "all 0.2s ease",
               "&:hover": {
                 backgroundColor: isDarkMode
@@ -805,11 +819,13 @@ const DocumentViewer = ({
         <MenuItem
           onClick={() => handleDelete(selectedDoc)}
           sx={{
-            color: isDarkMode ? "#f87171" : "#dc2626",
+            "&.MuiMenuItem-root": {
+              color: isDarkMode ? "#f87171" : "#dc2626",
+            },
             "&:hover": {
               backgroundColor: isDarkMode
-                ? "rgba(248, 113, 113, 0.1)"
-                : "rgba(239, 68, 68, 0.1)",
+                ? "rgba(248, 113, 113, 0.1) !important"
+                : "rgba(239, 68, 68, 0.1) !important",
             },
           }}
         >
