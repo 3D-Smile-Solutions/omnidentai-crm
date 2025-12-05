@@ -10,6 +10,9 @@ const FormCard = ({ title, description, category, onUpload, icon: Icon = FormsIc
   const [viewerOpen, setViewerOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
+  // Default colors if not provided
+  const iconColor = color || (isDarkMode ? '#64ffda' : '#3EE4C8');
+
   return (
     <>
       <Paper 
@@ -18,24 +21,27 @@ const FormCard = ({ title, description, category, onUpload, icon: Icon = FormsIc
           p: 3, 
           position: 'relative',
           background: isDarkMode 
-            ? 'rgba(17, 24, 39, 0.25)'
-            : 'rgba(255, 255, 255, 0.25)',
+            ? 'rgba(17, 24, 39, 0.5)'
+            : 'rgba(255, 255, 255, 0.9)',
           backdropFilter: 'blur(20px)',
           border: isDarkMode 
-            ? '1px solid rgba(100, 255, 218, 0.1)' 
-            : '1px solid rgba(62, 228, 200, 0.1)',
+            ? '1px solid rgba(100, 255, 218, 0.15)' 
+            : '1px solid rgba(62, 228, 200, 0.2)',
           borderRadius: '16px',
           cursor: 'pointer',
           transition: 'all 0.25s ease',
           overflow: 'hidden',
+          boxShadow: isDarkMode
+            ? '0 4px 20px rgba(0, 0, 0, 0.2)'
+            : '0 4px 20px rgba(62, 228, 200, 0.1)',
           '&:hover': { 
             transform: 'translateY(-4px)',
             border: isDarkMode 
               ? '1px solid rgba(100, 255, 218, 0.3)' 
-              : '1px solid rgba(62, 228, 200, 0.3)',
+              : '1px solid rgba(62, 228, 200, 0.4)',
             boxShadow: isDarkMode
               ? '0 8px 32px rgba(100, 255, 218, 0.15)'
-              : '0 8px 32px rgba(62, 228, 200, 0.15)',
+              : '0 8px 32px rgba(62, 228, 200, 0.2)',
           },
           '&::before': {
             content: '""',
@@ -46,7 +52,7 @@ const FormCard = ({ title, description, category, onUpload, icon: Icon = FormsIc
             bottom: 0,
             background: isDarkMode
               ? 'linear-gradient(135deg, rgba(100, 255, 218, 0.03) 0%, rgba(167, 139, 250, 0.03) 100%)'
-              : 'linear-gradient(135deg, rgba(62, 228, 200, 0.05) 0%, rgba(43, 196, 168, 0.05) 100%)',
+              : 'linear-gradient(135deg, rgba(62, 228, 200, 0.05) 0%, rgba(43, 196, 168, 0.02) 100%)',
             pointerEvents: 'none',
             zIndex: 0,
           }
@@ -62,23 +68,23 @@ const FormCard = ({ title, description, category, onUpload, icon: Icon = FormsIc
               height: 48,
               borderRadius: '12px',
               backgroundColor: isDarkMode 
-                ? `${color}20` || 'rgba(100, 255, 218, 0.1)'
-                : `${color}15` || 'rgba(62, 228, 200, 0.08)',
+                ? `${iconColor}20`
+                : `${iconColor}18`,
               backdropFilter: 'blur(10px)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               mb: 2.5,
               border: isDarkMode 
-                ? `1px solid ${color}30` || '1px solid rgba(100, 255, 218, 0.2)'
-                : `1px solid ${color}25` || '1px solid rgba(62, 228, 200, 0.2)',
+                ? `1px solid ${iconColor}30`
+                : `1px solid ${iconColor}35`,
               transition: 'all 0.25s ease',
               transform: isHovered ? 'scale(1.1)' : 'scale(1)',
             }}
           >
             <Icon 
               sx={{ 
-                color: color || (isDarkMode ? '#64ffda' : '#3EE4C8'),
+                color: iconColor,
                 fontSize: 28,
                 filter: isHovered ? 'brightness(1.2)' : 'brightness(1)',
                 transition: 'all 0.25s ease',
@@ -103,7 +109,7 @@ const FormCard = ({ title, description, category, onUpload, icon: Icon = FormsIc
             sx={{ 
               color: isDarkMode 
                 ? 'rgba(255, 255, 255, 0.6)' 
-                : 'rgba(11, 25, 41, 0.6)',
+                : 'rgba(11, 25, 41, 0.65)',
               lineHeight: 1.5,
             }}
           >
@@ -119,7 +125,7 @@ const FormCard = ({ title, description, category, onUpload, icon: Icon = FormsIc
                 right: 0,
                 height: '3px',
                 background: `linear-gradient(90deg, 
-                  ${isDarkMode ? '#64ffda' : '#3EE4C8'} 0%, 
+                  ${iconColor} 0%, 
                   ${isDarkMode ? '#a78bfa' : '#2BC4A8'} 100%)`,
                 animation: 'slideIn 0.3s ease',
                 '@keyframes slideIn': {
@@ -193,6 +199,7 @@ const Forms = () => {
             color: isDarkMode ? '#ffffff' : '#0B1929',
             letterSpacing: '-0.02em',
             mb: 1.5,
+            fontSize: { xs: '1.75rem', sm: '2.125rem' },
           }}
         >
           Digital Forms
@@ -202,7 +209,7 @@ const Forms = () => {
           sx={{
             color: isDarkMode 
               ? 'rgba(255, 255, 255, 0.6)' 
-              : 'rgba(11, 25, 41, 0.6)',
+              : 'rgba(11, 25, 41, 0.65)',
             fontSize: '0.95rem',
             lineHeight: 1.6,
             mb: 0,
@@ -218,9 +225,9 @@ const Forms = () => {
           gridTemplateColumns: {
             xs: '1fr',
             sm: 'repeat(2, 1fr)',
-            md: 'repeat(auto-fill, minmax(280px, 1fr))',
+            lg: 'repeat(4, 1fr)',
           },
-          gap: 3,
+          gap: { xs: 2, sm: 3 },
           flex: 1,
           alignContent: 'start',
         }}
