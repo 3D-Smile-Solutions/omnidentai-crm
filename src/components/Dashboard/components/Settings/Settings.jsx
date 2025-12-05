@@ -85,14 +85,14 @@ const Settings = ({ onViewSessions }) => {
               borderRadius: '12px',
               backgroundColor: isDarkMode 
                 ? 'rgba(100, 255, 218, 0.1)' 
-                : 'rgba(62, 228, 200, 0.1)',
+                : 'rgba(62, 228, 200, 0.15)',
               backdropFilter: 'blur(10px)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               border: isDarkMode 
                 ? '1px solid rgba(100, 255, 218, 0.2)' 
-                : '1px solid rgba(62, 228, 200, 0.2)',
+                : '1px solid rgba(62, 228, 200, 0.25)',
             }}
           >
             <SettingsIcon 
@@ -109,6 +109,7 @@ const Settings = ({ onViewSessions }) => {
                 fontWeight: 600,
                 color: isDarkMode ? '#ffffff' : '#0B1929',
                 letterSpacing: '-0.02em',
+                fontSize: { xs: '1.75rem', sm: '2.125rem' },
               }}
             >
               Settings
@@ -118,7 +119,7 @@ const Settings = ({ onViewSessions }) => {
               sx={{
                 color: isDarkMode 
                   ? 'rgba(255, 255, 255, 0.6)' 
-                  : 'rgba(11, 25, 41, 0.6)',
+                  : 'rgba(11, 25, 41, 0.65)',
                 fontSize: '0.875rem',
               }}
             >
@@ -134,14 +135,17 @@ const Settings = ({ onViewSessions }) => {
           flex: 1,
           borderRadius: '16px',
           background: isDarkMode 
-            ? 'rgba(17, 24, 39, 0.25)'
-            : 'rgba(255, 255, 255, 0.25)',
+            ? 'rgba(17, 24, 39, 0.5)'
+            : 'rgba(255, 255, 255, 0.9)',
           backdropFilter: 'blur(20px)',
           border: isDarkMode 
             ? '1px solid rgba(100, 255, 218, 0.1)' 
-            : '1px solid rgba(62, 228, 200, 0.1)',
+            : '1px solid rgba(62, 228, 200, 0.2)',
           overflow: 'hidden',
           position: 'relative',
+          boxShadow: isDarkMode
+            ? '0 4px 20px rgba(0, 0, 0, 0.2)'
+            : '0 4px 20px rgba(62, 228, 200, 0.1)',
           '&::before': {
             content: '""',
             position: 'absolute',
@@ -151,7 +155,7 @@ const Settings = ({ onViewSessions }) => {
             bottom: 0,
             background: isDarkMode
               ? 'linear-gradient(135deg, rgba(100, 255, 218, 0.02) 0%, rgba(167, 139, 250, 0.02) 100%)'
-              : 'linear-gradient(135deg, rgba(62, 228, 200, 0.03) 0%, rgba(43, 196, 168, 0.03) 100%)',
+              : 'linear-gradient(135deg, rgba(62, 228, 200, 0.03) 0%, rgba(43, 196, 168, 0.02) 100%)',
             pointerEvents: 'none',
             zIndex: 0,
           }
@@ -167,10 +171,10 @@ const Settings = ({ onViewSessions }) => {
             zIndex: 1,
             borderBottom: isDarkMode 
               ? '1px solid rgba(100, 255, 218, 0.1)' 
-              : '1px solid rgba(62, 228, 200, 0.1)',
+              : '1px solid rgba(62, 228, 200, 0.15)',
             background: isDarkMode 
               ? 'rgba(17, 24, 39, 0.3)'
-              : 'rgba(255, 255, 255, 0.3)',
+              : 'rgba(255, 255, 255, 0.6)',
             backdropFilter: 'blur(10px)',
             '& .MuiTab-root': {
               minHeight: 64,
@@ -183,16 +187,17 @@ const Settings = ({ onViewSessions }) => {
               transition: 'all 0.25s ease',
               position: 'relative',
               '&:hover': {
-                color: isDarkMode ? '#64ffda' : '#3EE4C8',
+                color: isDarkMode ? '#64ffda' : '#0B1929',
                 backgroundColor: isDarkMode 
                   ? 'rgba(100, 255, 218, 0.05)' 
-                  : 'rgba(62, 228, 200, 0.05)',
+                  : 'rgba(62, 228, 200, 0.08)',
               },
               '& .MuiSvgIcon-root': {
                 transition: 'all 0.25s ease',
               },
               '&.Mui-selected': {
-                color: isDarkMode ? '#64ffda' : '#3EE4C8',
+                color: isDarkMode ? '#64ffda' : '#0B1929',
+                fontWeight: 600,
                 '& .MuiSvgIcon-root': {
                   transform: 'scale(1.1)',
                   filter: 'brightness(1.2)',
@@ -205,8 +210,16 @@ const Settings = ({ onViewSessions }) => {
               borderRadius: '3px 3px 0 0',
               boxShadow: isDarkMode
                 ? '0 -4px 12px rgba(100, 255, 218, 0.3)'
-                : '0 -4px 12px rgba(62, 228, 200, 0.3)',
-            }
+                : '0 -4px 12px rgba(62, 228, 200, 0.4)',
+            },
+            '& .MuiTabs-scrollButtons': {
+              color: isDarkMode 
+                ? 'rgba(255, 255, 255, 0.6)' 
+                : 'rgba(11, 25, 41, 0.6)',
+              '&.Mui-disabled': {
+                opacity: 0.3,
+              },
+            },
           }}
         >
           {tabs.map((tab, index) => (
@@ -225,12 +238,12 @@ const Settings = ({ onViewSessions }) => {
                       backgroundColor: activeTab === index
                         ? isDarkMode 
                           ? 'rgba(100, 255, 218, 0.1)' 
-                          : 'rgba(62, 228, 200, 0.1)'
+                          : 'rgba(62, 228, 200, 0.15)'
                         : 'transparent',
                       border: activeTab === index
                         ? isDarkMode 
                           ? '1px solid rgba(100, 255, 218, 0.2)' 
-                          : '1px solid rgba(62, 228, 200, 0.2)'
+                          : '1px solid rgba(62, 228, 200, 0.25)'
                         : '1px solid transparent',
                       transition: 'all 0.25s ease',
                     }}
@@ -252,8 +265,8 @@ const Settings = ({ onViewSessions }) => {
                         fontSize: '0.65rem',
                         backgroundColor: isDarkMode 
                           ? 'rgba(100, 255, 218, 0.15)' 
-                          : 'rgba(62, 228, 200, 0.15)',
-                        color: isDarkMode ? '#64ffda' : '#3EE4C8',
+                          : 'rgba(62, 228, 200, 0.2)',
+                        color: isDarkMode ? '#64ffda' : '#2BC4A8',
                         border: 'none',
                         '& .MuiChip-label': {
                           px: 1,
@@ -270,7 +283,7 @@ const Settings = ({ onViewSessions }) => {
 
         <Box 
           sx={{ 
-            p: 3,
+            p: { xs: 2, sm: 3 },
             position: 'relative',
             zIndex: 1,
             height: 'calc(100% - 64px)',
