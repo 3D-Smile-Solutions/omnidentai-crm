@@ -108,6 +108,75 @@ const SessionHistory = () => {
     return `${hours}h ${minutes}m`;
   };
 
+  // Clean up IPv6-mapped IPv4 addresses for better readability
+  const formatIPAddress = (ip) => {
+    if (!ip) return 'Unknown';
+    // Convert ::ffff:10.25.53.45 to just 10.25.53.45
+    if (ip.startsWith('::ffff:')) {
+      return ip.replace('::ffff:', '');
+    }
+    // Handle ::1 (localhost)
+    if (ip === '::1') {
+      return 'Localhost';
+    }
+    return ip;
+  };
+
+  // Format timestamp with fallback for invalid dates
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return 'N/A';
+    const date = new Date(timestamp);
+    if (isNaN(date.getTime())) return 'N/A';
+    return date.toLocaleString();
+  };
+
+  // Format activity details in a user-friendly way
+  const formatActivityDetails = (details) => {
+    if (!details) return 'No details';
+    
+    try {
+      const data = typeof details === 'string' ? JSON.parse(details) : details;
+      const parts = [];
+      
+      if (data.patientName) {
+        parts.push(`Patient: ${data.patientName}`);
+      }
+      if (data.channel) {
+        parts.push(`Channel: ${data.channel}`);
+      }
+      if (data.messageLength) {
+        parts.push(`Messages: ${data.messageLength}`);
+      }
+      if (data.action) {
+        parts.push(`Action: ${data.action}`);
+      }
+      
+      // If we extracted meaningful info, return it
+      if (parts.length > 0) {
+        return parts.join(' • ');
+      }
+      
+      // Fallback: show keys in a readable format
+      const keys = Object.keys(data).filter(k => k !== 'patientId'); // Hide UUIDs
+      if (keys.length === 0) return 'No details';
+      
+      return keys.map(k => `${k}: ${data[k]}`).join(' • ');
+    } catch {
+      return String(details);
+    }
+  };
+
+  // Format activity type for display
+  const formatActivityType = (type) => {
+    if (!type) return 'Activity';
+    // Convert snake_case or camelCase to Title Case
+    return type
+      .replace(/_/g, ' ')
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, str => str.toUpperCase())
+      .trim();
+  };
+
   //  SHOW LOADING WHILE WAITING FOR AUTH
   if (!currentUser) {
     return (
@@ -312,12 +381,12 @@ const SessionHistory = () => {
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" sx={{ color: textPrimary }}>
-                        {session.ip_address || 'Unknown'}
+                        {formatIPAddress(session.ip_address)}
                       </Typography>
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" sx={{ color: textPrimary }}>
-                        {new Date(session.login_time).toLocaleString()}
+                        {formatTimestamp(session.login_time)}
                       </Typography>
                     </TableCell>
                     <TableCell>
@@ -448,7 +517,7 @@ const SessionHistory = () => {
                                   >
                                     <TableCell>
                                       <Chip 
-                                        label={activity.activity_type} 
+                                        label={formatActivityType(activity.activity_type)} 
                                         size="small" 
                                         variant="outlined"
                                         sx={{
@@ -461,13 +530,19 @@ const SessionHistory = () => {
                                       />
                                     </TableCell>
                                     <TableCell>
-                                      <Typography variant="caption" sx={{ color: textSecondary }}>
-                                        {JSON.stringify(activity.details)}
+                                      <Typography 
+                                        variant="body2" 
+                                        sx={{ 
+                                          color: textPrimary,
+                                          fontSize: '0.85rem',
+                                        }}
+                                      >
+                                        {formatActivityDetails(activity.details)}
                                       </Typography>
                                     </TableCell>
                                     <TableCell>
-                                      <Typography variant="caption" sx={{ color: textSecondary }}>
-                                        {new Date(activity.created_at).toLocaleString()}
+                                      <Typography variant="body2" sx={{ color: textSecondary }}>
+                                        {formatTimestamp(activity.created_at)}
                                       </Typography>
                                     </TableCell>
                                   </TableRow>
