@@ -152,7 +152,7 @@ const SecurityCard = ({ icon: Icon, title, description, buttonText, buttonColor 
             }
           } : {
             backgroundColor: isDarkMode ? '#64ffda' : '#3EE4C8',
-            color: isDarkMode ? '#0B1929' : '#ffffff',
+            color: '#0B1929',
             fontWeight: 600,
             boxShadow: isDarkMode
               ? '0 4px 12px rgba(100, 255, 218, 0.2)'
@@ -191,6 +191,43 @@ const SecuritySettings = ({ onViewSessions }) => {
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
+  });
+
+  // Common TextField styles
+  const getTextFieldStyles = (hasError = false) => ({
+    '& .MuiOutlinedInput-root': {
+      backgroundColor: isDarkMode 
+        ? 'rgba(255, 255, 255, 0.03)'
+        : 'rgba(0, 0, 0, 0.02)',
+      color: isDarkMode ? '#ffffff' : '#0B1929',
+      '& fieldset': {
+        borderColor: hasError 
+          ? '#f87171'
+          : (isDarkMode ? 'rgba(100, 255, 218, 0.2)' : 'rgba(62, 228, 200, 0.2)'),
+      },
+      '&:hover fieldset': {
+        borderColor: hasError 
+          ? '#f87171'
+          : (isDarkMode ? '#64ffda' : '#3EE4C8'),
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: hasError 
+          ? '#f87171'
+          : (isDarkMode ? '#64ffda' : '#3EE4C8'),
+      },
+    },
+    '& .MuiOutlinedInput-input': {
+      color: isDarkMode ? '#ffffff' : '#0B1929',
+    },
+    '& .MuiInputLabel-root': {
+      color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(11, 25, 41, 0.6)',
+      '&.Mui-focused': {
+        color: hasError ? '#f87171' : (isDarkMode ? '#64ffda' : '#3EE4C8'),
+      },
+    },
+    '& .MuiFormHelperText-root': {
+      color: hasError ? '#f87171' : (isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(11, 25, 41, 0.5)'),
+    },
   });
 
   const handlePasswordChange = (e) => {
@@ -363,18 +400,21 @@ const SecuritySettings = ({ onViewSessions }) => {
             borderRadius: '16px',
             background: isDarkMode 
               ? 'rgba(17, 24, 39, 0.95)'
-              : 'rgba(255, 255, 255, 0.95)',
+              : 'rgba(255, 255, 255, 0.98)',
             backdropFilter: 'blur(20px)',
             border: isDarkMode 
               ? '1px solid rgba(100, 255, 218, 0.1)' 
-              : '1px solid rgba(62, 228, 200, 0.1)',
+              : '1px solid rgba(62, 228, 200, 0.2)',
+            boxShadow: isDarkMode
+              ? '0 24px 48px rgba(0, 0, 0, 0.4)'
+              : '0 24px 48px rgba(0, 0, 0, 0.15)',
           }
         }}
       >
         <DialogTitle sx={{ 
           borderBottom: isDarkMode 
             ? '1px solid rgba(100, 255, 218, 0.1)' 
-            : '1px solid rgba(62, 228, 200, 0.1)',
+            : '1px solid rgba(62, 228, 200, 0.15)',
         }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Box
@@ -457,30 +497,23 @@ const SecuritySettings = ({ onViewSessions }) => {
                 <Button
                   size="small"
                   onClick={() => setShowPassword({ ...showPassword, new: !showPassword.new })}
-                  sx={{ minWidth: 'auto', p: 1 }}
+                  sx={{ 
+                    minWidth: 'auto', 
+                    p: 1,
+                    color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.5)',
+                    '&:hover': {
+                      color: isDarkMode ? '#64ffda' : '#3EE4C8',
+                      backgroundColor: isDarkMode 
+                        ? 'rgba(100, 255, 218, 0.1)' 
+                        : 'rgba(62, 228, 200, 0.1)',
+                    }
+                  }}
                 >
                   {showPassword.new ? <VisibilityOffIcon /> : <VisibilityIcon />}
                 </Button>
               ),
             }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                backgroundColor: isDarkMode 
-                  ? 'rgba(255, 255, 255, 0.03)'
-                  : 'rgba(0, 0, 0, 0.02)',
-                '& fieldset': {
-                  borderColor: isDarkMode 
-                    ? 'rgba(100, 255, 218, 0.2)' 
-                    : 'rgba(62, 228, 200, 0.2)',
-                },
-                '&:hover fieldset': {
-                  borderColor: isDarkMode ? '#64ffda' : '#3EE4C8',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: isDarkMode ? '#64ffda' : '#3EE4C8',
-                },
-              },
-            }}
+            sx={getTextFieldStyles(false)}
           />
           
           {passwordData.newPassword && (
@@ -542,34 +575,23 @@ const SecuritySettings = ({ onViewSessions }) => {
                 <Button
                   size="small"
                   onClick={() => setShowPassword({ ...showPassword, confirm: !showPassword.confirm })}
-                  sx={{ minWidth: 'auto', p: 1 }}
+                  sx={{ 
+                    minWidth: 'auto', 
+                    p: 1,
+                    color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.5)',
+                    '&:hover': {
+                      color: isDarkMode ? '#64ffda' : '#3EE4C8',
+                      backgroundColor: isDarkMode 
+                        ? 'rgba(100, 255, 218, 0.1)' 
+                        : 'rgba(62, 228, 200, 0.1)',
+                    }
+                  }}
                 >
                   {showPassword.confirm ? <VisibilityOffIcon /> : <VisibilityIcon />}
                 </Button>
               ),
             }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                backgroundColor: isDarkMode 
-                  ? 'rgba(255, 255, 255, 0.03)'
-                  : 'rgba(0, 0, 0, 0.02)',
-                '& fieldset': {
-                  borderColor: passwordMismatch 
-                    ? '#f87171'
-                    : (isDarkMode ? 'rgba(100, 255, 218, 0.2)' : 'rgba(62, 228, 200, 0.2)'),
-                },
-                '&:hover fieldset': {
-                  borderColor: passwordMismatch 
-                    ? '#f87171'
-                    : (isDarkMode ? '#64ffda' : '#3EE4C8'),
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: passwordMismatch 
-                    ? '#f87171'
-                    : (isDarkMode ? '#64ffda' : '#3EE4C8'),
-                },
-              },
-            }}
+            sx={getTextFieldStyles(passwordMismatch)}
           />
         </DialogContent>
         
@@ -579,7 +601,7 @@ const SecuritySettings = ({ onViewSessions }) => {
           gap: 1,
           borderTop: isDarkMode 
             ? '1px solid rgba(100, 255, 218, 0.1)' 
-            : '1px solid rgba(62, 228, 200, 0.1)',
+            : '1px solid rgba(62, 228, 200, 0.15)',
           pt: 2,
           mt: 2
         }}>
@@ -588,6 +610,11 @@ const SecuritySettings = ({ onViewSessions }) => {
             disabled={changePasswordStatus === 'loading'}
             sx={{
               color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(11, 25, 41, 0.6)',
+              '&:hover': {
+                backgroundColor: isDarkMode 
+                  ? 'rgba(255, 255, 255, 0.05)' 
+                  : 'rgba(11, 25, 41, 0.05)',
+              }
             }}
           >
             Cancel
@@ -604,21 +631,28 @@ const SecuritySettings = ({ onViewSessions }) => {
             }
             sx={{
               backgroundColor: isDarkMode ? '#64ffda' : '#3EE4C8',
-              color: isDarkMode ? '#0B1929' : '#ffffff',
+              color: '#0B1929',
               fontWeight: 600,
               px: 3,
+              boxShadow: isDarkMode
+                ? '0 4px 12px rgba(100, 255, 218, 0.2)'
+                : '0 4px 12px rgba(62, 228, 200, 0.2)',
               '&:hover': {
                 backgroundColor: isDarkMode ? '#52d4c2' : '#2BC4A8',
+                boxShadow: isDarkMode
+                  ? '0 6px 16px rgba(100, 255, 218, 0.3)'
+                  : '0 6px 16px rgba(62, 228, 200, 0.3)',
               },
               '&:disabled': {
                 backgroundColor: isDarkMode 
                   ? 'rgba(100, 255, 218, 0.3)' 
-                  : 'rgba(62, 228, 200, 0.3)',
+                  : 'rgba(62, 228, 200, 0.4)',
+                color: isDarkMode ? 'rgba(11, 25, 41, 0.5)' : 'rgba(11, 25, 41, 0.4)',
               }
             }}
           >
             {changePasswordStatus === 'loading' ? (
-              <CircularProgress size={24} sx={{ color: isDarkMode ? '#0B1929' : '#ffffff' }} />
+              <CircularProgress size={24} sx={{ color: '#0B1929' }} />
             ) : (
               'Change Password'
             )}
