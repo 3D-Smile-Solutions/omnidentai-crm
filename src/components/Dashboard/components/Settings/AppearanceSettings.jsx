@@ -234,15 +234,27 @@ const AppearanceSettings = () => {
                       },
                       '& .MuiSwitch-thumb': {
                         backgroundColor: isDarkMode ? '#64ffda' : '#3EE4C8',
-                      }
+                      },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                        backgroundColor: isDarkMode
+                          ? 'rgba(100, 255, 218, 0.3)'
+                          : 'rgba(62, 228, 200, 0.3)',
+                      },
                     }}
                   />
                 }
                 label={
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    {isDarkMode ? <DarkModeIcon /> : <LightModeIcon />}
+                    {isDarkMode ? (
+                      <DarkModeIcon sx={{ color: isDarkMode ? '#64ffda' : '#3EE4C8' }} />
+                    ) : (
+                      <LightModeIcon sx={{ color: isDarkMode ? '#64ffda' : '#3EE4C8' }} />
+                    )}
                     <Box>
-                      <Typography sx={{ fontWeight: 600 }}>
+                      <Typography sx={{ 
+                        fontWeight: 600,
+                        color: isDarkMode ? '#ffffff' : '#0B1929'
+                      }}>
                         {isDarkMode ? "Dark Mode" : "Light Mode"}
                       </Typography>
                       <Typography variant="caption" sx={{ 
@@ -255,12 +267,27 @@ const AppearanceSettings = () => {
                     </Box>
                   </Box>
                 }
+                sx={{
+                  margin: 0,
+                  '& .MuiFormControlLabel-label': {
+                    color: isDarkMode ? '#ffffff' : '#0B1929',
+                  }
+                }}
               />
             </Box>
             
             {/* Background Theme Selector */}
             <FormControl fullWidth variant="outlined">
-              <InputLabel>Background Animation</InputLabel>
+              <InputLabel 
+                sx={{
+                  color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(11, 25, 41, 0.6)',
+                  '&.Mui-focused': {
+                    color: isDarkMode ? '#64ffda' : '#3EE4C8',
+                  },
+                }}
+              >
+                Background Animation
+              </InputLabel>
               <Select
                 value={backgroundTheme}
                 onChange={(e) => changeBackgroundTheme(e.target.value)}
@@ -270,6 +297,7 @@ const AppearanceSettings = () => {
                     ? 'rgba(255, 255, 255, 0.03)'
                     : 'rgba(0, 0, 0, 0.02)',
                   backdropFilter: 'blur(10px)',
+                  color: isDarkMode ? '#ffffff' : '#0B1929',
                   '& .MuiOutlinedInput-notchedOutline': {
                     borderColor: isDarkMode
                       ? 'rgba(100, 255, 218, 0.2)'
@@ -280,13 +308,53 @@ const AppearanceSettings = () => {
                   },
                   '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                     borderColor: isDarkMode ? '#64ffda' : '#3EE4C8',
-                  }
+                  },
+                  '& .MuiSelect-icon': {
+                    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(11, 25, 41, 0.6)',
+                  },
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: isDarkMode ? '#1a2332' : '#ffffff',
+                      backgroundImage: 'none',
+                      border: isDarkMode 
+                        ? '1px solid rgba(100, 255, 218, 0.1)' 
+                        : '1px solid rgba(62, 228, 200, 0.2)',
+                      boxShadow: isDarkMode
+                        ? '0 8px 32px rgba(0, 0, 0, 0.4)'
+                        : '0 8px 32px rgba(0, 0, 0, 0.1)',
+                      '& .MuiMenuItem-root': {
+                        color: isDarkMode ? '#ffffff' : '#0B1929',
+                        '&:hover': {
+                          backgroundColor: isDarkMode 
+                            ? 'rgba(100, 255, 218, 0.1)' 
+                            : 'rgba(62, 228, 200, 0.1)',
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: isDarkMode 
+                            ? 'rgba(100, 255, 218, 0.15)' 
+                            : 'rgba(62, 228, 200, 0.15)',
+                          '&:hover': {
+                            backgroundColor: isDarkMode 
+                              ? 'rgba(100, 255, 218, 0.2)' 
+                              : 'rgba(62, 228, 200, 0.2)',
+                          },
+                        },
+                      },
+                    },
+                  },
                 }}
               >
                 {backgroundOptions.map(option => (
                   <MenuItem key={option.value} value={option.value}>
                     <Box>
-                      <Typography>{option.label}</Typography>
+                      <Typography sx={{ 
+                        color: isDarkMode ? '#ffffff' : '#0B1929',
+                        fontWeight: 500
+                      }}>
+                        {option.label}
+                      </Typography>
                       <Typography 
                         variant="caption" 
                         sx={{ 
@@ -455,7 +523,7 @@ const AppearanceSettings = () => {
           onClick={handleSave}
           sx={{
             backgroundColor: isDarkMode ? '#64ffda' : '#3EE4C8',
-            color: isDarkMode ? '#0B1929' : '#ffffff',
+            color: '#0B1929',
             fontWeight: 600,
             px: 4,
             py: 1.5,
