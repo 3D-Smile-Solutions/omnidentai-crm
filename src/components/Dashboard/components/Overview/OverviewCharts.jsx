@@ -68,11 +68,20 @@ const OverviewCharts = ({ isMobile }) => {
   const gridColor = isDarkMode ? 'rgba(100, 255, 218, 0.1)' : 'rgba(62, 228, 200, 0.1)';
   const labelColor = isDarkMode ? '#ffffff' : '#0B1929';
 
+  // Tooltip styles - fixed for dark mode visibility
   const tooltipStyle = {
     backgroundColor: isDarkMode ? 'rgba(17, 24, 39, 0.95)' : 'rgba(255, 255, 255, 0.95)', 
     border: isDarkMode ? '1px solid rgba(100, 255, 218, 0.3)' : '1px solid rgba(62, 228, 200, 0.3)',
     borderRadius: 8,
-    color: isDarkMode ? '#ffffff' : '#0B1929'
+  };
+
+  const tooltipLabelStyle = {
+    color: isDarkMode ? '#64ffda' : '#0B1929',
+    fontWeight: 600,
+  };
+
+  const tooltipItemStyle = {
+    color: isDarkMode ? '#ffffff' : '#0B1929',
   };
 
   const COLORS = ['#3EE4C8', '#45B7D1', '#96CEB4', '#F7B801', '#FF6B6B', '#9B59B6', '#3498DB', '#DDA77B'];
@@ -103,7 +112,7 @@ const OverviewCharts = ({ isMobile }) => {
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             <XAxis dataKey="month" stroke={axisColor} tick={{ fontSize: 12, fill: axisColor }} />
             <YAxis stroke={axisColor} tick={{ fontSize: 12, fill: axisColor }} />
-            <Tooltip contentStyle={tooltipStyle} formatter={(value) => `$${value.toLocaleString()}`} />
+            <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={tooltipItemStyle} formatter={(value) => `$${value.toLocaleString()}`} />
             <Legend formatter={legendFormatter} />
             <Line type="monotone" dataKey="revenue" stroke="#3EE4C8" strokeWidth={3} name="Revenue ($)" />
           </LineChart>
@@ -128,7 +137,7 @@ const OverviewCharts = ({ isMobile }) => {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip contentStyle={tooltipStyle} />
+              <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={tooltipItemStyle} />
               <Legend verticalAlign="bottom" height={50} formatter={legendFormatter} />
             </PieChart>
           </ChartContainer>
@@ -147,7 +156,7 @@ const OverviewCharts = ({ isMobile }) => {
                 tick={{ fontSize: 10, fill: axisColor }}
               />
               <YAxis stroke={axisColor} tick={{ fontSize: 12, fill: axisColor }} />
-              <Tooltip contentStyle={tooltipStyle} />
+              <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={tooltipItemStyle} />
               <Bar dataKey="count" fill="#3EE4C8" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ChartContainer>
@@ -172,7 +181,7 @@ const OverviewCharts = ({ isMobile }) => {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip contentStyle={tooltipStyle} />
+              <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={tooltipItemStyle} />
               <Legend verticalAlign="bottom" height={50} formatter={legendFormatter} />
             </PieChart>
           </ChartContainer>
@@ -194,7 +203,7 @@ const OverviewCharts = ({ isMobile }) => {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip contentStyle={tooltipStyle} />
+              <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={tooltipItemStyle} />
               <Legend verticalAlign="bottom" height={50} formatter={legendFormatter} />
             </PieChart>
           </ChartContainer>
@@ -219,7 +228,7 @@ const OverviewCharts = ({ isMobile }) => {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip contentStyle={tooltipStyle} />
+              <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={tooltipItemStyle} />
               <Legend verticalAlign="bottom" height={50} formatter={legendFormatter} />
             </PieChart>
           </ChartContainer>
@@ -231,7 +240,7 @@ const OverviewCharts = ({ isMobile }) => {
               <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
               <XAxis dataKey="channel" stroke={axisColor} tick={{ fontSize: 12, fill: axisColor }} />
               <YAxis stroke={axisColor} tick={{ fontSize: 12, fill: axisColor }} />
-              <Tooltip contentStyle={tooltipStyle} />
+              <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={tooltipItemStyle} />
               <Bar dataKey="count" fill="#45B7D1" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ChartContainer>
@@ -256,7 +265,7 @@ const OverviewCharts = ({ isMobile }) => {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip contentStyle={tooltipStyle} />
+              <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={tooltipItemStyle} />
               <Legend verticalAlign="bottom" height={50} formatter={legendFormatter} />
             </PieChart>
           </ChartContainer>
@@ -278,7 +287,7 @@ const OverviewCharts = ({ isMobile }) => {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip contentStyle={tooltipStyle} />
+              <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={tooltipItemStyle} />
               <Legend verticalAlign="bottom" height={50} formatter={legendFormatter} />
             </PieChart>
           </ChartContainer>
@@ -300,7 +309,7 @@ const OverviewCharts = ({ isMobile }) => {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip contentStyle={tooltipStyle} />
+              <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={tooltipItemStyle} />
               <Legend verticalAlign="bottom" height={50} formatter={legendFormatter} />
             </PieChart>
           </ChartContainer>
@@ -325,7 +334,7 @@ const OverviewCharts = ({ isMobile }) => {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip contentStyle={tooltipStyle} />
+              <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={tooltipItemStyle} />
               <Legend verticalAlign="bottom" height={50} formatter={legendFormatter} />
             </PieChart>
           </ChartContainer>
@@ -347,7 +356,7 @@ const OverviewCharts = ({ isMobile }) => {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip contentStyle={tooltipStyle} />
+              <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={tooltipItemStyle} />
               <Legend verticalAlign="bottom" height={50} formatter={legendFormatter} />
             </PieChart>
           </ChartContainer>
@@ -369,7 +378,7 @@ const OverviewCharts = ({ isMobile }) => {
                 tick={{ fontSize: 10, fill: axisColor }}
               />
               <YAxis stroke={axisColor} tick={{ fontSize: 12, fill: axisColor }} />
-              <Tooltip contentStyle={tooltipStyle} />
+              <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={tooltipItemStyle} />
               <Bar dataKey="count" fill="#96CEB4" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ChartContainer>
@@ -388,7 +397,7 @@ const OverviewCharts = ({ isMobile }) => {
                 tick={{ fontSize: 10, fill: axisColor }}
               />
               <YAxis stroke={axisColor} tick={{ fontSize: 12, fill: axisColor }} />
-              <Tooltip contentStyle={tooltipStyle} />
+              <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={tooltipItemStyle} />
               <Bar dataKey="value" fill="#F7B801" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ChartContainer>
@@ -410,7 +419,7 @@ const OverviewCharts = ({ isMobile }) => {
                 tick={{ fontSize: 10, fill: axisColor }}
               />
               <YAxis stroke={axisColor} tick={{ fontSize: 12, fill: axisColor }} />
-              <Tooltip contentStyle={tooltipStyle} />
+              <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={tooltipItemStyle} />
               <Bar dataKey="count" fill="#FF6B6B" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ChartContainer>
@@ -422,7 +431,7 @@ const OverviewCharts = ({ isMobile }) => {
               <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
               <XAxis dataKey="channel" stroke={axisColor} tick={{ fontSize: 12, fill: axisColor }} />
               <YAxis stroke={axisColor} tick={{ fontSize: 12, fill: axisColor }} />
-              <Tooltip contentStyle={tooltipStyle} />
+              <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={tooltipItemStyle} />
               <Bar dataKey="avgMessages" fill="#9B59B6" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ChartContainer>
