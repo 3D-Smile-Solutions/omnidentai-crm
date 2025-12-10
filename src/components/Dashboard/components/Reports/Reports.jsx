@@ -212,7 +212,7 @@ const Reports = () => {
           gutterBottom 
           sx={{ 
             fontWeight: 600,
-            color: isDarkMode ? '#ffffff' : '#0B1929',
+            color: isDarkMode ? '#ffffff' : '#ffffff',
             letterSpacing: '-0.02em',
             mb: 1.5,
             fontSize: { xs: '1.75rem', sm: '2.125rem' },
@@ -225,7 +225,7 @@ const Reports = () => {
           sx={{
             color: isDarkMode 
               ? 'rgba(255, 255, 255, 0.6)' 
-              : 'rgba(11, 25, 41, 0.65)',
+              : 'rgba(255, 255, 255, 0.6)',
             fontSize: '0.95rem',
             lineHeight: 1.6,
             mb: 0,

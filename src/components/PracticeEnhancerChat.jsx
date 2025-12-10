@@ -236,8 +236,8 @@ const PracticeEnhancerChat = ({ isMobile: isMobileProp }) => {
         bgcolor: colors.headerBg,
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.75 }}>
-          <AutoAwesomeIcon sx={{ color: colors.accent, fontSize: 14 }} />
-          <Typography sx={{ color: colors.textSecondary, fontWeight: 500, fontSize: '0.7rem' }}>
+          <AutoAwesomeIcon sx={{ color: colors.accent, fontSize: 16 }} />
+          <Typography sx={{ color: colors.textSecondary, fontWeight: 500, fontSize: '0.75rem' }}>
             Quick prompts:
           </Typography>
         </Box>
@@ -252,8 +252,8 @@ const PracticeEnhancerChat = ({ isMobile: isMobileProp }) => {
                 bgcolor: colors.aiAvatarBg,
                 border: `1px solid ${colors.border}`,
                 color: colors.textPrimary,
-                fontSize: '0.65rem',
-                height: 24,
+                fontSize: '0.75rem',
+                height: 26,
                 cursor: 'pointer',
                 '&:hover': {
                   bgcolor: colors.userMsgBg,

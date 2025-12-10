@@ -1,5 +1,5 @@
 // ===========================================
-// FILE 2: src/components/Dashboard/Dashboard.jsx
+// FILE 1: src/components/Dashboard/Dashboard.jsx
 // ===========================================
 import React from 'react';
 import {
@@ -88,8 +88,11 @@ const Dashboard = () => {
     }
   };
 
+  // Check if current view needs full space (no padding/container)
+  const needsFullSpace = selectedIndex === 4; // Practice Enhancer
+
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', height: '100vh' }}>
       <CssBaseline />
       
       <Header 
@@ -111,15 +114,29 @@ const Dashboard = () => {
       
       <Box
         component="main"
-        sx={{ flexGrow: 1, p: 3, width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` } }}
+        sx={{ 
+          flexGrow: 1, 
+          p: needsFullSpace ? 0 : 3, 
+          width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` },
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100vh',
+          overflow: 'hidden'
+        }}
       >
-        <Toolbar />
+        <Toolbar sx={{ flexShrink: 0 }} />
         
-        <Container maxWidth="lg">
-          <Box sx={{ mt: 2 }}>
+        {needsFullSpace ? (
+          <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
             {renderContent()}
           </Box>
-        </Container>
+        ) : (
+          <Container maxWidth="lg" sx={{ flex: 1, overflow: 'hidden' }}>
+            <Box sx={{ mt: 2 }}>
+              {renderContent()}
+            </Box>
+          </Container>
+        )}
       </Box>
     </Box>
   );
