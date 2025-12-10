@@ -256,7 +256,7 @@ const Settings = ({ onViewSessions }) => {
                     })}
                   </Box>
                   <span>{tab.label}</span>
-                  {activeTab === index && (
+                  {/* {activeTab === index && (
                     <Chip
                       size="small"
                       label="Active"
@@ -274,7 +274,7 @@ const Settings = ({ onViewSessions }) => {
                         }
                       }}
                     />
-                  )}
+                  )} */}
                 </Box>
               }
             />
