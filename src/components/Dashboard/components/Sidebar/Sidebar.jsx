@@ -21,10 +21,11 @@ import {
   Brightness4 as DarkModeIcon,
   Brightness7 as LightModeIcon
 } from '@mui/icons-material';
+import LogoDark from '../../../../assets/LogoDark.webp';
 import OmniDentLogo from '../../../../assets/OmniDent AI Logo (1).svg';
 import { DRAWER_WIDTH, SIDEBAR_ITEMS } from '../../utils/constants';
 import { useTheme } from '../../../../context/ThemeContext';
-
+  
 const iconMap = {
   DashboardIcon: <DashboardIcon />,
   PeopleIcon: <PeopleIcon />,
@@ -89,7 +90,7 @@ const Sidebar = ({
         minHeight: 80,
       }}>
         <img 
-          src={OmniDentLogo} 
+          src={isDarkMode ? LogoDark : OmniDentLogo}
           alt="OmniDent AI" 
           style={{ 
             height: '48px',
