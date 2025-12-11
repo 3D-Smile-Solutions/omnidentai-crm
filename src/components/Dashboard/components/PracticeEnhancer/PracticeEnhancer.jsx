@@ -9,8 +9,8 @@ import { useTheme } from '../../../../context/ThemeContext';
 const PracticeEnhancer = ({ isMobile }) => {
   const { isDarkMode } = useTheme();
   
-  const textPrimary = isDarkMode ? '#ffffff' : '#ffffff';
-  const textSecondary = isDarkMode ? 'rgba(255,255,255,0.6)' : 'rgba(255, 255, 255, 0.65)';
+  const textPrimary = isDarkMode ? '#ffffff' : '#0B1929';
+  const textSecondary = isDarkMode ? 'rgba(255,255,255,0.6)' : 'rgba(11, 25, 41, 0.65)';
 
   return (
     <Box sx={{ 

@@ -48,13 +48,16 @@ const Overview = ({ isMobile }) => {
   }
 
   return (
-    <>
+    <Box sx={{ 
+      width: '100%',
+      pb: 4  // Add padding bottom to ensure last content is visible
+    }}>
       <Typography 
         variant="h4" 
         gutterBottom 
         sx={{ 
           fontWeight: 600,
-          color: isDarkMode ? '#ffffff' : '#ffffff',
+          color: isDarkMode ? '#ffffff' : '#0B1929',
         }}
       >
         Practice Overview
@@ -62,7 +65,8 @@ const Overview = ({ isMobile }) => {
       <Typography 
         paragraph 
         sx={{
-          color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(255, 255, 255, 0.7)',
+          color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(11, 25, 41, 0.7)',
+          mb: 3
         }}
       >
         Welcome to OmniDent AI. Monitor your practice performance, track patient metrics, and manage daily operations.
@@ -71,7 +75,7 @@ const Overview = ({ isMobile }) => {
       <OverviewCharts isMobile={isMobile} />
       <GoogleMapComponent />
       <TwilioUsage />
-    </>
+    </Box>
   );
 };
 

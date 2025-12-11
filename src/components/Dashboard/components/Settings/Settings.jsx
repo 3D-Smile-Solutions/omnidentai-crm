@@ -107,7 +107,7 @@ const Settings = ({ onViewSessions }) => {
               variant="h4" 
               sx={{ 
                 fontWeight: 600,
-                color: isDarkMode ? '#ffffff' : '#ffffff',
+                color: isDarkMode ? '#ffffff' : '#0B1929',
                 letterSpacing: '-0.02em',
                 fontSize: { xs: '1.75rem', sm: '2.125rem' },
               }}
@@ -119,7 +119,7 @@ const Settings = ({ onViewSessions }) => {
               sx={{
                 color: isDarkMode 
                   ? 'rgba(255, 255, 255, 0.6)' 
-                  : 'rgba(255, 255, 255, 0.6)',
+                  : 'rgba(11, 25, 41, 0.6)',
                 fontSize: '0.875rem',
               }}
             >

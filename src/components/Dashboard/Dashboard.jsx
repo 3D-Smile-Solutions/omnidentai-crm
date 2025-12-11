@@ -1,6 +1,4 @@
-// ===========================================
-// FILE 1: src/components/Dashboard/Dashboard.jsx
-// ===========================================
+// src/components/Dashboard/Dashboard.jsx
 import React from 'react';
 import {
   Box,
@@ -21,8 +19,10 @@ import Settings from './components/Settings/Settings';
 import SessionHistory from './components/Settings/SessionHistory';
 import { useDashboard } from './hooks/useDashboard';
 import { DRAWER_WIDTH } from './utils/constants';
+import { useTheme } from '../../context/ThemeContext';
 
 const Dashboard = () => {
+  const { isDarkMode } = useTheme();
   const {
     mobileOpen,
     selectedIndex,
@@ -121,7 +121,32 @@ const Dashboard = () => {
           display: 'flex',
           flexDirection: 'column',
           height: '100vh',
-          overflow: 'hidden'
+          overflow: 'auto',
+          // Custom scrollbar styles
+          '&::-webkit-scrollbar': {
+            width: '8px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: isDarkMode 
+              ? 'rgba(0, 0, 0, 0.2)' 
+              : 'rgba(255, 255, 255, 0.2)',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: isDarkMode 
+              ? 'rgba(255, 255, 255, 0.2)' 
+              : 'rgba(0, 0, 0, 0.2)',
+            borderRadius: '4px',
+            '&:hover': {
+              background: isDarkMode 
+                ? 'rgba(255, 255, 255, 0.3)' 
+                : 'rgba(0, 0, 0, 0.3)',
+            }
+          },
+          // Firefox
+          scrollbarWidth: 'thin',
+          scrollbarColor: isDarkMode 
+            ? 'rgba(255, 255, 255, 0.2) rgba(0, 0, 0, 0.2)' 
+            : 'rgba(0, 0, 0, 0.2) rgba(255, 255, 255, 0.2)',
         }}
       >
         <Toolbar sx={{ flexShrink: 0 }} />
@@ -131,8 +156,8 @@ const Dashboard = () => {
             {renderContent()}
           </Box>
         ) : (
-          <Container maxWidth="lg" sx={{ flex: 1, overflow: 'hidden' }}>
-            <Box sx={{ mt: 2 }}>
+          <Container maxWidth="lg" sx={{ flex: 1, overflow: 'visible' }}>
+            <Box sx={{ mt: 2, pb: 4 }}>
               {renderContent()}
             </Box>
           </Container>

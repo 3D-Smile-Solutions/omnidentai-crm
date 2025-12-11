@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { Renderer, Program, Mesh, Triangle, Color } from 'ogl';
-import { useTheme } from '../../context/ThemeContext';
 
 import './Threads.css';
 
@@ -23,11 +22,10 @@ uniform vec3 uColor;
 uniform float uAmplitude;
 uniform float uDistance;
 uniform vec2 uMouse;
-uniform vec3 uBackgroundColor;
 
 #define PI 3.1415926538
 
-const int u_line_count = 20;
+const int u_line_count = 40;
 const float u_line_width = 7.0;
 const float u_line_blur = 10.0;
 
@@ -114,9 +112,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     }
 
     float colorVal = 1.0 - line_strength;
-    vec3 lineColor = uColor * colorVal;
-    vec3 finalColor = mix(uBackgroundColor, lineColor, colorVal);
-    fragColor = vec4(finalColor, 1.0);
+    fragColor = vec4(uColor * colorVal, colorVal);
 }
 
 void main() {
@@ -124,38 +120,19 @@ void main() {
 }
 `;
 
-const Threads = ({ 
-  color, 
-  amplitude = 1, 
-  distance = 0, 
-  enableMouseInteraction = false,
-  ...rest 
-}) => {
+const Threads = ({ color = [1, 1, 1], amplitude = 1, distance = 0, enableMouseInteraction = false, ...rest }) => {
   const containerRef = useRef(null);
   const animationFrameId = useRef();
-  const programRef = useRef(null);
-  const { isDarkMode } = useTheme();
-
-  // Set background and line colors based on theme
-  const backgroundColor = isDarkMode 
-    ? [0.15, 0.15, 0.18]  // Dark mode: dark gray
-    : [0.85, 0.85, 0.88]; // Light mode: light ashy gray
-
-  const lineColor = color || (isDarkMode 
-    ? [1, 1, 1]           // Dark mode: white lines
-    : [0.043, 0.098, 0.161]); // Light mode: dark blue lines (#0B1929)
 
   useEffect(() => {
     if (!containerRef.current) return;
     const container = containerRef.current;
 
-    const renderer = new Renderer({ 
-      alpha: false,
-      antialias: false, // Disable antialiasing for performance
-      powerPreference: 'high-performance'
-    });
+    const renderer = new Renderer({ alpha: true });
     const gl = renderer.gl;
-    gl.clearColor(...backgroundColor, 1.0);
+    gl.clearColor(0, 0, 0, 0);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     container.appendChild(gl.canvas);
 
     const geometry = new Triangle(gl);
@@ -167,14 +144,12 @@ const Threads = ({
         iResolution: {
           value: new Color(gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height)
         },
-        uColor: { value: new Color(...lineColor) },
+        uColor: { value: new Color(...color) },
         uAmplitude: { value: amplitude },
         uDistance: { value: distance },
-        uMouse: { value: new Float32Array([0.5, 0.5]) },
-        uBackgroundColor: { value: new Color(...backgroundColor) }
+        uMouse: { value: new Float32Array([0.5, 0.5]) }
       }
     });
-    programRef.current = program;
 
     const mesh = new Mesh(gl, { geometry, program });
 
@@ -205,32 +180,20 @@ const Threads = ({
       container.addEventListener('mouseleave', handleMouseLeave);
     }
 
-    let lastTime = 0;
-    const targetFPS = 60;
-    const frameInterval = 1000 / targetFPS;
-
     function update(t) {
-      const deltaTime = t - lastTime;
-      
-      // Throttle to target FPS
-      if (deltaTime >= frameInterval) {
-        lastTime = t - (deltaTime % frameInterval);
-
-        if (enableMouseInteraction) {
-          const smoothing = 0.05;
-          currentMouse[0] += smoothing * (targetMouse[0] - currentMouse[0]);
-          currentMouse[1] += smoothing * (targetMouse[1] - currentMouse[1]);
-          program.uniforms.uMouse.value[0] = currentMouse[0];
-          program.uniforms.uMouse.value[1] = currentMouse[1];
-        } else {
-          program.uniforms.uMouse.value[0] = 0.5;
-          program.uniforms.uMouse.value[1] = 0.5;
-        }
-        program.uniforms.iTime.value = t * 0.001;
-
-        renderer.render({ scene: mesh });
+      if (enableMouseInteraction) {
+        const smoothing = 0.05;
+        currentMouse[0] += smoothing * (targetMouse[0] - currentMouse[0]);
+        currentMouse[1] += smoothing * (targetMouse[1] - currentMouse[1]);
+        program.uniforms.uMouse.value[0] = currentMouse[0];
+        program.uniforms.uMouse.value[1] = currentMouse[1];
+      } else {
+        program.uniforms.uMouse.value[0] = 0.5;
+        program.uniforms.uMouse.value[1] = 0.5;
       }
-      
+      program.uniforms.iTime.value = t * 0.001;
+
+      renderer.render({ scene: mesh });
       animationFrameId.current = requestAnimationFrame(update);
     }
     animationFrameId.current = requestAnimationFrame(update);
@@ -246,7 +209,7 @@ const Threads = ({
       if (container.contains(gl.canvas)) container.removeChild(gl.canvas);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
-  }, [lineColor, amplitude, distance, enableMouseInteraction, backgroundColor, isDarkMode]);
+  }, [color, amplitude, distance, enableMouseInteraction]);
 
   return <div ref={containerRef} className="threads-container" {...rest} />;
 };
