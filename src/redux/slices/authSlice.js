@@ -1,11 +1,9 @@
-// redux/slices/authSlice.js
-
+// frontend/src/redux/slices/authSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { API_URL } from "../../config/api";
-// const API_URL = "https://omnidentai-crm.onrender.com";
 
-// --- Thunks 
+// --- Thunks ---
 // export const signup = createAsyncThunk("auth/signup", async (formData, { rejectWithValue }) => {
 //   try {
 //     const res = await axios.post(`${API_URL}/auth/signup`, formData, { withCredentials: true });
@@ -41,6 +39,16 @@ export const logout = createAsyncThunk("auth/logout", async (_, { rejectWithValu
   }
 });
 
+// ✅ NEW: Explicit refresh token thunk
+export const refreshToken = createAsyncThunk("auth/refreshToken", async (_, { rejectWithValue }) => {
+  try {
+    const res = await axios.post(`${API_URL}/auth/refresh`, {}, { withCredentials: true });
+    return res.data;
+  } catch (err) {
+    return rejectWithValue(err.response?.data?.error || "Refresh failed");
+  }
+});
+
 // --- Slice ---
 const authSlice = createSlice({
   name: "auth",
@@ -48,33 +56,33 @@ const authSlice = createSlice({
     user: null,
     session: null,
     sessionId: null,
-    externalId: null, 
-    // signupStatus: "idle",
+    externalId: null,
     loginStatus: "idle",
     fetchStatus: "idle",
     logoutStatus: "idle",
+    refreshStatus: "idle",
     error: null,
   },
-  reducers: {},
+  reducers: {
+    // ✅ Manual action to update access token
+    setAccessToken: (state, action) => {
+      if (state.session) {
+        state.session.access_token = action.payload;
+      } else {
+        state.session = { access_token: action.payload };
+      }
+    },
+    // ✅ Clear auth state manually
+    clearAuth: (state) => {
+      state.user = null;
+      state.session = null;
+      state.sessionId = null;
+      state.externalId = null;
+      state.error = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
-      // Signup
-      // .addCase(signup.pending, (state) => {
-      //   state.signupStatus = "loading";
-      //   state.error = null;
-      // })
-      // .addCase(signup.fulfilled, (state, action) => {
-      //   state.signupStatus = "succeeded";
-        // ← Store external_id if returned
-      //   if (action.payload.externalId) {
-      //     state.externalId = action.payload.externalId;
-      //   }
-      // })
-      // .addCase(signup.rejected, (state, action) => {
-      //   state.signupStatus = "failed";
-      //   state.error = action.payload;
-      // })
-
       // Login
       .addCase(login.pending, (state) => {
         state.loginStatus = "loading";
@@ -84,14 +92,13 @@ const authSlice = createSlice({
         state.loginStatus = "succeeded";
         state.user = action.payload.user;
         state.session = action.payload.session;
-        
+
         if (action.payload.user?.sessionId) {
           state.sessionId = action.payload.user.sessionId;
         } else if (action.payload.sessionLogId) {
           state.sessionId = action.payload.sessionLogId;
         }
-        
-        // ← Store external_id
+
         if (action.payload.user?.external_id) {
           state.externalId = action.payload.user.external_id;
         }
@@ -108,7 +115,8 @@ const authSlice = createSlice({
       .addCase(fetchMe.fulfilled, (state, action) => {
         state.fetchStatus = "succeeded";
         state.user = action.payload.user || action.payload;
-        
+
+        // ✅ Store access token if returned (from refresh flow)
         if (action.payload.access_token) {
           state.session = { access_token: action.payload.access_token };
         } else if (action.payload.session) {
@@ -118,8 +126,7 @@ const authSlice = createSlice({
         if (action.payload.user?.sessionId) {
           state.sessionId = action.payload.user.sessionId;
         }
-        
-        // ← Store external_id
+
         if (action.payload.user?.external_id) {
           state.externalId = action.payload.user.external_id;
         }
@@ -127,6 +134,32 @@ const authSlice = createSlice({
       .addCase(fetchMe.rejected, (state, action) => {
         state.fetchStatus = "failed";
         state.error = action.payload;
+        // ✅ Clear user on auth failure
+        state.user = null;
+        state.session = null;
+      })
+
+      // ✅ Refresh token
+      .addCase(refreshToken.pending, (state) => {
+        state.refreshStatus = "loading";
+      })
+      .addCase(refreshToken.fulfilled, (state, action) => {
+        state.refreshStatus = "succeeded";
+        if (action.payload.access_token) {
+          state.session = { access_token: action.payload.access_token };
+        }
+        if (action.payload.user) {
+          state.user = action.payload.user;
+        }
+      })
+      .addCase(refreshToken.rejected, (state, action) => {
+        state.refreshStatus = "failed";
+        state.error = action.payload;
+        // Clear everything on refresh failure
+        state.user = null;
+        state.session = null;
+        state.sessionId = null;
+        state.externalId = null;
       })
 
       // Logout
@@ -138,13 +171,19 @@ const authSlice = createSlice({
         state.user = null;
         state.session = null;
         state.sessionId = null;
-        state.externalId = null; // ← Clear external_id
+        state.externalId = null;
       })
       .addCase(logout.rejected, (state, action) => {
         state.logoutStatus = "failed";
         state.error = action.payload;
+        // Still clear state on logout error
+        state.user = null;
+        state.session = null;
+        state.sessionId = null;
+        state.externalId = null;
       });
   },
 });
 
+export const { setAccessToken, clearAuth } = authSlice.actions;
 export default authSlice.reducer;

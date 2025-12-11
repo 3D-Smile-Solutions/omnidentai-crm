@@ -1,3 +1,4 @@
+// Auth middleware file
 import supabase from "../utils/supabaseClient.js";
 
 export async function authMiddleware(req, res, next) {
@@ -30,7 +31,7 @@ export async function authMiddleware(req, res, next) {
     res.cookie("refresh_token", data.session.refresh_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
     });
 
     req.user = data.user;

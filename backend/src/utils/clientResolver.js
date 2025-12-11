@@ -1,4 +1,4 @@
-// backend/src/utils/clientResolver.js (CREATE NEW FILE)
+// backend/src/utils/clientResolver.js 
 
 import supabase from "./supabaseClient.js";
 
