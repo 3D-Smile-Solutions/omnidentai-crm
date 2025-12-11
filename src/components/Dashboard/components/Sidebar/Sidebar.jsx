@@ -21,8 +21,8 @@ import {
   Brightness4 as DarkModeIcon,
   Brightness7 as LightModeIcon
 } from '@mui/icons-material';
-import LogoDark from '../../../../assets/LogoDark.webp';
-import OmniDentLogo from '../../../../assets/OmniDent AI Logo (1).svg';
+import LogoDark from '../../../../assets/LogoDark.png';
+import OmniDentLogo from '../../../../assets/LogoLight.png';
 import { DRAWER_WIDTH, SIDEBAR_ITEMS } from '../../utils/constants';
 import { useTheme } from '../../../../context/ThemeContext';
   
@@ -166,7 +166,7 @@ const Sidebar = ({
                       : 'rgba(62, 228, 200, 0.1)'),
                   color: isDarkMode ? '#64ffda' : '#0B1929',
                   '& .MuiListItemIcon-root': {
-                    color: isDarkMode ? '#64ffda' : '#3EE4C8',
+                    color: isDarkMode ? '#00cc9cff' : '#030303ff',
                   }
                 },
 
@@ -174,7 +174,7 @@ const Sidebar = ({
                 '& .MuiListItemIcon-root': {
                   minWidth: 40,
                   color: isSelected 
-                    ? (isDarkMode ? '#64ffda' : '#3EE4C8')
+                    ? (isDarkMode ? '#0aa380ff' : '#000000ff')
                     : (isDarkMode ? 'rgba(255, 255, 255, 0.55)' : 'rgba(11, 25, 41, 0.6)'),
                   transition: 'color 0.25s ease',
                 },
@@ -222,7 +222,7 @@ const Sidebar = ({
         p: 2,
         borderTop: isDarkMode 
           ? '1px solid rgba(100, 255, 218, 0.1)'
-          : '1px solid rgba(62, 228, 200, 0.15)',
+          : '1px solid rgba(0, 0, 0, 0.34)',
         position: 'relative',
         zIndex: 1,
       }}>
@@ -235,10 +235,10 @@ const Sidebar = ({
             borderRadius: '10px',
             backgroundColor: isDarkMode 
               ? 'rgba(100, 255, 218, 0.05)' 
-              : 'rgba(62, 228, 200, 0.1)',
+              : 'rgba(0, 0, 0, 0.1)',
             border: isDarkMode 
               ? '1px solid rgba(100, 255, 218, 0.1)' 
-              : '1px solid rgba(62, 228, 200, 0.15)',
+              : '1px solid rgba(0, 0, 0, 0.15)',
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -250,7 +250,7 @@ const Sidebar = ({
             ) : (
               <LightModeIcon sx={{ 
                 fontSize: 20, 
-                color: '#3EE4C8' 
+                color: '#020202ff' 
               }} />
             )}
             <Typography sx={{ 
@@ -269,7 +269,7 @@ const Sidebar = ({
               backgroundColor: isDarkMode 
                 ? 'rgba(100, 255, 218, 0.1)' 
                 : 'rgba(62, 228, 200, 0.15)',
-              color: isDarkMode ? '#64ffda' : '#3EE4C8',
+              color: isDarkMode ? '#64ffda' : '#020202ff',
               '&:hover': {
                 backgroundColor: isDarkMode 
                   ? 'rgba(100, 255, 218, 0.2)' 

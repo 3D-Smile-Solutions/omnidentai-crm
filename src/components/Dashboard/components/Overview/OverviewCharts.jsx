@@ -99,7 +99,7 @@ const OverviewCharts = ({ isMobile }) => {
         sx={{ 
           fontWeight: 600, 
           mb: 3,
-          color: isDarkMode ? '#ffffff' : '#0B1929'
+          color: isDarkMode ? '#ffffff' : '#ffffff'
         }}
       >
         Detailed Analytics

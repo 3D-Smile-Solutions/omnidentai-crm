@@ -54,7 +54,7 @@ const Overview = ({ isMobile }) => {
         gutterBottom 
         sx={{ 
           fontWeight: 600,
-          color: isDarkMode ? '#ffffff' : '#0B1929',
+          color: isDarkMode ? '#ffffff' : '#ffffff',
         }}
       >
         Practice Overview
@@ -62,7 +62,7 @@ const Overview = ({ isMobile }) => {
       <Typography 
         paragraph 
         sx={{
-          color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(11, 25, 41, 0.7)',
+          color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(255, 255, 255, 0.7)',
         }}
       >
         Welcome to OmniDent AI. Monitor your practice performance, track patient metrics, and manage daily operations.

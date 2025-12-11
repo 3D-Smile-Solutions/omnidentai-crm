@@ -1,9 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { Renderer, Program, Mesh, Triangle, Vec3 } from 'ogl';
+import { useTheme } from '../../context/ThemeContext';
 import './Orb.css';
 
-export default function Orb({ hue = 0, hoverIntensity = 0.2, rotateOnHover = true, forceHoverState = false }) {
+export default function Orb({ hue, hoverIntensity = 0.2, rotateOnHover = true, forceHoverState = false }) {
   const ctnDom = useRef(null);
+  const { isDarkMode } = useTheme();
+
+  // Keep the same hue (0) for both modes to maintain the original purple/pink/blue colors
+  const effectiveHue = hue !== undefined ? hue : 0;
 
   const vert = /* glsl */ `
     precision highp float;
@@ -167,7 +172,12 @@ export default function Orb({ hue = 0, hoverIntensity = 0.2, rotateOnHover = tru
     const container = ctnDom.current;
     if (!container) return;
 
-    const renderer = new Renderer({ alpha: true, premultipliedAlpha: false });
+    const renderer = new Renderer({ 
+      alpha: true, 
+      premultipliedAlpha: false,
+      antialias: false, // Disable for performance
+      powerPreference: 'high-performance'
+    });
     const gl = renderer.gl;
     gl.clearColor(0, 0, 0, 0);
     container.appendChild(gl.canvas);
@@ -181,7 +191,7 @@ export default function Orb({ hue = 0, hoverIntensity = 0.2, rotateOnHover = tru
         iResolution: {
           value: new Vec3(gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height)
         },
-        hue: { value: hue },
+        hue: { value: effectiveHue },
         hover: { value: 0 },
         rot: { value: 0 },
         hoverIntensity: { value: hoverIntensity }
@@ -192,7 +202,7 @@ export default function Orb({ hue = 0, hoverIntensity = 0.2, rotateOnHover = tru
 
     function resize() {
       if (!container) return;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2); // Cap DPR at 2 for performance
       const width = container.clientWidth;
       const height = container.clientHeight;
       renderer.setSize(width * dpr, height * dpr);
@@ -235,12 +245,24 @@ export default function Orb({ hue = 0, hoverIntensity = 0.2, rotateOnHover = tru
     container.addEventListener('mouseleave', handleMouseLeave);
 
     let rafId;
+    const targetFPS = 60;
+    const frameInterval = 1000 / targetFPS;
+    
     const update = t => {
       rafId = requestAnimationFrame(update);
-      const dt = (t - lastTime) * 0.001;
-      lastTime = t;
+      
+      const deltaTime = t - lastTime;
+      
+      // Throttle to target FPS
+      if (deltaTime < frameInterval) {
+        return;
+      }
+      
+      lastTime = t - (deltaTime % frameInterval);
+      const dt = deltaTime * 0.001;
+      
       program.uniforms.iTime.value = t * 0.001;
-      program.uniforms.hue.value = hue;
+      program.uniforms.hue.value = effectiveHue;
       program.uniforms.hoverIntensity.value = hoverIntensity;
 
       const effectiveHover = forceHoverState ? 1 : targetHover;
@@ -260,11 +282,12 @@ export default function Orb({ hue = 0, hoverIntensity = 0.2, rotateOnHover = tru
       window.removeEventListener('resize', resize);
       container.removeEventListener('mousemove', handleMouseMove);
       container.removeEventListener('mouseleave', handleMouseLeave);
-      container.removeChild(gl.canvas);
+      if (container.contains(gl.canvas)) {
+        container.removeChild(gl.canvas);
+      }
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hue, hoverIntensity, rotateOnHover, forceHoverState]);
+  }, [effectiveHue, hoverIntensity, rotateOnHover, forceHoverState, isDarkMode]);
 
   return <div ref={ctnDom} className="orb-container" />;
 }
