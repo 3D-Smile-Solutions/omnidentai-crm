@@ -17,6 +17,8 @@ import { Link as RouterLink } from 'react-router-dom';
 import { Visibility, VisibilityOff, Email, Lock, Brightness4, Brightness7 } from '@mui/icons-material';
 import { useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
+import LogoDark from '../assets/LogoDark.png';
+import OmniDentLogo from '../assets/LogoLight.png';
 
 const AuthForm = ({
   title,
@@ -66,45 +68,21 @@ const AuthForm = ({
               display: 'flex',
               alignItems: 'center',
               textDecoration: 'none',
-              gap: 1.5,
             }}
           >
             <Box
+              component="img"
+              src={isDarkMode ? LogoDark : OmniDentLogo}
+              alt="OmniDent Logo"
               sx={{
-                width: 40,
-                height: 40,
-                borderRadius: 1.5,
-                background: isDarkMode
-                  ? 'linear-gradient(135deg, rgba(100, 255, 218, 0.2) 0%, rgba(167, 139, 250, 0.2) 100%)'
-                  : 'linear-gradient(135deg, rgba(62, 228, 200, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%)',
-                border: isDarkMode
-                  ? '1px solid rgba(100, 255, 218, 0.3)'
-                  : '1px solid rgba(62, 228, 200, 0.3)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1rem',
-                fontWeight: 'bold',
-                color: isDarkMode ? '#64ffda' : '#3EE4C8',
+                height: { xs: 32, sm: 40 },
+                width: 'auto',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'scale(1.05)',
+                }
               }}
-            >
-              DR
-            </Box>
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: 700,
-                background: isDarkMode
-                  ? 'linear-gradient(135deg, #64ffda 0%, #a78bfa 100%)'
-                  : 'linear-gradient(135deg, #0B1929 0%, #3EE4C8 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                display: { xs: 'none', sm: 'block' },
-              }}
-            >
-              Dental Records
-            </Typography>
+            />
           </Box>
 
           {/* Theme Toggle */}
