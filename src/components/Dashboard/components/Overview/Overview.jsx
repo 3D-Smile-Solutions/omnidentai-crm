@@ -16,7 +16,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchOverviewMetrics } from '../../../../redux/slices/metricsSlice';
 import { useTheme } from '../../../../context/ThemeContext';
 import OverviewMetrics from './OverviewMetrics';
-import DateRangePicker from './DateRangePicker';
+import DateRangePicker from './Daterangepicker.jsx';
 import GoogleMapComponent from '../../../GoogleMapComponent';
 import TwilioUsage from '../../../TwilioUsage';
 import { subDays } from 'date-fns';
