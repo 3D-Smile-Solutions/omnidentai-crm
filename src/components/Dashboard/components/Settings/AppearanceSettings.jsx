@@ -116,7 +116,6 @@ const AppearanceSettings = () => {
     { value: 'none', label: 'None', description: 'Clean interface without animations' },
     { value: 'lightRays', label: 'Light Rays', description: 'Dynamic light rays effect' },
     { value: 'gradientBlinds', label: 'Gradient Blinds', description: 'Animated gradient blinds' },
-    { value: 'threads', label: 'Threads', description: 'Flowing threads animation' },
     { value: 'orb', label: 'Orb', description: 'Floating orb effect' },
   ].filter(option => isDarkMode || option.value !== 'gradientBlinds');
 

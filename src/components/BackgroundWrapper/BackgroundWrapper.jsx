@@ -46,17 +46,6 @@ const BackgroundWrapper = ({ children }) => {
             />
           </Box>
         );
-      case 'threads':
-        return (
-          <Box sx={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: -1 }}>
-            <Threads
-              color={isDarkMode ? [1, 1, 1] : [0.043, 0.098, 0.16]}
-              amplitude={1}
-              distance={0}
-              enableMouseInteraction={true}
-            />
-          </Box>
-        );
       case 'orb':
         return (
           <Box sx={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: -1 }}>
