@@ -22,7 +22,7 @@ import {
   Settings as SettingsIcon
 } from '@mui/icons-material';
 import UserMenu from './UserMenu';
-import GlobalSearchResults from '../../GlobalSearchResults';
+import GlobalSearchResults from '../../Globalsearchresults.jsx';
 import { DRAWER_WIDTH } from '../../utils/constants';
 import { useTheme } from '../../../../context/ThemeContext';
 
