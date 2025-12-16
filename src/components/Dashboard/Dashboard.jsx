@@ -17,7 +17,7 @@ import Reports from './components/Reports/Reports';
 import PracticeEnhancer from './components/PracticeEnhancer/PracticeEnhancer';
 import Settings from './components/Settings/Settings';
 import SessionHistory from './components/Settings/SessionHistory';
-import RevenueAnalytics from './components/Analytics/RevenueAnalytics';
+import RevenueAnalytics from './components/Analytics/Revenueanalytics.jsx';
 import AppointmentsAnalytics from './components/Analytics/AppointmentsAnalytics';
 import AIPerformanceAnalytics from './components/Analytics/AIPerformanceAnalytics';
 import PatientAnalytics from './components/Analytics/PatientAnalytics';
