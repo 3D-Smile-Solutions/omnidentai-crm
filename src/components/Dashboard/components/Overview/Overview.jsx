@@ -547,28 +547,9 @@ const Overview = ({ isMobile }) => {
               gridTemplateColumns: { xs: '1fr', lg: 'repeat(2, 1fr)' },
               gap: { xs: 2, sm: 3 },
             }}>
-              <Box sx={{
-                background: tokens.bgSubtle,
-                borderRadius: '12px',
-                border: `1px solid ${tokens.border}`,
-                overflow: 'hidden',
-                minHeight: { xs: 280, sm: 360 },
-                transition: 'all 0.3s ease',
-                ...cardHoverStyle,
-              }}>
+
                 <GoogleMapComponent />
-              </Box>
-              <Box sx={{
-                background: tokens.bgSubtle,
-                borderRadius: '12px',
-                border: `1px solid ${tokens.border}`,
-                overflow: 'hidden',
-                minHeight: { xs: 280, sm: 360 },
-                transition: 'all 0.3s ease',
-                ...cardHoverStyle,
-              }}>
                 <TwilioUsage />
-              </Box>
             </Box>
           </Box>
         </Fade>
