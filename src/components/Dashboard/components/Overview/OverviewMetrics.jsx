@@ -17,6 +17,9 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
+// Font family constant - Roboto for clean, professional look
+const FONT_FAMILY = '"Roboto", -apple-system, BlinkMacSystemFont, sans-serif';
+
 // Mini sparkline data generator
 const generateSparkline = (trend = 'up', points = 12) => {
   const base = trend === 'up' ? 40 : 60;
@@ -33,8 +36,8 @@ const KPICard = ({ label, value, change, changeLabel, sparklineData, sparklineCo
   return (
     <Box sx={{
       background: tokens.bgSubtle,
-      border: `0px solid ${tokens.border}`,
-      borderRadius: '12px',
+      border: `1px solid ${tokens.border}`,
+      borderRadius: '14px',
       p: { xs: 1.5, sm: 2, md: 2.5 },
       minHeight: { xs: 120, sm: 140, md: 160 },
       position: 'relative',
@@ -47,6 +50,10 @@ const KPICard = ({ label, value, change, changeLabel, sparklineData, sparklineCo
         background: isDarkMode 
         ? 'linear-gradient(180deg, rgba(59, 131, 246, 0.90) 0%, rgba(34, 47, 66, 0.9) 50%, rgba(24, 24, 27, 0.90) 100%)'
           : 'linear-gradient(180deg, rgba(59, 187, 246, 0.9) 0%, rgba(255, 255, 255, 0.90) 100%)',
+        transform: 'translateY(-2px)',
+        boxShadow: isDarkMode 
+          ? '0 8px 32px rgba(59, 131, 246, 0.15)'
+          : '0 8px 32px rgba(59, 131, 246, 0.1)',
       },
     }}>
       <Box sx={{ 
@@ -56,6 +63,7 @@ const KPICard = ({ label, value, change, changeLabel, sparklineData, sparklineCo
         right: 0, 
         height: '50%',
         opacity: 0.6,
+        pointerEvents: 'none',
       }}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={sparklineData}>
@@ -81,10 +89,10 @@ const KPICard = ({ label, value, change, changeLabel, sparklineData, sparklineCo
           fontSize: { xs: '0.625rem', sm: '0.6875rem' },
           fontWeight: 600,
           color: tokens.textTertiary,
-          letterSpacing: '0.05em',
+          letterSpacing: '0.06em',
           mb: { xs: 0.5, sm: 1 },
           textTransform: 'uppercase',
-          fontFamily: '"DM Sans", system-ui, sans-serif',
+          fontFamily: FONT_FAMILY,
         }}>
           {label}
         </Typography>
@@ -96,9 +104,9 @@ const KPICard = ({ label, value, change, changeLabel, sparklineData, sparklineCo
             fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.875rem' },
             fontWeight: 700,
             color: tokens.textPrimary,
-            letterSpacing: '-0.03em',
+            letterSpacing: '-0.035em',
             lineHeight: 1,
-            fontFamily: '"DM Sans", system-ui, sans-serif',
+            fontFamily: FONT_FAMILY,
           }}>
             {value}
           </Typography>
@@ -118,9 +126,9 @@ const KPICard = ({ label, value, change, changeLabel, sparklineData, sparklineCo
             display: 'flex',
             alignItems: 'center',
             gap: 0.25,
-            px: 0.5,
+            px: 0.75,
             py: 0.25,
-            borderRadius: '4px',
+            borderRadius: '6px',
             background: isPositive ? tokens.accentMuted : 'rgba(239,68,68,0.1)',
           }}>
             {isPositive ? (
@@ -132,7 +140,7 @@ const KPICard = ({ label, value, change, changeLabel, sparklineData, sparklineCo
               fontSize: { xs: '0.625rem', sm: '0.6875rem' },
               fontWeight: 600,
               color: isPositive ? tokens.accent : '#ef4444',
-              fontFamily: '"DM Sans", system-ui, sans-serif',
+              fontFamily: FONT_FAMILY,
             }}>
               {Math.abs(change)}%
             </Typography>
@@ -141,7 +149,8 @@ const KPICard = ({ label, value, change, changeLabel, sparklineData, sparklineCo
             fontSize: { xs: '0.5625rem', sm: '0.625rem' },
             color: tokens.textTertiary,
             display: { xs: 'none', sm: 'block' },
-            fontFamily: '"DM Sans", system-ui, sans-serif',
+            fontFamily: FONT_FAMILY,
+            fontWeight: 500,
           }}>
             {changeLabel}
           </Typography>
@@ -158,9 +167,9 @@ const SecondaryMetricItem = ({ icon: Icon, label, value, target, loading, color,
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2 } }}>
       <Box sx={{
-        width: { xs: 36, sm: 40 },
-        height: { xs: 36, sm: 40 },
-        borderRadius: '10px',
+        width: { xs: 38, sm: 42 },
+        height: { xs: 38, sm: 42 },
+        borderRadius: '12px',
         background: `${color}15`,
         display: 'flex',
         alignItems: 'center',
@@ -176,7 +185,7 @@ const SecondaryMetricItem = ({ icon: Icon, label, value, target, loading, color,
             fontSize: { xs: '0.75rem', sm: '0.8125rem' },
             fontWeight: 500,
             color: tokens.textSecondary,
-            fontFamily: '"DM Sans", system-ui, sans-serif',
+            fontFamily: FONT_FAMILY,
           }}>
             {label}
           </Typography>
@@ -185,7 +194,8 @@ const SecondaryMetricItem = ({ icon: Icon, label, value, target, loading, color,
               fontSize: { xs: '0.5625rem', sm: '0.625rem' },
               color: tokens.textTertiary,
               display: { xs: 'none', sm: 'block' },
-              fontFamily: '"DM Sans", system-ui, sans-serif',
+              fontFamily: FONT_FAMILY,
+              fontWeight: 500,
             }}>
               Target: {target}
             </Typography>
@@ -200,24 +210,24 @@ const SecondaryMetricItem = ({ icon: Icon, label, value, target, loading, color,
               fontSize: { xs: '1.125rem', sm: '1.25rem' },
               fontWeight: 700,
               color: tokens.textPrimary,
-              letterSpacing: '-0.02em',
+              letterSpacing: '-0.025em',
               lineHeight: 1,
               mb: 0.5,
-              fontFamily: '"DM Sans", system-ui, sans-serif',
+              fontFamily: FONT_FAMILY,
             }}>
               {value}
             </Typography>
 
             <Box sx={{
               height: 4,
-              borderRadius: 2,
+              borderRadius: 4,
               background: tokens.border,
               overflow: 'hidden',
             }}>
               <Box sx={{
                 height: '100%',
                 width: `${progress}%`,
-                borderRadius: 2,
+                borderRadius: 4,
                 background: color,
                 transition: 'width 0.6s ease',
               }} />
@@ -235,8 +245,8 @@ const PerformanceRing = ({ value, label, color, tokens }) => {
   const offset = circumference - (value / 100) * circumference;
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
-      <Box sx={{ position: 'relative', width: { xs: 56, sm: 64 }, height: { xs: 56, sm: 64 } }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75 }}>
+      <Box sx={{ position: 'relative', width: { xs: 58, sm: 66 }, height: { xs: 58, sm: 66 } }}>
         <svg width="100%" height="100%" viewBox="0 0 64 64" style={{ transform: 'rotate(-90deg)' }}>
           <circle cx="32" cy="32" r="26" fill="none" stroke={tokens.border} strokeWidth="5" />
           <circle
@@ -247,25 +257,25 @@ const PerformanceRing = ({ value, label, color, tokens }) => {
         </svg>
         <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Typography sx={{
-            fontSize: { xs: '0.8125rem', sm: '0.9375rem' },
+            fontSize: { xs: '0.875rem', sm: '1rem' },
             fontWeight: 700,
             color: tokens.textPrimary,
             letterSpacing: '-0.02em',
-            fontFamily: '"DM Sans", system-ui, sans-serif',
+            fontFamily: FONT_FAMILY,
           }}>
             {value}%
           </Typography>
         </Box>
       </Box>
       <Typography sx={{
-        fontSize: { xs: '0.5rem', sm: '0.5625rem' },
+        fontSize: { xs: '0.5625rem', sm: '0.625rem' },
         fontWeight: 600,
         color: tokens.textTertiary,
         textAlign: 'center',
         lineHeight: 1.2,
         textTransform: 'uppercase',
-        letterSpacing: '0.03em',
-        fontFamily: '"DM Sans", system-ui, sans-serif',
+        letterSpacing: '0.04em',
+        fontFamily: FONT_FAMILY,
       }}>
         {label}
       </Typography>
@@ -311,6 +321,10 @@ const OverviewMetrics = ({ tokens, renderQuickAnalytics }) => {
       background: isDarkMode 
         ? 'linear-gradient(180deg, rgba(59, 131, 246, 0.90) 0%, rgba(34, 47, 66, 0.9) 50%, rgba(24, 24, 27, 0.90) 100%)'
           : 'linear-gradient(180deg, rgba(59, 187, 246, 0.9) 0%, rgba(255, 255, 255, 0.90) 100%)',
+      transform: 'translateY(-2px)',
+      boxShadow: isDarkMode 
+        ? '0 8px 32px rgba(59, 131, 246, 0.15)'
+        : '0 8px 32px rgba(59, 131, 246, 0.1)',
     },
   };
 
@@ -346,8 +360,8 @@ const OverviewMetrics = ({ tokens, renderQuickAnalytics }) => {
           {/* Key Metrics */}
           <Box sx={{
             background: tokens.bgSubtle,
-            border: `0px solid ${tokens.border}`,
-            borderRadius: '12px',
+            border: `1px solid ${tokens.border}`,
+            borderRadius: '14px',
             p: { xs: 1.5, sm: 2 },
             flex: { xs: 'none', lg: '1 1 auto' },
             overflow: 'hidden',
@@ -360,11 +374,11 @@ const OverviewMetrics = ({ tokens, renderQuickAnalytics }) => {
               fontSize: '0.6875rem',
               fontWeight: 600,
               color: tokens.textTertiary,
-              letterSpacing: '0.05em',
+              letterSpacing: '0.06em',
               textTransform: 'uppercase',
               mb: { xs: 1.5, sm: 2 },
               flexShrink: 0,
-              fontFamily: '"DM Sans", system-ui, sans-serif',
+              fontFamily: FONT_FAMILY,
             }}>
               Key Metrics
             </Typography>
@@ -385,8 +399,8 @@ const OverviewMetrics = ({ tokens, renderQuickAnalytics }) => {
           {/* AI Performance */}
           <Box sx={{
             background: tokens.bgSubtle,
-            border: `0px solid ${tokens.border}`,
-            borderRadius: '12px',
+            border: `1px solid ${tokens.border}`,
+            borderRadius: '14px',
             p: { xs: 1.5, sm: 2 },
             flexShrink: 0,
             transition: 'all 0.3s ease',
@@ -396,10 +410,10 @@ const OverviewMetrics = ({ tokens, renderQuickAnalytics }) => {
               fontSize: '0.6875rem',
               fontWeight: 600,
               color: tokens.textTertiary,
-              letterSpacing: '0.05em',
+              letterSpacing: '0.06em',
               textTransform: 'uppercase',
               mb: { xs: 1, sm: 1.5 },
-              fontFamily: '"DM Sans", system-ui, sans-serif',
+              fontFamily: FONT_FAMILY,
             }}>
               AI Performance
             </Typography>

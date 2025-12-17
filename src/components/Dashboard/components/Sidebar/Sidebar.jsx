@@ -40,8 +40,20 @@ const Sidebar = ({
   onSelectIndex, 
   onMobileClose 
 }) => {
-  const { isDarkMode, toggleDarkMode } = useTheme();
+  const { isDarkMode, toggleDarkMode, backgroundTheme, changeBackgroundTheme } = useTheme();
   const [analyticsExpanded, setAnalyticsExpanded] = useState(false);
+
+  // Light mode compatible backgrounds
+  const lightModeBackgrounds = ['none', 'lightRays', 'orb'];
+
+  const handleToggleDarkMode = () => {
+    // If switching to light mode and current background is gradientBlinds, switch to a random compatible one
+    if (isDarkMode && backgroundTheme === 'gradientBlinds') {
+      const randomBg = lightModeBackgrounds[Math.floor(Math.random() * lightModeBackgrounds.length)];
+      changeBackgroundTheme(randomBg);
+    }
+    toggleDarkMode();
+  };
 
   // Main navigation items (including Practice Enhancer now)
   const mainNavItems = [
@@ -336,7 +348,7 @@ const Sidebar = ({
           </Box>
           
           <IconButton
-            onClick={toggleDarkMode}
+            onClick={handleToggleDarkMode}
             size="small"
             sx={{
               backgroundColor: isDarkMode 

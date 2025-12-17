@@ -393,7 +393,7 @@ const AppointmentsAnalytics = () => {
       width: '100%',
       background: isDarkMode 
         ? 'linear-gradient(135deg, rgba(9, 9, 11, 0.57) 0%, rgba(24, 24, 27, 0.47) 50%, rgba(9, 9, 11, 0.37) 100%)'
-        : 'linear-gradient(135deg, rgba(250,250,250,0.9) 0%, rgba(255,255,255,0.95) 50%, rgba(250,250,250,0.9) 100%)',
+        : 'linear-gradient(135deg, rgba(250,250,250,0.57) 0%, rgba(255,255,255,0.47) 50%, rgba(250,250,250,0.37) 100%)',
       backdropFilter: 'blur(10px)',
       WebkitBackdropFilter: 'blur(10px)',
       fontFamily: '"DM Sans", system-ui, sans-serif',

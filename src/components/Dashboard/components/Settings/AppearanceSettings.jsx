@@ -119,6 +119,18 @@ const AppearanceSettings = () => {
     { value: 'orb', label: 'Orb', description: 'Floating orb effect' },
   ].filter(option => isDarkMode || option.value !== 'gradientBlinds');
 
+  // Light mode compatible backgrounds
+  const lightModeBackgrounds = ['none', 'lightRays', 'orb'];
+
+  const handleToggleDarkMode = () => {
+    // If switching to light mode and current background is gradientBlinds, switch to a random compatible one
+    if (isDarkMode && backgroundTheme === 'gradientBlinds') {
+      const randomBg = lightModeBackgrounds[Math.floor(Math.random() * lightModeBackgrounds.length)];
+      changeBackgroundTheme(randomBg);
+    }
+    toggleDarkMode();
+  };
+
   const handleDensityChange = (density) => {
     setSettings({ ...settings, density });
   };
@@ -224,7 +236,7 @@ const AppearanceSettings = () => {
                 control={
                   <Switch
                     checked={isDarkMode}
-                    onChange={toggleDarkMode}
+                    onChange={handleToggleDarkMode}
                     sx={{
                       '& .MuiSwitch-track': {
                         backgroundColor: isDarkMode

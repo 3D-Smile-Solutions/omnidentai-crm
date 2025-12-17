@@ -33,6 +33,9 @@ import {
   Cell,
 } from 'recharts';
 
+// Font family constant - Roboto for clean, professional look
+const FONT_FAMILY = '"Roboto", -apple-system, BlinkMacSystemFont, sans-serif';
+
 // Custom tooltip
 const CustomTooltip = ({ active, payload, label, tokens, formatter }) => {
   if (!active || !payload?.length) return null;
@@ -41,15 +44,18 @@ const CustomTooltip = ({ active, payload, label, tokens, formatter }) => {
     <Box sx={{
       background: tokens.bgSubtle,
       border: `1px solid ${tokens.border}`,
-      borderRadius: '10px',
+      borderRadius: '12px',
       p: 1.5,
-      boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+      backdropFilter: 'blur(8px)',
     }}>
       <Typography sx={{ 
         fontSize: '0.7rem', 
         color: tokens.textTertiary, 
         mb: 0.5,
-        fontFamily: '"DM Sans", system-ui, sans-serif',
+        fontFamily: FONT_FAMILY,
+        fontWeight: 500,
+        letterSpacing: '0.01em',
       }}>
         {label}
       </Typography>
@@ -60,7 +66,7 @@ const CustomTooltip = ({ active, payload, label, tokens, formatter }) => {
             fontSize: '0.8rem', 
             fontWeight: 600, 
             color: tokens.textPrimary,
-            fontFamily: '"DM Sans", system-ui, sans-serif',
+            fontFamily: FONT_FAMILY,
           }}>
             {formatter ? formatter(entry.value) : entry.value}
           </Typography>
@@ -103,7 +109,7 @@ const Overview = ({ isMobile }) => {
     bgBlur: isDarkMode 
       ? 'rgba(9, 9, 11, 0.7)'
       : 'rgba(250, 250, 250, 0.7)',
-    bgSubtle: isDarkMode ? '#18181bd8' : '#ffffff',
+    bgSubtle: isDarkMode ? '#18181bd8' : '#ffffffff',
     border: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
     textPrimary: isDarkMode ? '#fafafa' : '#09090b',
     textSecondary: isDarkMode ? 'rgba(250,250,250,0.5)' : 'rgba(9,9,11,0.5)',
@@ -150,14 +156,14 @@ const Overview = ({ isMobile }) => {
                 dataKey="month" 
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 10, fill: tokens.textTertiary }}
+                tick={{ fontSize: 10, fill: tokens.textTertiary, fontFamily: FONT_FAMILY }}
                 dy={8}
                 interval="preserveStartEnd"
               />
               <YAxis 
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 10, fill: tokens.textTertiary }}
+                tick={{ fontSize: 10, fill: tokens.textTertiary, fontFamily: FONT_FAMILY }}
                 tickFormatter={(v) => `$${v/1000}k`}
                 dx={-5}
                 width={40}
@@ -185,14 +191,14 @@ const Overview = ({ isMobile }) => {
                 type="number"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 10, fill: tokens.textTertiary }}
+                tick={{ fontSize: 10, fill: tokens.textTertiary, fontFamily: FONT_FAMILY }}
               />
               <YAxis 
                 type="category"
                 dataKey="type"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 10, fill: tokens.textTertiary }}
+                tick={{ fontSize: 10, fill: tokens.textTertiary, fontFamily: FONT_FAMILY }}
                 width={70}
               />
               <Tooltip content={<CustomTooltip tokens={tokens} />} />
@@ -220,13 +226,13 @@ const Overview = ({ isMobile }) => {
                 dataKey="channel"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 10, fill: tokens.textTertiary }}
+                tick={{ fontSize: 10, fill: tokens.textTertiary, fontFamily: FONT_FAMILY }}
                 dy={8}
               />
               <YAxis 
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 10, fill: tokens.textTertiary }}
+                tick={{ fontSize: 10, fill: tokens.textTertiary, fontFamily: FONT_FAMILY }}
                 dx={-5}
                 width={30}
               />
@@ -274,13 +280,13 @@ const Overview = ({ isMobile }) => {
                 dataKey="period"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 10, fill: tokens.textTertiary }}
+                tick={{ fontSize: 10, fill: tokens.textTertiary, fontFamily: FONT_FAMILY }}
                 dy={8}
               />
               <YAxis 
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 10, fill: tokens.textTertiary }}
+                tick={{ fontSize: 10, fill: tokens.textTertiary, fontFamily: FONT_FAMILY }}
                 domain={[70, 100]}
                 tickFormatter={(v) => `${v}%`}
                 dx={-5}
@@ -313,7 +319,7 @@ const Overview = ({ isMobile }) => {
           : 'linear-gradient(135deg, rgba(250,250,250,0.9) 0%, rgba(255,255,255,0.95) 50%, rgba(250,250,250,0.9) 100%)',
         backdropFilter: 'blur(40px)',
         WebkitBackdropFilter: 'blur(40px)',
-        fontFamily: '"DM Sans", system-ui, sans-serif',
+        fontFamily: FONT_FAMILY,
       }}>
         <CircularProgress 
           sx={{ 
@@ -324,10 +330,10 @@ const Overview = ({ isMobile }) => {
           thickness={3} 
         />
         <Box sx={{ textAlign: 'center' }}>
-          <Typography sx={{ color: tokens.textPrimary, fontWeight: 600, fontSize: '0.9rem' }}>
+          <Typography sx={{ color: tokens.textPrimary, fontWeight: 600, fontSize: '0.9rem', fontFamily: FONT_FAMILY }}>
             Loading insights
           </Typography>
-          <Typography sx={{ color: tokens.textTertiary, fontSize: '0.8rem', mt: 0.5 }}>
+          <Typography sx={{ color: tokens.textTertiary, fontSize: '0.8rem', mt: 0.5, fontFamily: FONT_FAMILY }}>
             Analyzing practice data...
           </Typography>
         </Box>
@@ -346,7 +352,7 @@ const Overview = ({ isMobile }) => {
         backdropFilter: 'blur(40px)',
         WebkitBackdropFilter: 'blur(40px)',
         p: 3, 
-        fontFamily: '"DM Sans", system-ui, sans-serif',
+        fontFamily: FONT_FAMILY,
       }}>
         <Box sx={{ 
           width: 56, height: 56, borderRadius: '50%', 
@@ -355,10 +361,10 @@ const Overview = ({ isMobile }) => {
         }}>
           <Typography sx={{ fontSize: '1.25rem' }}>⚠️</Typography>
         </Box>
-        <Typography sx={{ fontWeight: 600, color: tokens.textPrimary, mb: 1, fontSize: '0.95rem' }}>
+        <Typography sx={{ fontWeight: 600, color: tokens.textPrimary, mb: 1, fontSize: '0.95rem', fontFamily: FONT_FAMILY }}>
           Unable to load dashboard
         </Typography>
-        <Typography sx={{ color: tokens.textSecondary, fontSize: '0.85rem', textAlign: 'center' }}>
+        <Typography sx={{ color: tokens.textSecondary, fontSize: '0.85rem', textAlign: 'center', fontFamily: FONT_FAMILY }}>
           {error}
         </Typography>
       </Box>
@@ -371,10 +377,10 @@ const Overview = ({ isMobile }) => {
       width: '100%',
       background: isDarkMode 
         ? 'linear-gradient(135deg, rgba(9, 9, 11, 0.57) 0%, rgba(24, 24, 27, 0.47) 50%, rgba(9, 9, 11, 0.37) 100%)'
-        : 'linear-gradient(135deg, rgba(250, 250, 250, 0.9) 0%, rgba(255,255,255,0.95) 50%, rgba(250,250,250,0.9) 100%)',
+        : 'linear-gradient(135deg, rgba(250, 250, 250, 0.57) 0%, rgba(255,255,255,0.47) 50%, rgba(250,250,250,0.37) 100%)',
       backdropFilter: 'blur(10px)',
       WebkitBackdropFilter: 'blur(10px)',
-      fontFamily: '"DM Sans", system-ui, sans-serif',
+      fontFamily: FONT_FAMILY,
     }}>
       {/* Header */}
       <Fade in={mounted} timeout={600}>
@@ -407,6 +413,7 @@ const Overview = ({ isMobile }) => {
                 color: tokens.textPrimary,
                 fontSize: { xs: '1.125rem', sm: '1.25rem' },
                 letterSpacing: '-0.025em',
+                fontFamily: FONT_FAMILY,
               }}
             >
               Dashboard
@@ -438,7 +445,7 @@ const Overview = ({ isMobile }) => {
                 <Box sx={{
                   background: tokens.bgSubtle,
                   border: `1px solid ${tokens.border}`,
-                  borderRadius: '12px',
+                  borderRadius: '14px',
                   overflow: 'hidden',
                   height: '100%',
                   display: 'flex',
@@ -459,8 +466,8 @@ const Overview = ({ isMobile }) => {
                   }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                       <Box sx={{
-                        width: { xs: 32, sm: 36 },
-                        height: { xs: 32, sm: 36 },
+                        width: { xs: 32, sm: 38 },
+                        height: { xs: 32, sm: 38 },
                         borderRadius: '10px',
                         background: tokens.accentMuted,
                         display: 'flex',
@@ -473,7 +480,9 @@ const Overview = ({ isMobile }) => {
                         <Typography sx={{ 
                           fontWeight: 600, 
                           color: tokens.textPrimary,
-                          fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                          fontSize: { xs: '0.8125rem', sm: '0.9rem' },
+                          fontFamily: FONT_FAMILY,
+                          letterSpacing: '-0.01em',
                         }}>
                           Quick Analytics
                         </Typography>
@@ -481,6 +490,8 @@ const Overview = ({ isMobile }) => {
                           fontSize: '0.6875rem', 
                           color: tokens.textTertiary,
                           display: { xs: 'none', sm: 'block' },
+                          fontFamily: FONT_FAMILY,
+                          fontWeight: 500,
                         }}>
                           Key metrics overview
                         </Typography>
@@ -493,9 +504,10 @@ const Overview = ({ isMobile }) => {
                         onChange={(e) => setSelectedChart(e.target.value)}
                         sx={{
                           minWidth: { xs: 110, sm: 140 },
-                          borderRadius: '8px',
+                          borderRadius: '10px',
                           fontSize: '0.8125rem',
                           fontWeight: 500,
+                          fontFamily: FONT_FAMILY,
                           color: tokens.textPrimary,
                           background: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
                           '& .MuiOutlinedInput-notchedOutline': { borderColor: tokens.border },
@@ -506,13 +518,14 @@ const Overview = ({ isMobile }) => {
                         MenuProps={{
                           PaperProps: {
                             sx: {
-                              borderRadius: '10px',
+                              borderRadius: '12px',
                               background: isDarkMode ? '#1f1f23' : '#ffffff',
                               border: `1px solid ${tokens.border}`,
-                              boxShadow: '0 12px 24px rgba(0,0,0,0.15)',
+                              boxShadow: '0 12px 32px rgba(0,0,0,0.15)',
                               mt: 0.5,
                               '& .MuiMenuItem-root': {
                                 fontSize: '0.8125rem',
+                                fontFamily: FONT_FAMILY,
                                 color: tokens.textPrimary,
                                 py: 1,
                                 '&:hover': { background: tokens.accentMuted },
