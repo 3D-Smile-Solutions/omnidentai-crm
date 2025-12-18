@@ -33,8 +33,15 @@ import {
   Cell,
 } from 'recharts';
 
-// Font family constant - Roboto for clean, professional look
-const FONT_FAMILY = '"Roboto", -apple-system, BlinkMacSystemFont, sans-serif';
+// Font family constant - Inter for clean, professional look with excellent number rendering
+const FONT_FAMILY = '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+
+// Number styling for tabular figures (consistent width numbers for better alignment)
+const NUMBER_STYLE = {
+  fontFamily: FONT_FAMILY,
+  fontFeatureSettings: '"tnum" 1, "cv01" 1',
+  fontVariantNumeric: 'tabular-nums',
+};
 
 // Custom tooltip
 const CustomTooltip = ({ active, payload, label, tokens, formatter }) => {
@@ -66,7 +73,7 @@ const CustomTooltip = ({ active, payload, label, tokens, formatter }) => {
             fontSize: '0.8rem', 
             fontWeight: 600, 
             color: tokens.textPrimary,
-            fontFamily: FONT_FAMILY,
+            ...NUMBER_STYLE,
           }}>
             {formatter ? formatter(entry.value) : entry.value}
           </Typography>
@@ -163,7 +170,7 @@ const Overview = ({ isMobile }) => {
               <YAxis 
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 10, fill: tokens.textTertiary, fontFamily: FONT_FAMILY }}
+                tick={{ fontSize: 10, fill: tokens.textTertiary, fontFamily: FONT_FAMILY, fontFeatureSettings: '"tnum" 1' }}
                 tickFormatter={(v) => `$${v/1000}k`}
                 dx={-5}
                 width={40}
@@ -191,7 +198,7 @@ const Overview = ({ isMobile }) => {
                 type="number"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 10, fill: tokens.textTertiary, fontFamily: FONT_FAMILY }}
+                tick={{ fontSize: 10, fill: tokens.textTertiary, fontFamily: FONT_FAMILY, fontFeatureSettings: '"tnum" 1' }}
               />
               <YAxis 
                 type="category"
@@ -232,7 +239,7 @@ const Overview = ({ isMobile }) => {
               <YAxis 
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 10, fill: tokens.textTertiary, fontFamily: FONT_FAMILY }}
+                tick={{ fontSize: 10, fill: tokens.textTertiary, fontFamily: FONT_FAMILY, fontFeatureSettings: '"tnum" 1' }}
                 dx={-5}
                 width={30}
               />
@@ -286,7 +293,7 @@ const Overview = ({ isMobile }) => {
               <YAxis 
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 10, fill: tokens.textTertiary, fontFamily: FONT_FAMILY }}
+                tick={{ fontSize: 10, fill: tokens.textTertiary, fontFamily: FONT_FAMILY, fontFeatureSettings: '"tnum" 1' }}
                 domain={[70, 100]}
                 tickFormatter={(v) => `${v}%`}
                 dx={-5}

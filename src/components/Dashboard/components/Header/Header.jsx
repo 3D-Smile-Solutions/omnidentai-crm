@@ -403,7 +403,7 @@ const Header = ({
                 </Box>
                 <InputBase
                   inputRef={searchInputRef}
-                  placeholder="Search everything... (⌘K)"
+                  placeholder="Search everything..."
                   value={searchQuery}
                   onChange={handleSearchChange}
                   onFocus={handleSearchFocus}

@@ -17,8 +17,15 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-// Font family constant - Roboto for clean, professional look
-const FONT_FAMILY = '"Roboto", -apple-system, BlinkMacSystemFont, sans-serif';
+// Font family constant - Inter for clean, professional look with excellent number rendering
+const FONT_FAMILY = '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+
+// Number styling for tabular figures (consistent width numbers for better alignment)
+const NUMBER_STYLE = {
+  fontFamily: FONT_FAMILY,
+  fontFeatureSettings: '"tnum" 1, "cv01" 1',
+  fontVariantNumeric: 'tabular-nums',
+};
 
 // Mini sparkline data generator
 const generateSparkline = (trend = 'up', points = 12) => {
@@ -37,7 +44,7 @@ const KPICard = ({ label, value, change, changeLabel, sparklineData, sparklineCo
     <Box sx={{
       background: tokens.bgSubtle,
       border: `1px solid ${tokens.border}`,
-      borderRadius: '14px',
+      borderRadius: '16px',
       p: { xs: 1.5, sm: 2, md: 2.5 },
       minHeight: { xs: 120, sm: 140, md: 160 },
       position: 'relative',
@@ -45,7 +52,7 @@ const KPICard = ({ label, value, change, changeLabel, sparklineData, sparklineCo
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'space-between',
-      transition: 'all 0.3s ease',
+      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
       '&:hover': {
         background: isDarkMode 
         ? 'linear-gradient(180deg, rgba(59, 131, 246, 0.90) 0%, rgba(34, 47, 66, 0.9) 50%, rgba(24, 24, 27, 0.90) 100%)'
@@ -87,9 +94,9 @@ const KPICard = ({ label, value, change, changeLabel, sparklineData, sparklineCo
       <Box sx={{ position: 'relative', zIndex: 1 }}>
         <Typography sx={{
           fontSize: { xs: '0.625rem', sm: '0.6875rem' },
-          fontWeight: 600,
+          fontWeight: 500,
           color: tokens.textTertiary,
-          letterSpacing: '0.06em',
+          letterSpacing: '0.04em',
           mb: { xs: 0.5, sm: 1 },
           textTransform: 'uppercase',
           fontFamily: FONT_FAMILY,
@@ -98,15 +105,23 @@ const KPICard = ({ label, value, change, changeLabel, sparklineData, sparklineCo
         </Typography>
 
         {loading ? (
-          <Skeleton variant="text" width="60%" height={36} sx={{ bgcolor: tokens.border }} />
+          <Skeleton 
+            variant="text" 
+            width="60%" 
+            height={36} 
+            sx={{ 
+              bgcolor: tokens.border,
+              borderRadius: '8px',
+            }} 
+          />
         ) : (
           <Typography sx={{
             fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.875rem' },
-            fontWeight: 700,
+            fontWeight: 600,
             color: tokens.textPrimary,
-            letterSpacing: '-0.035em',
+            letterSpacing: '-0.03em',
             lineHeight: 1,
-            fontFamily: FONT_FAMILY,
+            ...NUMBER_STYLE,
           }}>
             {value}
           </Typography>
@@ -117,7 +132,7 @@ const KPICard = ({ label, value, change, changeLabel, sparklineData, sparklineCo
         <Box sx={{ 
           display: 'flex', 
           alignItems: 'center', 
-          gap: 0.5, 
+          gap: 0.75, 
           position: 'relative', 
           zIndex: 1,
           flexWrap: 'wrap',
@@ -125,10 +140,10 @@ const KPICard = ({ label, value, change, changeLabel, sparklineData, sparklineCo
           <Box sx={{
             display: 'flex',
             alignItems: 'center',
-            gap: 0.25,
-            px: 0.75,
-            py: 0.25,
-            borderRadius: '6px',
+            gap: 0.375,
+            px: 0.875,
+            py: 0.375,
+            borderRadius: '8px',
             background: isPositive ? tokens.accentMuted : 'rgba(239,68,68,0.1)',
           }}>
             {isPositive ? (
@@ -140,7 +155,7 @@ const KPICard = ({ label, value, change, changeLabel, sparklineData, sparklineCo
               fontSize: { xs: '0.625rem', sm: '0.6875rem' },
               fontWeight: 600,
               color: isPositive ? tokens.accent : '#ef4444',
-              fontFamily: FONT_FAMILY,
+              ...NUMBER_STYLE,
             }}>
               {Math.abs(change)}%
             </Typography>
@@ -167,14 +182,15 @@ const SecondaryMetricItem = ({ icon: Icon, label, value, target, loading, color,
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2 } }}>
       <Box sx={{
-        width: { xs: 38, sm: 42 },
-        height: { xs: 38, sm: 42 },
+        width: { xs: 38, sm: 44 },
+        height: { xs: 38, sm: 44 },
         borderRadius: '12px',
-        background: `${color}15`,
+        background: `${color}12`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         flexShrink: 0,
+        transition: 'all 0.2s ease',
       }}>
         <Icon sx={{ fontSize: { xs: 18, sm: 20 }, color: color }} />
       </Box>
@@ -196,6 +212,7 @@ const SecondaryMetricItem = ({ icon: Icon, label, value, target, loading, color,
               display: { xs: 'none', sm: 'block' },
               fontFamily: FONT_FAMILY,
               fontWeight: 500,
+              ...NUMBER_STYLE,
             }}>
               Target: {target}
             </Typography>
@@ -203,33 +220,41 @@ const SecondaryMetricItem = ({ icon: Icon, label, value, target, loading, color,
         </Box>
 
         {loading ? (
-          <Skeleton variant="text" width="40%" height={24} sx={{ bgcolor: tokens.border }} />
+          <Skeleton 
+            variant="text" 
+            width="40%" 
+            height={24} 
+            sx={{ 
+              bgcolor: tokens.border,
+              borderRadius: '6px',
+            }} 
+          />
         ) : (
           <>
             <Typography sx={{
               fontSize: { xs: '1.125rem', sm: '1.25rem' },
-              fontWeight: 700,
+              fontWeight: 600,
               color: tokens.textPrimary,
-              letterSpacing: '-0.025em',
+              letterSpacing: '-0.02em',
               lineHeight: 1,
-              mb: 0.5,
-              fontFamily: FONT_FAMILY,
+              mb: 0.75,
+              ...NUMBER_STYLE,
             }}>
               {value}
             </Typography>
 
             <Box sx={{
-              height: 4,
-              borderRadius: 4,
+              height: 5,
+              borderRadius: 6,
               background: tokens.border,
               overflow: 'hidden',
             }}>
               <Box sx={{
                 height: '100%',
                 width: `${progress}%`,
-                borderRadius: 4,
-                background: color,
-                transition: 'width 0.6s ease',
+                borderRadius: 6,
+                background: `linear-gradient(90deg, ${color}, ${color}dd)`,
+                transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
               }} />
             </Box>
           </>
@@ -245,23 +270,23 @@ const PerformanceRing = ({ value, label, color, tokens }) => {
   const offset = circumference - (value / 100) * circumference;
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75 }}>
-      <Box sx={{ position: 'relative', width: { xs: 58, sm: 66 }, height: { xs: 58, sm: 66 } }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+      <Box sx={{ position: 'relative', width: { xs: 60, sm: 68 }, height: { xs: 60, sm: 68 } }}>
         <svg width="100%" height="100%" viewBox="0 0 64 64" style={{ transform: 'rotate(-90deg)' }}>
           <circle cx="32" cy="32" r="26" fill="none" stroke={tokens.border} strokeWidth="5" />
           <circle
             cx="32" cy="32" r="26" fill="none" stroke={color} strokeWidth="5" strokeLinecap="round"
             strokeDasharray={circumference} strokeDashoffset={offset}
-            style={{ transition: 'stroke-dashoffset 0.8s ease' }}
+            style={{ transition: 'stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1)' }}
           />
         </svg>
         <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Typography sx={{
-            fontSize: { xs: '0.875rem', sm: '1rem' },
-            fontWeight: 700,
+            fontSize: { xs: '0.9375rem', sm: '1.0625rem' },
+            fontWeight: 600,
             color: tokens.textPrimary,
             letterSpacing: '-0.02em',
-            fontFamily: FONT_FAMILY,
+            ...NUMBER_STYLE,
           }}>
             {value}%
           </Typography>
@@ -269,12 +294,12 @@ const PerformanceRing = ({ value, label, color, tokens }) => {
       </Box>
       <Typography sx={{
         fontSize: { xs: '0.5625rem', sm: '0.625rem' },
-        fontWeight: 600,
+        fontWeight: 500,
         color: tokens.textTertiary,
         textAlign: 'center',
-        lineHeight: 1.2,
+        lineHeight: 1.3,
         textTransform: 'uppercase',
-        letterSpacing: '0.04em',
+        letterSpacing: '0.03em',
         fontFamily: FONT_FAMILY,
       }}>
         {label}
@@ -361,20 +386,20 @@ const OverviewMetrics = ({ tokens, renderQuickAnalytics }) => {
           <Box sx={{
             background: tokens.bgSubtle,
             border: `1px solid ${tokens.border}`,
-            borderRadius: '14px',
+            borderRadius: '16px',
             p: { xs: 1.5, sm: 2 },
             flex: { xs: 'none', lg: '1 1 auto' },
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
-            transition: 'all 0.3s ease',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             ...cardHoverStyle,
           }}>
             <Typography sx={{
               fontSize: '0.6875rem',
-              fontWeight: 600,
+              fontWeight: 500,
               color: tokens.textTertiary,
-              letterSpacing: '0.06em',
+              letterSpacing: '0.04em',
               textTransform: 'uppercase',
               mb: { xs: 1.5, sm: 2 },
               flexShrink: 0,
@@ -400,17 +425,17 @@ const OverviewMetrics = ({ tokens, renderQuickAnalytics }) => {
           <Box sx={{
             background: tokens.bgSubtle,
             border: `1px solid ${tokens.border}`,
-            borderRadius: '14px',
+            borderRadius: '16px',
             p: { xs: 1.5, sm: 2 },
             flexShrink: 0,
-            transition: 'all 0.3s ease',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             ...cardHoverStyle,
           }}>
             <Typography sx={{
               fontSize: '0.6875rem',
-              fontWeight: 600,
+              fontWeight: 500,
               color: tokens.textTertiary,
-              letterSpacing: '0.06em',
+              letterSpacing: '0.04em',
               textTransform: 'uppercase',
               mb: { xs: 1, sm: 1.5 },
               fontFamily: FONT_FAMILY,

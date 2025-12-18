@@ -18,6 +18,16 @@ import {
 import DateRangePicker from '../Overview/Daterangepicker.jsx';
 import { subDays } from 'date-fns';
 
+// Font family constant - Inter for clean, professional look with excellent number rendering
+const FONT_FAMILY = '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+
+// Number styling for tabular figures (consistent width numbers for better alignment)
+const NUMBER_STYLE = {
+  fontFamily: FONT_FAMILY,
+  fontFeatureSettings: '"tnum" 1, "cv01" 1',
+  fontVariantNumeric: 'tabular-nums',
+};
+
 // Custom tooltip matching Overview style
 const CustomTooltip = ({ active, payload, label, tokens, formatter }) => {
   if (!active || !payload?.length) return null;
@@ -25,16 +35,18 @@ const CustomTooltip = ({ active, payload, label, tokens, formatter }) => {
   return (
     <Box sx={{
       background: tokens.bgSubtle,
-      border: `0px solid ${tokens.border}`,
-      borderRadius: '10px',
+      border: `1px solid ${tokens.border}`,
+      borderRadius: '12px',
       p: 1.5,
-      boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+      backdropFilter: 'blur(8px)',
     }}>
       <Typography sx={{ 
         fontSize: '0.7rem', 
         color: tokens.textTertiary, 
         mb: 0.5,
-        fontFamily: '"DM Sans", system-ui, sans-serif',
+        fontFamily: FONT_FAMILY,
+        fontWeight: 500,
       }}>
         {label || payload[0]?.name}
       </Typography>
@@ -45,7 +57,7 @@ const CustomTooltip = ({ active, payload, label, tokens, formatter }) => {
             fontSize: '0.8rem', 
             fontWeight: 600, 
             color: tokens.textPrimary,
-            fontFamily: '"DM Sans", system-ui, sans-serif',
+            ...NUMBER_STYLE,
           }}>
             {formatter ? formatter(entry.value) : entry.value}
           </Typography>
@@ -61,37 +73,37 @@ const PerformanceRing = ({ value, label, color, tokens }) => {
   const offset = circumference - (value / 100) * circumference;
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
-      <Box sx={{ position: 'relative', width: { xs: 56, sm: 64 }, height: { xs: 56, sm: 64 } }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+      <Box sx={{ position: 'relative', width: { xs: 60, sm: 68 }, height: { xs: 60, sm: 68 } }}>
         <svg width="100%" height="100%" viewBox="0 0 64 64" style={{ transform: 'rotate(-90deg)' }}>
           <circle cx="32" cy="32" r="26" fill="none" stroke={tokens.border} strokeWidth="5" />
           <circle
             cx="32" cy="32" r="26" fill="none" stroke={color} strokeWidth="5" strokeLinecap="round"
             strokeDasharray={circumference} strokeDashoffset={offset}
-            style={{ transition: 'stroke-dashoffset 0.8s ease' }}
+            style={{ transition: 'stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1)' }}
           />
         </svg>
         <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Typography sx={{
-            fontSize: { xs: '0.8125rem', sm: '0.9375rem' },
-            fontWeight: 700,
+            fontSize: { xs: '0.9375rem', sm: '1.0625rem' },
+            fontWeight: 600,
             color: tokens.textPrimary,
             letterSpacing: '-0.02em',
-            fontFamily: '"DM Sans", system-ui, sans-serif',
+            ...NUMBER_STYLE,
           }}>
             {value}%
           </Typography>
         </Box>
       </Box>
       <Typography sx={{
-        fontSize: { xs: '0.5rem', sm: '0.5625rem' },
-        fontWeight: 600,
+        fontSize: { xs: '0.5625rem', sm: '0.625rem' },
+        fontWeight: 500,
         color: tokens.textTertiary,
         textAlign: 'center',
-        lineHeight: 1.2,
+        lineHeight: 1.3,
         textTransform: 'uppercase',
         letterSpacing: '0.03em',
-        fontFamily: '"DM Sans", system-ui, sans-serif',
+        fontFamily: FONT_FAMILY,
       }}>
         {label}
       </Typography>
@@ -117,7 +129,7 @@ const DistributionMetricItem = ({ title, subtitle, data, tokens }) => {
           fontSize: { xs: '0.875rem', sm: '0.9375rem' },
           fontWeight: 600,
           color: tokens.textPrimary,
-          fontFamily: '"DM Sans", system-ui, sans-serif',
+          fontFamily: FONT_FAMILY,
           lineHeight: 1.2,
         }}>
           {title}
@@ -125,7 +137,7 @@ const DistributionMetricItem = ({ title, subtitle, data, tokens }) => {
         <Typography sx={{
           fontSize: { xs: '0.6875rem', sm: '0.75rem' },
           color: tokens.textTertiary,
-          fontFamily: '"DM Sans", system-ui, sans-serif',
+          fontFamily: FONT_FAMILY,
           lineHeight: 1.2,
           mt: 0.125,
         }}>
@@ -133,18 +145,22 @@ const DistributionMetricItem = ({ title, subtitle, data, tokens }) => {
         </Typography>
       </Box>
       
-      <Box sx={{ display: 'flex', height: 5, borderRadius: 2.5, overflow: 'hidden' }}>
+      <Box sx={{ display: 'flex', height: 5, borderRadius: 6, overflow: 'hidden' }}>
         {normalizedData.map((item, index) => (
-          <Box key={index} sx={{ width: `${(item.value / total) * 100}%`, background: colors[index % colors.length], transition: 'width 0.6s ease' }} />
+          <Box key={index} sx={{ 
+            width: `${(item.value / total) * 100}%`, 
+            background: `linear-gradient(90deg, ${colors[index % colors.length]}, ${colors[index % colors.length]}dd)`,
+            transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)' 
+          }} />
         ))}
       </Box>
       
       <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
         {normalizedData.map((item, index) => (
           <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-            <Box sx={{ width: 8, height: 8, borderRadius: 1.5, background: colors[index % colors.length], flexShrink: 0 }} />
-            <Typography sx={{ fontSize: { xs: '0.75rem', sm: '0.8125rem' }, color: tokens.textSecondary, fontFamily: '"DM Sans", system-ui, sans-serif' }}>
-              {item.name}: <span style={{ fontWeight: 700, color: tokens.textPrimary }}>{typeof item.value === 'number' && item.value > 1000 ? `$${(item.value/1000).toFixed(0)}k` : item.value}</span>
+            <Box sx={{ width: 8, height: 8, borderRadius: '4px', background: colors[index % colors.length], flexShrink: 0 }} />
+            <Typography sx={{ fontSize: { xs: '0.75rem', sm: '0.8125rem' }, color: tokens.textSecondary, fontFamily: FONT_FAMILY }}>
+              {item.name}: <span style={{ fontWeight: 600, color: tokens.textPrimary, ...NUMBER_STYLE }}>{typeof item.value === 'number' && item.value > 1000 ? `$${(item.value/1000).toFixed(0)}k` : item.value}</span>
             </Typography>
           </Box>
         ))}
@@ -160,8 +176,8 @@ const StatCard = ({ label, value, change, changeLabel, sparklineData, sparklineC
   return (
     <Box sx={{
       background: tokens.bgSubtle,
-      border: `0px solid ${tokens.border}`,
-      borderRadius: '12px',
+      border: `1px solid ${tokens.border}`,
+      borderRadius: '16px',
       p: { xs: 1.5, sm: 2, md: 2.5 },
       minHeight: { xs: 120, sm: 140, md: 160 },
       position: 'relative',
@@ -169,7 +185,7 @@ const StatCard = ({ label, value, change, changeLabel, sparklineData, sparklineC
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'space-between',
-      transition: 'all 0.3s ease',
+      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
       ...cardHoverStyle,
     }}>
       <Box sx={{ 
@@ -204,26 +220,26 @@ const StatCard = ({ label, value, change, changeLabel, sparklineData, sparklineC
       <Box sx={{ position: 'relative', zIndex: 1 }}>
         <Typography sx={{
           fontSize: { xs: '0.625rem', sm: '0.6875rem' },
-          fontWeight: 600,
+          fontWeight: 500,
           color: tokens.textTertiary,
-          letterSpacing: '0.05em',
+          letterSpacing: '0.04em',
           mb: { xs: 0.5, sm: 1 },
           textTransform: 'uppercase',
-          fontFamily: '"DM Sans", system-ui, sans-serif',
+          fontFamily: FONT_FAMILY,
         }}>
           {label}
         </Typography>
 
         {loading ? (
-          <Skeleton variant="text" width="60%" height={36} sx={{ bgcolor: tokens.border }} />
+          <Skeleton variant="text" width="60%" height={36} sx={{ bgcolor: tokens.border, borderRadius: '8px' }} />
         ) : (
           <Typography sx={{
             fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.875rem' },
-            fontWeight: 700,
+            fontWeight: 600,
             color: tokens.textPrimary,
             letterSpacing: '-0.03em',
             lineHeight: 1,
-            fontFamily: '"DM Sans", system-ui, sans-serif',
+            ...NUMBER_STYLE,
           }}>
             {value}
           </Typography>
@@ -234,7 +250,7 @@ const StatCard = ({ label, value, change, changeLabel, sparklineData, sparklineC
         <Box sx={{ 
           display: 'flex', 
           alignItems: 'center', 
-          gap: 0.5, 
+          gap: 0.75, 
           position: 'relative', 
           zIndex: 1,
           flexWrap: 'wrap',
@@ -242,17 +258,17 @@ const StatCard = ({ label, value, change, changeLabel, sparklineData, sparklineC
           <Box sx={{
             display: 'flex',
             alignItems: 'center',
-            gap: 0.25,
-            px: 0.5,
-            py: 0.25,
-            borderRadius: '4px',
+            gap: 0.375,
+            px: 0.875,
+            py: 0.375,
+            borderRadius: '8px',
             background: isPositive ? tokens.accentMuted : 'rgba(239,68,68,0.1)',
           }}>
             <Typography sx={{
               fontSize: { xs: '0.625rem', sm: '0.6875rem' },
               fontWeight: 600,
               color: isPositive ? tokens.accent : '#ef4444',
-              fontFamily: '"DM Sans", system-ui, sans-serif',
+              ...NUMBER_STYLE,
             }}>
               {isPositive ? '↑' : '↓'} {Math.abs(change)}%
             </Typography>
@@ -261,7 +277,8 @@ const StatCard = ({ label, value, change, changeLabel, sparklineData, sparklineC
             fontSize: { xs: '0.5625rem', sm: '0.625rem' },
             color: tokens.textTertiary,
             display: { xs: 'none', sm: 'block' },
-            fontFamily: '"DM Sans", system-ui, sans-serif',
+            fontFamily: FONT_FAMILY,
+            fontWeight: 500,
           }}>
             {changeLabel}
           </Typography>
@@ -282,20 +299,20 @@ const DonutChart = ({ data, tokens, centerLabel, centerValue, cardHoverStyle }) 
   return (
     <Box sx={{
       background: tokens.bgSubtle,
-      border: `0px solid ${tokens.border}`,
-      borderRadius: '12px',
+      border: `1px solid ${tokens.border}`,
+      borderRadius: '16px',
       p: { xs: 1.5, sm: 2 },
-      transition: 'all 0.3s ease',
+      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
       ...cardHoverStyle,
     }}>
       <Typography sx={{
         fontSize: '0.6875rem',
-        fontWeight: 600,
+        fontWeight: 500,
         color: tokens.textTertiary,
-        letterSpacing: '0.05em',
+        letterSpacing: '0.04em',
         textTransform: 'uppercase',
         mb: { xs: 1, sm: 1.5 },
-        fontFamily: '"DM Sans", system-ui, sans-serif',
+        fontFamily: FONT_FAMILY,
       }}>
         Payment Plans
       </Typography>
@@ -323,10 +340,10 @@ const DonutChart = ({ data, tokens, centerLabel, centerValue, cardHoverStyle }) 
           </ResponsiveContainer>
           {centerLabel && (
             <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
-              <Typography sx={{ fontSize: { xs: '1.125rem', sm: '1.25rem' }, fontWeight: 700, color: tokens.textPrimary, fontFamily: '"DM Sans", system-ui, sans-serif' }}>
+              <Typography sx={{ fontSize: { xs: '1.125rem', sm: '1.25rem' }, fontWeight: 600, color: tokens.textPrimary, ...NUMBER_STYLE }}>
                 {centerValue}
               </Typography>
-              <Typography sx={{ fontSize: '0.5625rem', color: tokens.textTertiary, fontFamily: '"DM Sans", system-ui, sans-serif' }}>
+              <Typography sx={{ fontSize: '0.5625rem', color: tokens.textTertiary, fontFamily: FONT_FAMILY }}>
                 {centerLabel}
               </Typography>
             </Box>
@@ -336,9 +353,9 @@ const DonutChart = ({ data, tokens, centerLabel, centerValue, cardHoverStyle }) 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
           {normalizedData.map((item, index) => (
             <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box sx={{ width: 8, height: 8, borderRadius: 1.5, background: COLORS[index % COLORS.length], flexShrink: 0 }} />
-              <Typography sx={{ fontSize: '0.75rem', color: tokens.textSecondary, fontFamily: '"DM Sans", system-ui, sans-serif' }}>
-                {item.name}: <span style={{ fontWeight: 700, color: tokens.textPrimary }}>{item.value}</span>
+              <Box sx={{ width: 8, height: 8, borderRadius: '4px', background: COLORS[index % COLORS.length], flexShrink: 0 }} />
+              <Typography sx={{ fontSize: '0.75rem', color: tokens.textSecondary, fontFamily: FONT_FAMILY }}>
+                {item.name}: <span style={{ fontWeight: 600, color: tokens.textPrimary, ...NUMBER_STYLE }}>{item.value}</span>
               </Typography>
             </Box>
           ))}
@@ -402,6 +419,10 @@ const RevenueAnalytics = () => {
       background: isDarkMode 
         ? 'linear-gradient(180deg, rgba(59, 131, 246, 0.90) 0%, rgba(34, 47, 66, 0.9) 50%, rgba(24, 24, 27, 0.90) 100%)'
         : 'linear-gradient(180deg, rgba(59, 187, 246, 0.9) 0%, rgba(255, 255, 255, 0.90) 100%)',
+      transform: 'translateY(-2px)',
+      boxShadow: isDarkMode 
+        ? '0 8px 32px rgba(59, 131, 246, 0.15)'
+        : '0 8px 32px rgba(59, 131, 246, 0.1)',
     },
   };
 
@@ -468,7 +489,7 @@ const RevenueAnalytics = () => {
         : 'linear-gradient(135deg, rgba(250,250,250,0.57) 0%, rgba(255,255,255,0.47) 50%, rgba(250,250,250,0.37) 100%)',
       backdropFilter: 'blur(10px)',
       WebkitBackdropFilter: 'blur(10px)',
-      fontFamily: '"DM Sans", system-ui, sans-serif',
+      fontFamily: FONT_FAMILY,
     }}>
       {/* Header */}
       <Fade in={mounted} timeout={600}>
@@ -478,8 +499,8 @@ const RevenueAnalytics = () => {
           pb: 1.5,
           borderBottom: `1px solid ${tokens.border}`,
           background: isDarkMode 
-            ? 'rgba(24, 24, 27, 0.6)'
-            : 'rgba(255, 255, 255, 0.6)',
+            ? 'rgba(24, 24, 27, 0.95)'
+            : 'rgba(255, 255, 255, 0.95)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
         }}>
@@ -499,6 +520,7 @@ const RevenueAnalytics = () => {
                 color: tokens.textPrimary,
                 fontSize: { xs: '1.125rem', sm: '1.25rem' },
                 letterSpacing: '-0.025em',
+                fontFamily: FONT_FAMILY,
               }}
             >
               Revenue Analytics
@@ -545,10 +567,10 @@ const RevenueAnalytics = () => {
             {/* Monthly Revenue Trend - Left */}
             <Box sx={{
               background: tokens.bgSubtle,
-              border: `0px solid ${tokens.border}`,
-              borderRadius: '12px',
+              border: `1px solid ${tokens.border}`,
+              borderRadius: '16px',
               overflow: 'hidden',
-              transition: 'all 0.3s ease',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               ...cardHoverStyle,
             }}>
               {/* Header */}
@@ -561,12 +583,14 @@ const RevenueAnalytics = () => {
                   color: tokens.textPrimary,
                   fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                   mb: 0.25,
+                  fontFamily: FONT_FAMILY,
                 }}>
                   Monthly Revenue Trend
                 </Typography>
                 <Typography sx={{ 
                   fontSize: '0.6875rem', 
                   color: tokens.textTertiary,
+                  fontFamily: FONT_FAMILY,
                 }}>
                   Revenue performance over time
                 </Typography>
@@ -575,7 +599,7 @@ const RevenueAnalytics = () => {
               {/* Chart Content */}
               <Box sx={{ p: { xs: 1.5, sm: 2 }, height: { xs: 320, sm: 380, md: 420, lg: 460 } }}>
                 {loading ? (
-                  <Skeleton variant="rectangular" width="100%" height="100%" sx={{ borderRadius: 2, bgcolor: tokens.border }} />
+                  <Skeleton variant="rectangular" width="100%" height="100%" sx={{ borderRadius: '12px', bgcolor: tokens.border }} />
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={monthlyRevenueData}>
@@ -590,13 +614,13 @@ const RevenueAnalytics = () => {
                         dataKey="month" 
                         axisLine={false} 
                         tickLine={false} 
-                        tick={{ fontSize: 10, fill: tokens.textTertiary }} 
+                        tick={{ fontSize: 10, fill: tokens.textTertiary, fontFamily: FONT_FAMILY }} 
                         dy={8}
                       />
                       <YAxis 
                         axisLine={false} 
                         tickLine={false} 
-                        tick={{ fontSize: 10, fill: tokens.textTertiary }}
+                        tick={{ fontSize: 10, fill: tokens.textTertiary, fontFamily: FONT_FAMILY, fontFeatureSettings: '"tnum" 1' }}
                         tickFormatter={(v) => `$${v/1000}k`}
                         dx={-5}
                         width={40}
@@ -626,8 +650,8 @@ const RevenueAnalytics = () => {
                 gap: { xs: 2, sm: 4 },
               }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Box sx={{ width: 12, height: 3, borderRadius: 1, background: '#10b981' }} />
-                  <Typography sx={{ fontSize: '0.6875rem', color: tokens.textSecondary, fontFamily: '"DM Sans", system-ui, sans-serif' }}>
+                  <Box sx={{ width: 12, height: 3, borderRadius: 2, background: '#10b981' }} />
+                  <Typography sx={{ fontSize: '0.6875rem', color: tokens.textSecondary, fontFamily: FONT_FAMILY }}>
                     Monthly Revenue
                   </Typography>
                 </Box>
@@ -643,25 +667,25 @@ const RevenueAnalytics = () => {
               {/* Key Metrics - Revenue by Procedure */}
               <Box sx={{
                 background: tokens.bgSubtle,
-                border: `0px solid ${tokens.border}`,
-                borderRadius: '12px',
+                border: `1px solid ${tokens.border}`,
+                borderRadius: '16px',
                 p: { xs: 1.5, sm: 2 },
                 flex: { xs: 'none', lg: '1 1 auto' },
                 overflow: 'hidden',
                 display: 'flex',
                 flexDirection: 'column',
-                transition: 'all 0.3s ease',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 ...cardHoverStyle,
               }}>
                 <Typography sx={{
                   fontSize: '0.6875rem',
-                  fontWeight: 600,
+                  fontWeight: 500,
                   color: tokens.textTertiary,
-                  letterSpacing: '0.05em',
+                  letterSpacing: '0.04em',
                   textTransform: 'uppercase',
                   mb: { xs: 1.5, sm: 2 },
                   flexShrink: 0,
-                  fontFamily: '"DM Sans", system-ui, sans-serif',
+                  fontFamily: FONT_FAMILY,
                 }}>
                   Revenue Breakdown
                 </Typography>
@@ -716,20 +740,20 @@ const RevenueAnalytics = () => {
         <Fade in={mounted} timeout={1200}>
           <Box sx={{
             background: tokens.bgSubtle,
-            border: `0px solid ${tokens.border}`,
-            borderRadius: '12px',
+            border: `1px solid ${tokens.border}`,
+            borderRadius: '16px',
             p: { xs: 1.5, sm: 2, md: 3 },
-            transition: 'all 0.3s ease',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             ...cardHoverStyle,
           }}>
             <Typography sx={{
               fontSize: '0.6875rem',
-              fontWeight: 600,
+              fontWeight: 500,
               color: tokens.textTertiary,
-              letterSpacing: '0.05em',
+              letterSpacing: '0.04em',
               textTransform: 'uppercase',
               mb: { xs: 2, sm: 3 },
-              fontFamily: '"DM Sans", system-ui, sans-serif',
+              fontFamily: FONT_FAMILY,
             }}>
               Revenue Performance
             </Typography>
