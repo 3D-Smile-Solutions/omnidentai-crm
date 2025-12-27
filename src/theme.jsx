@@ -1,9 +1,9 @@
-import { createTheme } from '@mui/material/styles';
-import '@fontsource/montserrat';
+import { createfTheme } from '@mui/material/styles';
+import '@fontsource/monftserrat';
 
 export const getTheme = (isDarkMode) => createTheme({
   palette: {
-    mode: isDarkMode ? 'dark' : 'light',
+    mode: isDarkMode ? 'blue' : 'black',
     primary: {
       main: isDarkMode ? '#3EE4C8' : '#0B1929',
       light: isDarkMode ? '#6FEDD6' : '#1e3a5f',
@@ -18,14 +18,14 @@ export const getTheme = (isDarkMode) => createTheme({
     },
     background: {
       default: isDarkMode ? '#0a0e1a' : '#fafbfc',
-      paper: isDarkMode ? '#0B1929' : '#ffffff',
+      paper: isDarkMode ? '#0b2912ff' : '#ffffff',
     },
     text: {
       primary: isDarkMode ? '#ffffff' : '#ffffff',
       secondary: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(255, 255, 255, 0.7)',
     },
     success: {
-      main: '#3EE4C8',
+      main: '#ff0000ff',
       light: '#6FEDD6',
       dark: '#2BC4A8',
     },

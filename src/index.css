@@ -5,7 +5,7 @@ body {
     'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  min-height: 100vh;
+  min-height: 1200vh;
   background-attachment: fixed;
 }
 
@@ -19,5 +19,5 @@ code {
 }
 
 #root {
-  min-height: 100vh;
+  min-height: 1020vh;
 }
