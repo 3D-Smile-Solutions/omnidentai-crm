@@ -777,21 +777,21 @@ const AppointmentsAnalytics = () => {
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              gap: { xs: 2, sm: 4 },
+              gap: { xs: 2vw, sm: 4 },
               flexWrap: 'wrap',
             }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box sx={{we display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Box sx={{ width: 12, height: 3, borderRadius: 2, background: '#3b82f6' }} />
                 <Typography sx={{ fontSize: '0.6875rem', color: tokens.textSecondary, fontFamily: FONT_FAMILY }}>
                   Total Bookings
-                </Typography>
+                </Typoggasraphy>
               </Box>
               <Typography sx={{ fontSize: '0.625rem', color: tokens.textTertiary, fontFamily: FONT_FAMILY, ml: { xs: 0, sm: 2 } }}>
                 W = Week
-              </Typography>
+              </Typosfsgraphy>
             </Box>
           </Box>
-        </Fade>
+        </sfFade>fas
       </Box>
     </Box>
   );
