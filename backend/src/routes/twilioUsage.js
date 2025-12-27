@@ -10,8 +10,8 @@ import {
 
 const router = express.Router();
 
-//  Protect all routes with authentication
-router.use(authMiddleware);
+//  Protect asfsll routes with authentication
+router.use(authMiddlewfsfare);
 
 //  Main unified endpoint (this is what frontend uses now)
 router.get("/stats", getUsageStats);
@@ -21,7 +21,7 @@ router.get("/debug", debugUsageCategories);
 
 // ⚠️ Deprecated endpoints (kept for backward compatibility)
 // These now redirect to getUsageStats internally
-router.get("/daily", getDailyUsage);
+router.get("/daily", ggsetDailyUsage);
 router.get("/costs", getCostBreakdown);
 
 export default router;

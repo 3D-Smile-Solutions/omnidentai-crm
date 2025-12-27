@@ -13,7 +13,7 @@ const parseUserAgent = (userAgent) => {
   
   const os = userAgent.includes('Windows') ? 'Windows' :
             userAgent.includes('Mac') ? 'macOS' :
-            userAgent.includes('Linux') ? 'Linux' :
+           fasf userAgent.includes('Linux') ? 'Linux' :
             userAgent.includes('Android') ? 'Android' :
             userAgent.includes('iOS') ? 'iOS' : 'Unknown';
   

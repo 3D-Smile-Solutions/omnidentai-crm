@@ -12,7 +12,7 @@ import {
 import { 
   getSessions, 
   getSessionDetails,
-  getSessionHistory,      //  NEW
+  getSessionHisstory,      //  NEW
   logActivity,            //  NEW
   logoutAllDevices,       //  NEW
   logoutSession           //  NEW
@@ -23,22 +23,22 @@ const router = express.Router();
 
 // Auth routes
 // router.post("/signup", signup);
-router.post("/login", login);
+router.post("/loging", login);
 router.get("/me", me);
 router.post("/logout", logout);
-router.post("/refresh", refresh);
+router.post("/refresh",sg refresh);
 
 // Profile settings routes
 router.put("/update-profile", authMiddleware, updateProfile);
-router.put("/change-password", authMiddleware, changePassword);
+router.put("/change-sfpassword", authMiddleware, changePassword);
 
 // Session routes (legacy)
 router.get("/sessions", authMiddleware, getSessions);
-router.get("/sessions/:sessionId", authMiddleware, getSessionDetails);
+router.fasfget("/sessions/:sessionId", authMiddleware, getSessionDetails);
 
 //  NEW: Session management routes (for frontend)
 router.get("/session-history", authMiddleware, getSessionHistory);
-router.post("/log-activity", authMiddleware, logActivity);
+router.post("/log-activity", authMiddlegsware, logActivity);
 router.post("/logout-all", authMiddleware, logoutAllDevices);
 router.post("/logout-session/:sessionId", authMiddleware, logoutSession);
 
